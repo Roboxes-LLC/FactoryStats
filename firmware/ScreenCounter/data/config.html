@@ -1,0 +1,63 @@
+<html>
+
+<head>
+
+<style>
+body {
+   background-color: black;
+   color: white;
+}
+
+h1 {
+   font-weight: bold;
+   font-size: 16pt;
+   color: white;
+}
+   
+tr {
+   line-height: 35px; 
+}
+
+div {
+   margin-top:10px;
+   margin-bottom:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<img src="flexscreen-logo.png"/>
+
+<div id="description-div">
+Name your product counter station and connect to an Internet-connected wireless access point.   
+</div>
+
+<form method="post">
+   <table>
+   <tr><td><h1>Device Configuration</h1></td></tr>
+   <tr>
+      <td>Station id:</td>
+      <td><input type="text" name="id" value="%name"/></td>
+   </tr>
+   <tr><td><h1>Wifi Configuration</h1></td></tr>
+   <tr>
+      <td>SSID:</td>
+      <td><input type="text" name="ssid" value="%ssid"/></td>
+   </tr>
+   <tr>
+      <td>Password:</td>
+      <td><input type="password" name="password" value="%password"/></td>
+   </tr>
+   </table>
+   
+   <div><input type="submit" value="Submit"></div>
+   
+</form>
+
+<div>%info</div>
+
+</body>
+
+</html>
