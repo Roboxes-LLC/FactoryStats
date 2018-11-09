@@ -99,34 +99,43 @@ class FlexscreenDatabase extends MySqlDatabase
       parent::__construct($SERVER, $USER, $PASSWORD, $DATABASE);
    }
 
-   public function getScreenCounts($stationId, $startDate, $endDate)
+   public function getScreenCount($stationId, $startDateTime, $endDateTime)
    {
+      $screenCount = 0;
       
-   }
-   
-   public function getScreenCountsByHour($stationId, $date)
-   {
+      $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
+      $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
+      //echo $query . "<br/>";
+      $result = $this->query($query);
       
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $screenCount += intval($row["count"]);
+      }
+      
+      return ($screenCount);
    }
    
    public function updateScreenCount($stationId, $screenCount)
    {
-      updateStation($stationId);
+      $this->updateStation($stationId);
       
-      $nowHour = Time::toMySqlDate(Time::now("Y-m-d H"));
+      $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
       
       // Determine if we have an entry for this station/hour.
-      $query = "SELECT * from screencount WHERE stationId = \"$stationId\";";
+      $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+      //echo $query . "<br/>";
       $result = $this->query($query);
       
       // New entry.
-      if (!$result)
+      if ($result && ($result->num_rows == 0))
       {
          $query =
          "INSERT INTO screencount " .
          "(stationId, dateTime, count) " .
          "VALUES " .
          "('$stationId', '$nowHour', '$screenCount');";
+         //echo $query . "<br/>";
          
          $this->query($query);
       }
@@ -134,7 +143,8 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Update counter count.
-         $query = "UPDATE sensor SET count = count + $screenCount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+         $query = "UPDATE screencount SET count = count + $screenCount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+         //echo $query . "<br/>";
          $this->query($query);
       }
    }
@@ -145,22 +155,26 @@ class FlexscreenDatabase extends MySqlDatabase
       
       // Determine if we have an entry for this station.
       $query = "SELECT * from station WHERE stationId = \"$stationId\";";
+      //echo $query . "<br/>";
       $result = $this->query($query);
       
       // New entry.
-      if (!$result)
+      if ($result && ($result->num_rows == 0))
       {
          $query =
          "INSERT INTO station " .
          "(stationId, lastUpdate) " .
          "VALUES " .
          "('$stationId', '$now');";
+         //echo $query . "<br/>";
+         $this->query($query);
       }
       // Updated entry.
       else
       {
          // Record last update time.
          $query = "UPDATE station SET lastUpdate = \"$now\" WHERE stationId = \"$stationId\";";
+         //echo $query . "<br/>";
          $this->query($query);
       }
    }
