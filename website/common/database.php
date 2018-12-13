@@ -99,7 +99,7 @@ class FlexscreenDatabase extends MySqlDatabase
       parent::__construct($SERVER, $USER, $PASSWORD, $DATABASE);
    }
 
-   public function getScreenCount($stationId, $startDateTime, $endDateTime)
+   public function getCount($stationId, $startDateTime, $endDateTime)
    {
       $screenCount = 0;
       
@@ -116,11 +116,14 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($screenCount);
    }
    
-   public function updateScreenCount($stationId, $screenCount)
+   public function updateCount($stationId, $screenCount)
    {
       $this->updateStation($stationId);
       
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
+      
+      // Calculate the time since the update (in seconds).
+      $countTime = FlexscreenDatabase::calculateCountTime($stationId);
       
       // Determine if we have an entry for this station/hour.
       $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
@@ -132,9 +135,9 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO screencount " .
-         "(stationId, dateTime, count) " .
+         "(stationId, dateTime, count, countTime) " .
          "VALUES " .
-         "('$stationId', '$nowHour', '$screenCount');";
+         "('$stationId', '$nowHour', '$screenCount', '$countTime');";
          //echo $query . "<br/>";
          
          $this->query($query);
@@ -143,10 +146,42 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Update counter count.
-         $query = "UPDATE screencount SET count = count + $screenCount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+         $query = "UPDATE screencount SET count = count + $screenCount, countTime =  countTime + $countTime WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
          //echo $query . "<br/>";
          $this->query($query);
       }
+   }
+   
+   public function getUpdateTime($stationId)
+   {
+      $updateTime = "";
+      
+      $query = "SELECT updateTime from station WHERE stationId = \"$stationId\";";
+      //echo $query . "<br>";
+      $result = $this->query($query);
+      
+      if ($result && ($row = $result->fetch_assoc()))
+      {
+         $updateTime = Time::fromMySqlDate($row["updateTime"], "Y-m-d H:i:s");
+      }
+      
+      return ($updateTime);
+   }
+   
+   public function getCountTime($stationId, $startDateTime, $endDateTime)
+   {
+      $countTime = 0;
+      
+      $query = "SELECT * FROM screencount WHERE stationId = \"$stationId\" AND dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
+      //echo $query . "<br/>";
+      $result = $this->query($query);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $countTime += intval($row["countTime"]);
+      }
+      
+      return ($countTime);
    }
    
    protected function updateStation($stationId)
@@ -163,7 +198,7 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO station " .
-         "(stationId, lastUpdate) " .
+         "(stationId, updateTime) " .
          "VALUES " .
          "('$stationId', '$now');";
          //echo $query . "<br/>";
@@ -173,10 +208,35 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Record last update time.
-         $query = "UPDATE station SET lastUpdate = \"$now\" WHERE stationId = \"$stationId\";";
+         $query = "UPDATE station SET updateTime = \"$now\" WHERE stationId = \"$stationId\";";
          //echo $query . "<br/>";
          $this->query($query);
       }
+   }
+   
+   protected function calculateCountTime($stationId)
+   {
+      $countTime = 0;
+      
+      $now = new DateTime(Time::now("Y-m-d H:i:s"));
+      
+      $updateTime = new DateTime(FlexscreenDatabase::getUpdateTime($stationId), new DateTimeZone('America/New_York'));
+      
+      if ($updateTime)
+      {
+         $interval = $updateTime->diff($now);
+         
+         // With this day?  // TODO: Refine
+         if ($interval->days == 0)
+         {
+            // Convert to seconds.
+            $countTime = (($interval->h * 60 * 60) + ($interval->i * 60) + $interval->s);
+         }
+      }
+      
+      echo "Count time: " . $countTime . "<br>";
+      
+      return ($countTime);
    }
 }
 

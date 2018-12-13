@@ -2,7 +2,7 @@
 
 require_once 'common/database.php';
 
-function updateScreenCount($stationId, $screenCount)
+function updateCount($stationId, $screenCount)
 {
    $database = new FlexscreenDatabase();
    
@@ -10,11 +10,11 @@ function updateScreenCount($stationId, $screenCount)
 
    if ($database->isConnected())
    {
-      $database->updateScreenCount($stationId, $screenCount);
+      $database->updateCount($stationId, $screenCount);
    }
 }
 
-function getScreenCount($stationId, $startDateTime, $endDateTime)
+function getCount($stationId, $startDateTime, $endDateTime)
 {
    $screenCount = 0;
    
@@ -24,10 +24,67 @@ function getScreenCount($stationId, $startDateTime, $endDateTime)
    
    if ($database->isConnected())
    {
-      $screenCount = $database->getScreenCount($stationId, $startDateTime, $endDateTime);
+      $screenCount = $database->getCount($stationId, $startDateTime, $endDateTime);
    }
    
    return ($screenCount);
+}
+
+function getHourlyCount($stationId, $startDateTime, $endDateTime)
+{
+   $startDateTime = startOfDay($startDateTime);
+   $endDateTime = endOfDay($endDateTime);
+   
+   while (new DateTime($startDateTime) < new DateTime($endDateTime))
+   {
+      $hourlyCount[$startDateTime] = getCount($stationId, $startDateTime, $startDateTime);
+      
+      $startDateTime = incrementHour($startDateTime);
+   }
+   
+   return ($hourlyCount);
+}
+
+function getUpdateTime($stationId)
+{
+   $updateTime = "";
+   
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $updateTime = $database->getUpdateTime($stationId);
+   }
+   
+   return ($updateTime);
+}
+
+function getAverageCountTime($stationId, $startDateTime, $endDateTime)
+{
+   $averageUpdateTime = 0;
+   
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $startDateTime = startOfDay($startDateTime);
+      $endDateTime = endOfDay($endDateTime);
+      
+      $totalCountTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
+      
+      $count = $database->getCount($stationId, $startDateTime, $endDateTime);
+      
+      if ($count > 0)
+      {
+         $averageUpdateTime = round($totalCountTime / $count);
+      }
+   }
+   
+   return ($averageUpdateTime);
 }
 
 function startOfHour($dateTime)
@@ -84,9 +141,9 @@ if (isset($_GET["action"]))
             
             if ($stationId != "ALL")
             {
-               updateScreenCount($stationId, $screenCount);
+               updateCount($stationId, $screenCount);
                
-               echo "New screen count for this hour: " . getScreenCount($stationId, startOfHour(Time::now("Y-m-d H:i:s")), endOfHour(Time::now("Y-m-d H:i:s")));
+               echo "New screen count for this hour: " . getCount($stationId, startOfHour(Time::now("Y-m-d H:i:s")), endOfHour(Time::now("Y-m-d H:i:s")));
             }
          }
          break;
@@ -102,7 +159,7 @@ if (isset($_GET["action"]))
          $endDateTime = isset($_GET["endDateTime"]) ? $_GET["endDateTime"] : Time::now("Y-m-d H:i:s");
          $endDateTime = endOfHour($endDateTime);
          
-         $count = getScreenCount($stationId, $startDateTime, $endDateTime);
+         $count = getCount($stationId, $startDateTime, $endDateTime);
          
          $result["stationId"] = $stationId;
          $result["count"] = $count;
@@ -112,44 +169,41 @@ if (isset($_GET["action"]))
          break;
       }
       
-      case "hourlyCount":
+      case "status":
       {
          $totalCount = 0;
+         $lastUpdateTime = "UNKNOWN";
+         $averageUpdateTime = 0;
          $hourlyCount = array();
          
-         $stationId = isset($_GET["stationId"]) ? $_GET["stationId"] : "ALL";
-         
-         $startDateTime = isset($_GET["startDateTime"]) ? $_GET["startDateTime"] : Time::now("Y-m-d H:i:s");
-         $startDateTime = startOfDay($startDateTime);
-         
-         $endDateTime = isset($_GET["endDateTime"]) ? $_GET["endDateTime"] : Time::now("Y-m-d H:i:s");
-         $endDateTime = endOfDay($endDateTime);
-
-         while (new DateTime($startDateTime) < new DateTime($endDateTime))
+         if (isset($_GET["stationId"]))
          {
-            $count = getScreenCount($stationId, $startDateTime, $startDateTime);
+            $stationId = $_GET["stationId"];
             
-            $totalCount += $count; 
-            $hourlyCount[$startDateTime] = getScreenCount($stationId, $startDateTime, $startDateTime);
+            $now = Time::now("Y-m-d H:i:s");
+            $startDateTime = startOfDay($now);
+            $endDateTime = endOfDay($now);
             
-            $startDateTime = incrementHour($startDateTime);
+            $count = getCount($stationId, $startDateTime, $endDateTime);
+            
+            $hourlyCount = getHourlyCount($stationId, $startDateTime, $endDateTime);
+            
+            $updateTime = getUpdateTime($stationId);
+            
+            $averageCountTime = getAverageCountTime($stationId, $startDateTime, $endDateTime);
          }
          
          $result["stationId"] = $stationId;
-         $result["totalCount"] = $totalCount;
+         $result["count"] = $count;
          $result["hourlyCount"] = $hourlyCount;
+         $result["updateTime"] = $updateTime;
+         $result["averageCountTime"] = $averageCountTime;
          
          echo json_encode($result);
          
-         break;
+         break;         
       }
-         
-      case "ping":
-      {
-         updatePartCount($sensorId, 0);
-         break;
-      }
-         
+      
       default:
       {
          break;

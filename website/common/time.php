@@ -24,7 +24,7 @@ class Time
    
    static public function fromMySqlDate($dateString, $format)
    {
-      $dateTime= new DateTime($dateString, new DateTimeZone('UTC'));
+      $dateTime = new DateTime($dateString, new DateTimeZone('UTC'));
       $dateTime->setTimezone(new DateTimeZone('America/New_York'));
       
       return ($dateTime->format($format));
