@@ -114,9 +114,9 @@ function incrementCount()
 
 function getStationId()
 {
-   var element = document.getElementById("station-input");
+   var element = document.getElementById("station-id-input");
 
-   return (element.options[element.selectedIndex].value);
+   return (element.value);
 }
 
 function padNumber(number)

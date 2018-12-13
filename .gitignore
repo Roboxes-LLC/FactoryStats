@@ -21,3 +21,9 @@ $RECYCLE.BIN/
 # =========================
 # Operating System Files
 # =========================
+
+#Eclipse
+.buildpath
+.project
+.cproject
+.settings

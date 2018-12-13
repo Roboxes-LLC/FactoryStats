@@ -2,6 +2,26 @@
 require_once 'common/time.php';
 
 Time::init();
+
+function getStationId()
+{
+   $stationId = "";
+   
+   if (isset($_SESSION['stationId']))
+   {
+      $stationId = $_SESSION["stationId"];
+   }
+   else if (isset($_GET["stationId"]))
+   {
+      $stationId = $_GET["stationId"];
+   }
+   else if (isset($_POST["stationId"]))
+   {
+      $stationId = $_POST["stationId"];
+   }
+   
+   return ($stationId);
+}
 ?>
 
 <html>
@@ -50,6 +70,7 @@ body {
    height: 100%;
    align-items: center;
    flex-grow: 1;
+   width: 500px; /*FIX */
 }
    
 .stat-label {
@@ -72,16 +93,20 @@ body {
 
 <body>
 
+   <form>
+      <input id="station-id-input" type="hidden" name="stationId" value="<?php echo getStationId(); ?>">
+   </form>
+
 <div class="flex-vertical" style="align-items: flex-start;">
 
    <div class="flex-horizontal header">
       <div><img src="images/flexscreen-logo-hompage-2.png" width="350px"></div>
-      <select id="station-input">
+      <!-- select id="station-input">
          <option value="ALL">All Stations</option>
          <option value="STA1">Station 1</option>
          <option value="STA2">Station 2</option>
          <option value="STA3" selected>Station 3</option>
-      </select>
+      </select-->
    </div>
    
    <div class="flex-horizontal">

@@ -98,6 +98,24 @@ class FlexscreenDatabase extends MySqlDatabase
       
       parent::__construct($SERVER, $USER, $PASSWORD, $DATABASE);
    }
+   
+   public function stationExists($stationId)
+   {
+      $query = "SELECT stationId from station WHERE stationId = \"$stationId\";";
+
+      $result = $this->query($query);
+      
+      return ($result && ($result->num_rows > 0));
+   }
+   
+   public function newStation($stationId)
+   {
+      $now = new DateTime(Time::now("Y-m-d H:i:s"));
+      
+      $query = "INSERT INTO station (stationId, updateTime) VALUES ('$stationId', '$now');";
+
+      $this->query($query);
+   }  
 
    public function getCount($stationId, $startDateTime, $endDateTime)
    {
@@ -118,7 +136,10 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function updateCount($stationId, $screenCount)
    {
-      $this->updateStation($stationId);
+      if (!FlexscreenDatabase::stationExists($stationId))
+      {
+         FlexscreenDatabase::newStation($stationId);
+      }
       
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
       
@@ -150,6 +171,9 @@ class FlexscreenDatabase extends MySqlDatabase
          //echo $query . "<br/>";
          $this->query($query);
       }
+      
+      // Store a new updateTime for this station.
+      $this->updateStation($stationId);
    }
    
    public function getUpdateTime($stationId)
@@ -233,8 +257,6 @@ class FlexscreenDatabase extends MySqlDatabase
             $countTime = (($interval->h * 60 * 60) + ($interval->i * 60) + $interval->s);
          }
       }
-      
-      echo "Count time: " . $countTime . "<br>";
       
       return ($countTime);
    }
