@@ -12,7 +12,7 @@ function update()
          var json = JSON.parse(this.responseText);
          
          updateCount(json.count);
-         updateHourlyCount(json.hourlyCount);
+         //updateHourlyCount(json.hourlyCount);
          updateCountTime(json.updateTime);
          updateElapsedTime();
          updateAverageCountTime(json.averageCountTime);
@@ -71,7 +71,7 @@ function updateElapsedTime()
          var minutes = Math.floor((diff % millisInHour) / millisInMinute);
          var seconds = Math.round((diff % millisInMinute) / 1000);
          
-         timeString = hours + ":" + minutes + ":" + seconds;
+         timeString = padNumber(hours) + ":" + padNumber(minutes) + ":" + padNumber(seconds);
       }
    }
    
@@ -89,7 +89,7 @@ function updateAverageCountTime(averageCountTime)
       var minutes = Math.floor((averageCountTime % 3600) / 60);
       var seconds = (averageCountTime % 60);
       
-      timeString = hours + ":" + minutes + ":" + seconds;
+      timeString = padNumber(hours) + ":" + padNumber(minutes) + ":" + padNumber(seconds);
    }
    
    var element = document.getElementById("average-count-time-div");
@@ -117,4 +117,9 @@ function getStationId()
    var element = document.getElementById("station-input");
 
    return (element.options[element.selectedIndex].value);
+}
+
+function padNumber(number)
+{
+   return ((number < 10 ? '0' : '') + number);
 }

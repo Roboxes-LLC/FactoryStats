@@ -7,6 +7,9 @@ Time::init();
 <html>
 
 <head>
+<title>Flexscreen Counter</title>
+<link rel="stylesheet" type="text/css" href="common/flex.css"/>
+<link rel="stylesheet" type="text/css" href="common/button.css"/>
 <style>
 table {
    border-collapse: collapse;
@@ -16,48 +19,99 @@ table, th, td {
    border: 1px solid black;
    text-align: center;
 }
+
+body {
+   background: black;
+   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+}
+
+.header {
+   width: 100%;
+   align-items: center;
+   border-bottom-style: solid;
+   border-color: white;
+   border-width: 2px;
+   padding-top: 5px;
+   padding-bottom: 5px;   
+}
+
+.left-panel {
+   height: 100%;
+   background-image: url("images/Joe-Hands-Fade-In-Graphic-half.png");
+   background-repeat: no-repeat;
+   align-items: stretch;
+   justify-content: flex-start;
+   flex-grow: 1;
+   padding-top: 50px;
+   padding-left: 400px;
+}
+
+.right-panel {
+   height: 100%;
+   align-items: center;
+   flex-grow: 1;
+}
+   
+.stat-label {
+   color: white;
+   font-size: 24px;
+}
+
+.large-stat {
+   color: white;
+   font-size: 100px;
+}
+
+.urgent-stat {
+   color: yellow;
+}
+
+
 </style>
 </head>
 
 <body>
 
-Selected station:
-<select id="station-input">
-  <option value="ALL">All Stations</option>
-  <option value="STA1">Station 1</option>
-  <option value="STA2">Station 2</option>
-  <option value="STA3">Station 3</option>
-</select>
+<div class="flex-vertical" style="align-items: flex-start;">
 
-<br/>
-<br/>
-
-<button onclick="incrementCount(); update();">Increment</button>
-
-<br/>
-<br/>
-
-Count:<br/>
-<div id="count-div">
+   <div class="flex-horizontal header">
+      <div><img src="images/flexscreen-logo-hompage-2.png" width="350px"></div>
+      <select id="station-input">
+         <option value="ALL">All Stations</option>
+         <option value="STA1">Station 1</option>
+         <option value="STA2">Station 2</option>
+         <option value="STA3" selected>Station 3</option>
+      </select>
+   </div>
+   
+   <div class="flex-horizontal">
+   
+      <div class="flex-vertical left-panel">
+      
+         <div class="stat-label">Today's screen count</div>
+         <div id="count-div" class="large-stat"></div>
+         
+          <div class="stat-label">Average time between screens</div>
+         <div id="average-count-time-div" class="large-stat"></div>
+         
+         <div class="stat-label">Time since last screen</div>
+         <div id="elapsed-time-div" class="large-stat urgent-stat"></div>
+         
+      </div>
+   
+      <div class="flex-vertical right-panel">
+         <div class="btn btn-blob" onclick="incrementCount(); update();">+</div>
+      </div>
+      
+   </div>
+   
 </div>
 
-<br/>
-
-Time since last count:<br/>
-<div id="elapsed-time-div">Boner!
-</div>
-
-<br/>
-
-Average count time:<br/>
-<div id="average-count-time-div">
-</div>
-
-<br/>
-
+<!--
 Hourly count:<br/>
 <div id="hourly-count-div">
 </div>
+-->
 
 <script src="flexscreen.js"></script>
 <script>
@@ -65,7 +119,7 @@ Hourly count:<br/>
    setInterval(function(){update();}, 5000);
 
    // Start a one-second timer to update the elapsed-time-div.
-   setInterval(function(){updateElapsedTime();}, 1000);
+   setInterval(function(){updateElapsedTime();}, 500);
    update();
 </script>
 
