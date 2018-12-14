@@ -27,3 +27,7 @@ $RECYCLE.BIN/
 .project
 .cproject
 .settings
+
+#C++
+*.mk
+makefile
