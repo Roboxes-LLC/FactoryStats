@@ -10,9 +10,9 @@ function update()
       if (this.readyState == 4 && this.status == 200)
       {
          var json = JSON.parse(this.responseText);
-         
+
          updateCount(json.count);
-         //updateHourlyCount(json.hourlyCount);
+         updateHourlyCount(json.hourlyCount);
          updateCountTime(json.updateTime);
          updateElapsedTime();
          updateAverageCountTime(json.averageCountTime);
@@ -26,22 +26,6 @@ function updateCount(count)
 {
    var element = document.getElementById("count-div");
    element.innerHTML = count;
-}
-
-function updateHourlyCount(hourlyCount)
-{
-   var element = document.getElementById("hourly-count-div");
-   
-   var html = "<table><tr><td><b>Hour</b></td><td><b>Count</b></td></tr>";
-      
-   for (key in hourlyCount)
-   {
-      html += "<tr><td>" + key + "</td><td>" + hourlyCount[key] + "</td></tr>";
-   }
-   
-   html += "</table>";
-   
-   element.innerHTML = html;
 }
 
 function updateCountTime(countTime)
@@ -94,6 +78,11 @@ function updateAverageCountTime(averageCountTime)
    
    var element = document.getElementById("average-count-time-div");
    element.innerHTML = timeString;
+}
+
+function updateHourlyCount(hourlyCount)
+{
+   drawChart(hourlyCount);
 }
 
 function incrementCount()

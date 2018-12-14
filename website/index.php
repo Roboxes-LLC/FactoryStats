@@ -126,6 +126,7 @@ body {
    
       <div class="flex-vertical right-panel">
          <div class="btn btn-blob" onclick="incrementCount(); update();">+</div>
+         <div id="hourly-count-chart-div" style="margin-top: 50px;"></div>
       </div>
       
    </div>
@@ -138,6 +139,8 @@ Hourly count:<br/>
 </div>
 -->
 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="chart/chart.js"></script>
 <script src="flexscreen.js"></script>
 <script>
    // Start a five-second timer to update the count/hourly count div.
