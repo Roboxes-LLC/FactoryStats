@@ -27,71 +27,18 @@ function getStationId()
 <html>
 
 <head>
-<title>Flexscreen Counter</title>
-<link rel="stylesheet" type="text/css" href="common/flex.css"/>
-<link rel="stylesheet" type="text/css" href="common/button.css"/>
-<style>
-table {
-   border-collapse: collapse;
-}
 
-table, th, td {
-   border: 1px solid black;
-   text-align: center;
-}
-
-body {
-   background: black;
-   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
-}
-
-.header {
-   width: 100%;
-   align-items: center;
-   border-bottom-style: solid;
-   border-color: white;
-   border-width: 2px;
-   padding-top: 5px;
-   padding-bottom: 5px;   
-}
-
-.left-panel {
-   height: 100%;
-   background-image: url("images/Joe-Hands-Fade-In-Graphic-half.png");
-   background-repeat: no-repeat;
-   align-items: stretch;
-   justify-content: flex-start;
-   flex-grow: 1;
-   padding-top: 50px;
-   padding-left: 400px;
-}
-
-.right-panel {
-   height: 100%;
-   align-items: center;
-   flex-grow: 1;
-   width: 500px; /*FIX */
-}
+   <meta name="viewport" content="width=device-width, initial-scale=1">
    
-.stat-label {
-   color: white;
-   font-size: 24px;
-}
-
-.large-stat {
-   color: white;
-   font-size: 100px;
-}
-
-.urgent-stat {
-   color: yellow;
-}
-
-
-</style>
+   <title>Flexscreen Counter</title>
+   
+   <link rel="stylesheet" type="text/css" href="common/flex.css"/>
+   <link rel="stylesheet" type="text/css" href="common/button.css"/>
+   <link rel="stylesheet" type="text/css" href="flexscreen.css"/>
+   
 </head>
 
-<body>
+<body onload="update()">
 
    <form>
       <input id="station-id-input" type="hidden" name="stationId" value="<?php echo getStationId(); ?>">
@@ -101,20 +48,14 @@ body {
 
    <div class="flex-horizontal header">
       <div><img src="images/flexscreen-logo-hompage-2.png" width="350px"></div>
-      <!-- select id="station-input">
-         <option value="ALL">All Stations</option>
-         <option value="STA1">Station 1</option>
-         <option value="STA2">Station 2</option>
-         <option value="STA3" selected>Station 3</option>
-      </select-->
    </div>
    
    <div class="flex-horizontal">
    
       <div class="flex-vertical left-panel">
       
-         <div class="stat-label">Today's screen count</div>
-         <div id="count-div" class="large-stat"></div>
+         <div class="stat-label">Station</div>
+         <div class="large-stat"><?php echo getStationId(); ?></div>
          
           <div class="stat-label">Average time between screens</div>
          <div id="average-count-time-div" class="large-stat"></div>
@@ -125,19 +66,25 @@ body {
       </div>
    
       <div class="flex-vertical right-panel">
-         <div class="btn btn-blob" onclick="incrementCount(); update();">+</div>
+      
+         <div class="flex-horizontal">
+         
+            <div class="btn btn-blob" onclick="incrementCount(); update();">+</div>
+            
+            <div class="flex-vertical" style="margin-left: 50px;">
+               <div class="stat-label">Today's screen count</div>
+               <div id="count-div" class="large-stat"></div>
+            </div>
+            
+         </div>
+         
          <div id="hourly-count-chart-div" style="margin-top: 50px;"></div>
+         
       </div>
       
    </div>
    
 </div>
-
-<!--
-Hourly count:<br/>
-<div id="hourly-count-div">
-</div>
--->
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script src="chart/chart.js"></script>
@@ -148,7 +95,6 @@ Hourly count:<br/>
 
    // Start a one-second timer to update the elapsed-time-div.
    setInterval(function(){updateElapsedTime();}, 500);
-   update();
 </script>
 
 </body>

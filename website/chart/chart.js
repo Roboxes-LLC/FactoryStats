@@ -1,8 +1,7 @@
 google.charts.load('current', {packages: ['corechart', 'bar']});
 google.charts.setOnLoadCallback(setupChart);
 
-var chart = null;
-var dataTable = null;
+var hourlyCountChart = null;
 var chartOptions = null;
 
 function getRowsFromData(data)
@@ -19,21 +18,19 @@ function getRowsFromData(data)
    return (rows);
 }
 
-function setupChart() {
-   
-   window.dataTable = new google.visualization.DataTable();
-   
-      window.chartOptions = {
-        legend: 'none',
-        title: 'Motivation Level Throughout the Day',
-        hAxis: {
-          title: 'Screen Counts By Hour',
-          titleTextStyle:
-          {
-             color: 'white'
-          },
-          format: 'h:mm a',
-          viewWindow: {
+function setupChart()
+{
+   chartOptions = {
+      legend: 'none',
+      title: 'Screen Counts By Hour',
+      hAxis: {
+         title: 'Screen Counts By Hour',
+         titleTextStyle:
+         {
+            color: 'white'
+         },
+         format: 'ha',
+         viewWindow: {
             min: [7, 30, 0],
             max: [17, 30, 0]
           },
@@ -43,40 +40,41 @@ function setupChart() {
           textStyle: {
              color: 'white'
           },
-        },
-        vAxis: {
-          textPosition: 'none',
-          title: '',
-          titleTextStyle:
-          {
-             color: 'white'
-          },
-          gridlines: {
-             color: 'transparent'
-          },
-          textStyle: {
-             color: 'white'
-          },
-        },
-        backgroundColor: '#000000',
-      };
+      },
+      vAxis: {
+         textPosition: 'none',
+         title: '',
+         titleTextStyle:
+         {
+            color: 'white'
+         },
+         gridlines: {
+            color: 'transparent'
+         },
+         textStyle: {
+            color: 'white'
+         },
+      },
+      backgroundColor: '#000000',
+   };
 
-      window.chart = new google.visualization.ColumnChart(
-        document.getElementById('hourly-count-chart-div'));
-    }
+   hourlyCountChart = new google.visualization.ColumnChart(document.getElementById('hourly-count-chart-div'));
+}
 
 function drawChart(hourlyCounts)
 {
-   var data = new google.visualization.DataTable();
+   if (hourlyCountChart && hourlyCounts)
+   {
+      var data = new google.visualization.DataTable();
+      
+      data.addColumn('timeofday', 'Time of Day');
+      data.addColumn('number', 'Screen Count');
+      data.addColumn({type: 'string', role: 'annotation'});  // bar annotation
+      
+      var rows = getRowsFromData(hourlyCounts);
+      
+      data.addRows(rows);
    
-   data.addColumn('timeofday', 'Time of Day');
-   data.addColumn('number', 'Motivation Level');
-   
-   // add annotation column role
-   data.addColumn({type: 'string', role: 'annotation'});
-   
-   var rows = getRowsFromData(hourlyCounts);
-   data.addRows(rows);
-
-   window.chart.draw(data, window.chartOptions);
+      hourlyCountChart.draw(data, chartOptions);
+   }
 }

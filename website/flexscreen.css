@@ -1,0 +1,62 @@
+@CHARSET "ISO-8859-1";
+
+table {
+   border-collapse: collapse;
+}
+
+table, th, td {
+   border: 1px solid black;
+   text-align: center;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	min-height: 100%;
+   background: black;
+   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+}
+
+.header {
+   width: 100%;
+   align-items: center;
+   border-bottom-style: solid;
+   border-color: white;
+   border-width: 2px;
+   padding-top: 5px;
+   padding-bottom: 5px;   
+}
+
+.left-panel {
+   height: 100%;
+   background-image: url("images/Joe-Hands-Fade-In-Graphic-half.png");
+   background-repeat: no-repeat;
+   align-items: stretch;
+   justify-content: center;
+   flex-grow: 1;
+   padding-top: 50px;
+   padding-left: 400px;
+}
+
+.right-panel {
+   height: 100%;
+   align-items: center;
+   flex-grow: 1;
+   width: 700px; /*FIX */
+}
+   
+.stat-label {
+   color: white;
+   font-size: 24px;
+}
+
+.large-stat {
+   color: white;
+   font-size: 100px;
+}
+
+.urgent-stat {
+   color: yellow;
+}
