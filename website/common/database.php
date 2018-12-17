@@ -167,7 +167,7 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Update counter count.
-         $query = "UPDATE screencount SET count = count + $screenCount, countTime =  countTime + $countTime WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+         $query = "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
          //echo $query . "<br/>";
          $this->query($query);
       }

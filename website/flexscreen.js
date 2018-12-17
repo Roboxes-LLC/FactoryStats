@@ -73,7 +73,22 @@ function updateAverageCountTime(averageCountTime)
       var minutes = Math.floor((averageCountTime % 3600) / 60);
       var seconds = (averageCountTime % 60);
       
-      timeString = padNumber(hours) + ":" + padNumber(minutes) + ":" + padNumber(seconds);
+      timeString = "";
+      
+      if (hours > 0)
+      {
+         timeString += hours + "<span class=\"stat-label\"> hours </span>";
+      }
+      
+      if ((hours > 0) || (minutes > 0))
+      {
+         timeString += minutes + "<span class=\"stat-label\"> minutes </span>";
+      }
+      
+      if (hours == 0)
+      {
+         timeString += seconds + "<span class=\"stat-label\"> seconds</span>";
+      }
    }
    
    var element = document.getElementById("average-count-time-div");
@@ -88,6 +103,22 @@ function updateHourlyCount(hourlyCount)
 function incrementCount()
 {
    var requestURL = "screenCount.php?stationId=" + getStationId() + "&action=update&count=1";
+   
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         // Silently ignore this.responseText for now.
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send(); 
+}
+
+function decrementCount()
+{
+   var requestURL = "screenCount.php?stationId=" + getStationId() + "&action=update&count=-1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()

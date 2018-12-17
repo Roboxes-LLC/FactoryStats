@@ -50,14 +50,14 @@ function getStationId()
       <div><img src="images/flexscreen-logo-hompage-2.png" width="350px"></div>
    </div>
    
-   <div class="flex-horizontal">
+   <div class="flex-horizontal" style="flex-wrap: wrap;">
    
       <div class="flex-vertical left-panel">
       
          <div class="stat-label">Station</div>
          <div class="large-stat"><?php echo getStationId(); ?></div>
          
-          <div class="stat-label">Average time between screens</div>
+         <div class="stat-label">Average time between screens</div>
          <div id="average-count-time-div" class="large-stat"></div>
          
          <div class="stat-label">Time since last screen</div>
@@ -70,6 +70,7 @@ function getStationId()
          <div class="flex-horizontal">
          
             <div class="btn btn-blob" onclick="incrementCount(); update();">+</div>
+            <div class="btn btn-small btn-blob" onclick="decrementCount(); update();" style="position: relative; left:15px; top: 80px;">-</div>
             
             <div class="flex-vertical" style="margin-left: 50px;">
                <div class="stat-label">Today's screen count</div>
