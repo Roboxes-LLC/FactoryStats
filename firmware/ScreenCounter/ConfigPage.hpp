@@ -1,8 +1,9 @@
 #pragma once
 
+#include "TimerListener.hpp"
 #include "Webpage.hpp"
 
-class ConfigPage : public Webpage
+class ConfigPage : public Webpage, TimerListener
 {
 
 public:
@@ -17,6 +18,9 @@ public:
       const Dictionary& arguments,
       String& responsePath);
 
+   virtual void timeout(
+    Timer* timer);
+
 protected:
 
   void replaceContent(
@@ -24,5 +28,9 @@ protected:
 
   void onConfigUpdate(
      const Dictionary& arguments);
+
+private:
+
+   String infoText;
 
 };
