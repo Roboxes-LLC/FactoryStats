@@ -1,6 +1,7 @@
 #include "Component.hpp"
+#include "TimerListener.hpp"
 
-class ScreenCounter : public Component
+class ScreenCounter : public Component, TimerListener
 {
   
 public:  
@@ -19,7 +20,12 @@ public:
       // The message to handle.
       MessagePtr message);
 
+   virtual void timeout(
+      Timer* timer);
+
 protected:
 
-   void onButtonDown();      
+   void onButtonUp();
+
+   void onLongPress();  
 };

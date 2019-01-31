@@ -55,7 +55,10 @@ function getStationId()
       <div class="flex-vertical left-panel">
       
          <div class="stat-label">Station</div>
-         <div class="large-stat"><?php echo getStationId(); ?></div>
+         <div class="flex-horizontal">
+            <div class="large-stat"><?php echo getStationId(); ?></div>
+            <div id="hardware-button-led" class="led-red"></div>
+         </div>
          
          <div class="stat-label">Average time between screens</div>
          <div id="average-count-time-div" class="large-stat"></div>

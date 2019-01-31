@@ -13,9 +13,9 @@ h1 {
    font-size: 16pt;
    color: white;
 }
-   
+
 tr {
-   line-height: 35px; 
+   line-height: 35px;
 }
 
 div {
@@ -31,15 +31,16 @@ div {
 <img src="flexscreen-logo.png"/>
 
 <div id="description-div">
-Name your product counter station and connect to an Internet-connected wireless access point.   
+Name your product counter station and connect to an Internet-connected wireless access point.
 </div>
 
 <form method="post">
+   <input id="action" type="hidden" name="action" value="update"/>
    <table>
    <tr><td><h1>Device Configuration</h1></td></tr>
    <tr>
       <td>Station id:</td>
-      <td><input type="text" name="id" value="%name"/></td>
+      <td><input type="text" name="deviceName" value="%name"/></td>
    </tr>
    <tr><td><h1>Wifi Configuration</h1></td></tr>
    <tr>
@@ -51,9 +52,9 @@ Name your product counter station and connect to an Internet-connected wireless 
       <td><input type="password" name="password" value="%password"/></td>
    </tr>
    </table>
-   
-   <div><input type="submit" value="Submit"></div>
-   
+
+   <div><input type="submit" value="Update"><input type="submit" value="Reset" onclick="document.getElementById('action').value = 'reset';"></div>
+
 </form>
 
 <div>%info</div>

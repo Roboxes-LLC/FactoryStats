@@ -91,12 +91,69 @@ class MySqlDatabase implements Database
 
 class FlexscreenDatabase extends MySqlDatabase
 {
-  
    public function __construct()
    {
       global $SERVER, $USER, $PASSWORD, $DATABASE;
       
       parent::__construct($SERVER, $USER, $PASSWORD, $DATABASE);
+   }
+   
+   public function getRegistryEntry($chipId)
+   {
+      $query = "SELECT * from registry WHERE chipId = \"$chipId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getRegistryEntries($userId)
+   {
+      $userClause = empty($userId) ? "" : "WHERE userId = \"$userId\"";
+      $query = "SELECT * from registry $userClause ORDER BY chipId DESC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function existsInRegistry($chipId)
+   {
+      $query = "SELECT chipId from registry WHERE chipId = \"$chipId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result && ($result->num_rows > 0));
+   }
+   
+   public function register($registryEntry)
+   {
+      $lastContact = Time::toMySqlDate($registryEntry->lastContact);
+      
+      $query =
+      "INSERT INTO registry (chipId, macAddress, ipAddress, roboxName, userId, lastContact) " .
+      "VALUES ('$registryEntry->chipId', '$registryEntry->macAddress', '$registryEntry->ipAddress', '$registryEntry->roboxName', '$registryEntry->userId', '$lastContact');";
+      echo $query;
+      $this->query($query);
+   }
+   
+   public function updateRegistry($registryEntry)
+   {
+      $lastContact = Time::toMySqlDate($registryEntry->lastContact);
+      
+      $query =
+      "UPDATE registry " .
+      "SET macAddress = \"$registryEntry->macAddress\", ipAddress = \"$registryEntry->ipAddress\", roboxName = \"$registryEntry->roboxName\", userId = \"$registryEntry->userId\", lastContact = \"$lastContact\" " .
+      "WHERE chipId = $registryEntry->chipId;";
+      echo $query;
+      $this->query($query);
+   }
+   
+   public function unregister($chipId)
+   {
+      $query = "DELETE FROM registry WHERE chipId = $chipId;";
+      
+      $this->query($query);
    }
    
    public function stationExists($stationId)

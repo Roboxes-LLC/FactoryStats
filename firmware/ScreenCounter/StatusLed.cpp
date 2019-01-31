@@ -9,7 +9,12 @@ StatusLed::StatusLed(
    const int& pin) :
       Led(id, pin)
 {
-   
+}
+
+StatusLed::StatusLed(
+   MessagePtr message) :
+      Led(message)
+{
 }
 
 void StatusLed::onPowerOn()
