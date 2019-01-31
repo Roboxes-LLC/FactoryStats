@@ -117,6 +117,15 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($result);
    }
    
+   public function getRegistryEntriesForStation($stationId)
+   {
+      $query = "SELECT * from registry WHERE roboxName = \"$stationId\" ORDER BY lastContact DESC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
    public function existsInRegistry($chipId)
    {
       $query = "SELECT chipId from registry WHERE chipId = \"$chipId\";";

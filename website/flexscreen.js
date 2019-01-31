@@ -2,7 +2,7 @@ var lastCountTime = null;
 
 function update()
 {
-   var requestURL = "screenCount.php?stationId=" + getStationId() + "&action=status";
+   var requestURL = "api/status/?stationId=" + getStationId() + "&action=status";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -16,6 +16,7 @@ function update()
          updateCountTime(json.updateTime);
          updateElapsedTime();
          updateAverageCountTime(json.averageCountTime);
+         updateHardwareButtonIndicator(json.hardwareButtonStatus);
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -93,6 +94,36 @@ function updateAverageCountTime(averageCountTime)
    
    var element = document.getElementById("average-count-time-div");
    element.innerHTML = timeString;
+}
+
+function isHardwareButtonOnline(hardwareButtonStatus)
+{
+   var isOnline = false;
+   
+   var now = new Date(Date.now());
+   var lastContactTime = new Date(Date.parse(hardwareButtonStatus.lastContact));
+   
+   if (lastContactTime)
+   {
+      var diff = new Date(now - lastContactTime);
+      
+      var millisInSecond = 1000;
+      var seconds = Math.round(diff / millisInSecond);
+
+      isOnline = (seconds < 15);
+   }  
+   
+   return (isOnline);
+}
+
+function updateHardwareButtonIndicator(hardwareButtonStatus)
+{
+   var element = document.getElementById("hardware-button-led");
+   
+   var ledClass = isHardwareButtonOnline(hardwareButtonStatus) ? "led-green" : "led-red";
+   
+   element.className = "";
+   element.classList.add(ledClass);
 }
 
 function updateHourlyCount(hourlyCount)

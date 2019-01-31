@@ -17,7 +17,7 @@ class RegistryEntry
    {
       $registryEntry = null;
       
-      $database = new RoboxesDatabase();
+      $database = new FlexscreenDatabase();
       
       $database->connect();
       

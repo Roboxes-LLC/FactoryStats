@@ -90,6 +90,33 @@ function getAverageCountTime($stationId, $startDateTime, $endDateTime)
    return ($averageUpdateTime);
 }
 
+function getHardwareButtonStatus($stationId)
+{
+   $hardwareButtonStatus = new stdClass();
+   $hardwareButtonStatus->chipId = RegistryEntry::UNKNOWN_CHIP_ID;
+   
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      // Note: Results returned ordered by lastContact, DESC.
+      $results = $database->getRegistryEntriesForStation($stationId);
+      
+      if ($results && ($row = $results->fetch_assoc()))
+      {
+         $registryEntry = RegistryEntry::load($row["chipId"]);
+         
+         $hardwareButtonStatus->chipId = $registryEntry->chipId;
+         $hardwareButtonStatus->ipAddress = $registryEntry->ipAddress;
+         $hardwareButtonStatus->lastContact = $registryEntry->lastContact;
+      }
+   }
+   
+   return ($hardwareButtonStatus);
+}
+
 function startOfHour($dateTime)
 {
    $startDateTime = new DateTime($dateTime);
@@ -204,21 +231,45 @@ $router->add("count", function($params) {
    echo json_encode($result);
 });
 
-$router->add("buttonStatus", function($params) {
-   $result["stationId"] = $stationId;
+$router->add("status", function($params) {
+   $result = new stdClass();
+   
+   $stationId = 0;
+   $totalCount = 0;
+   $lastUpdateTime = "UNKNOWN";
+   $averageUpdateTime = 0;
+   $hourlyCount = array();
+   $hardwareButtonStatus = new stdClass();
    
    if (isset($params["stationId"]))
    {
       $stationId = $params->get("stationId");
       
-      $isConnected = isButtonConnected($stationId);
+      $now = Time::now("Y-m-d H:i:s");
+      $startDateTime = startOfDay($now);
+      $endDateTime = endOfDay($now);
       
-      $result["isConnected"] = isButtonConnected($stationId);
+      $count = getCount($stationId, $startDateTime, $endDateTime);
+      
+      $hourlyCount = getHourlyCount($stationId, $startDateTime, $endDateTime);
+      
+      $updateTime = getUpdateTime($stationId);
+      
+      $averageCountTime = getAverageCountTime($stationId, $startDateTime, $endDateTime);
+      
+      $hardwareButtonStatus = getHardwareButtonStatus($stationId);
    }
    else
    {
-      $result["error"] = "Invalid stationd ID";   
+      $result->error = "Invalid stationId";
    }
+   
+   $result->stationId = $stationId;
+   $result->count = $count;
+   $result->hourlyCount = $hourlyCount;
+   $result->updateTime = $updateTime;
+   $result->averageCountTime = $averageCountTime;
+   $result->hardwareButtonStatus = $hardwareButtonStatus;
    
    echo json_encode($result);
 });
