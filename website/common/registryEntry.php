@@ -40,6 +40,12 @@ class RegistryEntry
       
       return ($registryEntry);
    }
+   
+   public function isOnline()
+   {
+      // TODO
+      return (true);
+   }
 }
 
 /*
