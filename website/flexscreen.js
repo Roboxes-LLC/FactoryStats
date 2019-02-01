@@ -133,7 +133,7 @@ function updateHourlyCount(hourlyCount)
 
 function incrementCount()
 {
-   var requestURL = "screenCount.php?stationId=" + getStationId() + "&action=update&count=1";
+   var requestURL = "api/update/?stationId=" + getStationId() + "&count=1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -149,7 +149,7 @@ function incrementCount()
 
 function decrementCount()
 {
-   var requestURL = "screenCount.php?stationId=" + getStationId() + "&action=update&count=-1";
+   var requestURL = "api/update/?stationId=" + getStationId() + "&count=-1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
