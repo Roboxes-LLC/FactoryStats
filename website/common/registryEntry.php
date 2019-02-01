@@ -6,6 +6,8 @@ class RegistryEntry
 {
    const UNKNOWN_CHIP_ID = 0;
    
+   const ONLINE_THRESHOLD = 20;  // seconds
+   
    public $chipId = RegistryEntry::UNKNOWN_CHIP_ID;
    public $macAddress;
    public $ipAddress;
@@ -43,8 +45,20 @@ class RegistryEntry
    
    public function isOnline()
    {
-      // TODO
-      return (true);
+      $isOnline = false;
+      
+      $now = new DateTime("now", new DateTimeZone('America/New_York'));
+      $lastContact = new DateTime($this->lastContact);
+      
+      // Determine the interval between the supplied date and the current time.
+      $interval = $lastContact->diff($now);
+      
+      if (($interval->days == 0) && ($interval->i == 0))
+      {
+         $isOnline = ($interval->s <= RegistryEntry::ONLINE_THRESHOLD);
+      }
+
+      return ($isOnline);
    }
 }
 
