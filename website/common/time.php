@@ -36,6 +36,41 @@ class Time
       
       return ($dateTime->format("Y-m-d"));
    }
+   
+   
+   static public function startOfHour($dateTime)
+   {
+      $startDateTime = new DateTime($dateTime);
+      return ($startDateTime->format("Y-m-d H:00:00"));
+   }
+   
+   static public function endOfHour($dateTime)
+   {
+      $endDateTime = new DateTime($dateTime);
+      $endDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
+      return ($endDateTime->format("Y-m-d H:00:00"));
+   }
+   
+   static public function startOfDay($dateTime)
+   {
+      $startDateTime = new DateTime($dateTime);
+      return ($startDateTime->format("Y-m-d 00:00:00"));
+   }
+   
+   static public function endOfDay($dateTime)
+   {
+      $startDateTime = new DateTime($dateTime);
+      return ($startDateTime->format("Y-m-d 23:00:00"));
+   }
+   
+   static public function incrementHour($dateTime)
+   {
+      $incrementedDateTime = new DateTime($dateTime);
+      
+      $incrementedDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
+      
+      return ($incrementedDateTime->format("Y-m-d H:i:s"));
+   }
 }
 
 /*

@@ -35,14 +35,14 @@ function getCount($stationId, $startDateTime, $endDateTime)
 
 function getHourlyCount($stationId, $startDateTime, $endDateTime)
 {
-   $startDateTime = startOfDay($startDateTime);
-   $endDateTime = endOfDay($endDateTime);
+   $startDateTime = Time::startOfDay($startDateTime);
+   $endDateTime = Time::endOfDay($endDateTime);
    
    while (new DateTime($startDateTime) < new DateTime($endDateTime))
    {
       $hourlyCount[$startDateTime] = getCount($stationId, $startDateTime, $startDateTime);
       
-      $startDateTime = incrementHour($startDateTime);
+      $startDateTime = Time::incrementHour($startDateTime);
    }
    
    return ($hourlyCount);
@@ -74,8 +74,8 @@ function getAverageCountTime($stationId, $startDateTime, $endDateTime)
    
    if ($database->isConnected())
    {
-      $startDateTime = startOfDay($startDateTime);
-      $endDateTime = endOfDay($endDateTime);
+      $startDateTime = Time::startOfDay($startDateTime);
+      $endDateTime = Time::endOfDay($endDateTime);
       
       $totalCountTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
       
@@ -115,40 +115,6 @@ function getHardwareButtonStatus($stationId)
    }
    
    return ($hardwareButtonStatus);
-}
-
-function startOfHour($dateTime)
-{
-   $startDateTime = new DateTime($dateTime);
-   return ($startDateTime->format("Y-m-d H:00:00"));
-}
-
-function endOfHour($dateTime)
-{
-   $endDateTime = new DateTime($dateTime);
-   $endDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
-   return ($endDateTime->format("Y-m-d H:00:00"));
-}
-
-function startOfDay($dateTime)
-{
-   $startDateTime = new DateTime($dateTime);
-   return ($startDateTime->format("Y-m-d 00:00:00"));
-}
-
-function endOfDay($dateTime)
-{
-   $startDateTime = new DateTime($dateTime);
-   return ($startDateTime->format("Y-m-d 23:00:00"));
-}
-
-function incrementHour($dateTime)
-{
-   $incrementedDateTime = new DateTime($dateTime);
-   
-   $incrementedDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
-   
-   return ($incrementedDateTime->format("Y-m-d H:i:s"));
 }
 
 // *****************************************************************************
@@ -210,7 +176,7 @@ $router->add("update", function($params) {
    {
       updateCount($params->get("stationId"), $params->get("count"));
       
-      echo "New screen count for this hour: " . getCount($stationId, startOfHour(Time::now("Y-m-d H:i:s")), endOfHour(Time::now("Y-m-d H:i:s")));
+      echo "New screen count for this hour: " . getCount($stationId, Time::startOfHour(Time::now("Y-m-d H:i:s")), Time::endOfHour(Time::now("Y-m-d H:i:s")));
    }
 });
 
@@ -218,10 +184,10 @@ $router->add("count", function($params) {
    $stationId = isset($params["stationId"]) ? $params->get("stationId") : "ALL";
    
    $startDateTime =  isset($params["startDateTime"]) ? $params->get("startDateTime") : Time::now("Y-m-d H:i:s");
-   $startDateTime = startOfHour($startDateTime);
+   $startDateTime = Time::startOfHour($startDateTime);
    
    $endDateTime = isset($params["endDateTime"])? $params->get("endDateTime") : Time::now("Y-m-d H:i:s");
-   $endDateTime = endOfHour($endDateTime);
+   $endDateTime = Time::endOfHour($endDateTime);
    
    $count = getCount($stationId, $startDateTime, $endDateTime);
    
@@ -246,8 +212,8 @@ $router->add("status", function($params) {
       $stationId = $params->get("stationId");
       
       $now = Time::now("Y-m-d H:i:s");
-      $startDateTime = startOfDay($now);
-      $endDateTime = endOfDay($now);
+      $startDateTime = Time::startOfDay($now);
+      $endDateTime = Time::endOfDay($now);
       
       $count = getCount($stationId, $startDateTime, $endDateTime);
       
