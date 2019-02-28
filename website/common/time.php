@@ -71,6 +71,15 @@ class Time
       
       return ($incrementedDateTime->format("Y-m-d H:i:s"));
    }
+   
+   static public function incrementDay($dateTime)
+   {
+      $incrementedDateTime = new DateTime($dateTime);
+      
+      $incrementedDateTime->add(new DateInterval("P1D"));  // period, 1 day
+      
+      return ($incrementedDateTime->format("Y-m-d H:i:s"));
+   }
 }
 
 /*

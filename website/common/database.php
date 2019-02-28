@@ -71,6 +71,11 @@ class MySqlDatabase implements Database
       return ($result);
    }
    
+   public static function countResults($result)
+   {
+      return (mysqli_num_rows($result));
+   }
+   
    protected function getConnection()
    {
       return ($this->connection);
@@ -181,7 +186,16 @@ class FlexscreenDatabase extends MySqlDatabase
       $query = "INSERT INTO station (stationId, updateTime) VALUES ('$stationId', '$now');";
 
       $this->query($query);
-   }  
+   }
+   
+   public function getStations()
+   {
+      $query = "SELECT stationId from station;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   } 
 
    public function getCount($stationId, $startDateTime, $endDateTime)
    {
