@@ -7,7 +7,8 @@
 
 ScreenCounter::ScreenCounter(
    const String& id) :
-   Component(id)
+   Component(id),
+   doubleClickTimer(0)
 {
   
 }
@@ -39,27 +40,53 @@ void ScreenCounter::handleMessage(
    //  buttonUp
    if (message->getTopic() == "buttonUp")
    {
-      onButtonUp();
-      
-      Messaging::freeMessage(message);
+      if (doubleClickTimer == 0)
+      {
+         // Start a "double click" timer.
+         // If the user presses the button again before it expires, consider it a double click.
+         doubleClickTimer = Timer::newTimer(getId() + ".doubleClick", 500, Timer::ONE_SHOT, this);
+         if (doubleClickTimer)
+         {
+            doubleClickTimer->start();
+         }
+      }
+      else
+      {
+         Timer::freeTimer(doubleClickTimer);
+         doubleClickTimer = 0;
+                 
+         onDoubleClick();  
+      }
    }
    // buttonLongPress
    else if (message->getTopic() == "buttonLongPress")
    {
       onLongPress();
-      
-      Messaging::freeMessage(message);
-   }
+    }
    else
    {
       Component::handleMessage(message);
    }
+
+    Messaging::freeMessage(message);
 }
 
 void ScreenCounter::timeout(
    Timer* timer)
 {
-  ToastBot::factoryReset();
+   if (timer->getId().indexOf("factoryReset") != -1)
+   {
+      ToastBot::factoryReset();
+   }
+   else if (timer->getId().indexOf("doubleClick") != -1)
+   {
+      doubleClickTimer = 0;
+      onButtonUp();
+   }
+   else
+   {
+      Logger::logWarning(F("ScreenCounter::timeout: Received unexpected timeout: %s"), timer->getId().c_str());
+   }
 }
 
 void ScreenCounter::onButtonUp()
@@ -81,7 +108,32 @@ void ScreenCounter::onButtonUp()
           StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
           if (led)
           {
-             led->onCounterUpdated();
+             led->onCounterDecremented();
+          }
+       }
+   }
+}
+
+void ScreenCounter::onDoubleClick()
+{
+   Logger::logDebug("ScreenCounter::onDoubleClick: Button double-clicked");
+
+   MessagePtr message = Messaging::newMessage();
+   if (message)
+   {
+      message->setDestination("http");
+      message->setMessageId("update");
+      message->set("count", -1);
+      message->set("stationId", ToastBot::getId());
+      Messaging::send(message);
+
+       // TODO: Send in reponse to HTTP 200 response.
+       if (WifiBoard::getBoard()->isConnected() == true)
+       {
+          StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+          if (led)
+          {
+             led->onCounterIncremented();
           }
        }
    }
@@ -92,10 +144,13 @@ void ScreenCounter::onLongPress()
    StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
    if (led)
    {
-      led->onCounterUpdated();
+      led->onFactoryReset();
    }
 
    // Factory reset after delay.
    Timer* timer = Timer::newTimer(getId() + ".factoryReset", 5000, Timer::ONE_SHOT, this);
-   timer->start();
+   if (timer)
+   {
+      timer->start();
+   }
 }

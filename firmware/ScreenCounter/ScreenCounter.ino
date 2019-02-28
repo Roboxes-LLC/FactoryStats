@@ -1,4 +1,3 @@
-#include <Board.h>
 #include <ToastBot.h>
 
 #include "WebServer.hpp"
@@ -13,7 +12,7 @@ WebServer webServer(80);
 
 void setup()
 {
-   ToastBot::setup(new Esp8266Board());
+   ToastBot::setup();
 
    ToastBot::addComponent(new ScreenCounter("counter"));
 

@@ -18,7 +18,9 @@ public:
 
    void onWifiConnected();
 
-   void onCounterUpdated();
+   void onCounterIncremented();
+
+   void onCounterDecremented();
 
    void onFactoryReset();
 

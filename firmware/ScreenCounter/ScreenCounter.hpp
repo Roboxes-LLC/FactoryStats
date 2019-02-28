@@ -27,5 +27,11 @@ protected:
 
    void onButtonUp();
 
+   void onDoubleClick();
+
    void onLongPress();  
+
+private:
+
+   Timer* doubleClickTimer;
 };
