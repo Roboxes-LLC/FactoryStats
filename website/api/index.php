@@ -117,6 +117,27 @@ function getHardwareButtonStatus($stationId)
    return ($hardwareButtonStatus);
 }
 
+function getStations()
+{
+   $stations = array();
+
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $result = $database->getStations();
+      
+      while ($result && $row = $result->fetch_assoc())
+      {
+         $stations[] = $row["stationId"];
+      }
+   }
+   
+   return ($stations);
+}
+
 // *****************************************************************************
 //                                   Begin
 
@@ -236,6 +257,14 @@ $router->add("status", function($params) {
    $result->updateTime = $updateTime;
    $result->averageCountTime = $averageCountTime;
    $result->hardwareButtonStatus = $hardwareButtonStatus;
+   
+   echo json_encode($result);
+});
+
+$router->add("stations", function($params) {
+   $result = new stdClass();
+   
+   $result->stations = getStations();
    
    echo json_encode($result);
 });

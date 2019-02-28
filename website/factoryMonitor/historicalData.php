@@ -153,7 +153,6 @@ function renderStationOptions()
    
    <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
    <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="hardwareButton.css"/>
    
    <style>
       body {
@@ -184,6 +183,9 @@ function renderStationOptions()
    </form>
    
    <?php renderTable();?>
+   
+   <br>
+   <button onclick="exportCsv()">Export as CSV</button>
      
 </div>
 
