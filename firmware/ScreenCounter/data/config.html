@@ -2,62 +2,68 @@
 
 <head>
 
-<style>
-body {
-   background-color: black;
-   color: white;
-}
+   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-h1 {
-   font-weight: bold;
-   font-size: 16pt;
-   color: white;
-}
-
-tr {
-   line-height: 35px;
-}
-
-div {
-   margin-top:10px;
-   margin-bottom:10px;
-}
-</style>
+	<style>
+		body {
+		   background-color: black;
+		   color: white;
+		}
+		
+		h1 {
+		   font-weight: bold;
+		   font-size: 16pt;
+		   color: white;
+		}
+		
+		tr {
+		   line-height: 35px;
+		}
+		
+		div {
+		   margin-top:10px;
+		   margin-bottom:10px;
+		}
+	</style>
 
 </head>
 
 <body>
 
-<img src="flexscreen-logo.jpg"/>
-
-<div id="description-div">
-Name your product counter station and connect to an Internet-connected wireless access point.
-</div>
-
-<form method="post">
-   <input id="action" type="hidden" name="action" value="update"/>
-   <table>
-   <tr><td><h1>Device Configuration</h1></td></tr>
-   <tr>
-      <td>Station id:</td>
-      <td><input type="text" name="deviceName" value="%name"/></td>
-   </tr>
-   <tr><td><h1>Wifi Configuration</h1></td></tr>
-   <tr>
-      <td>SSID:</td>
-      <td><input type="text" name="ssid" value="%ssid"/></td>
-   </tr>
-   <tr>
-      <td>Password:</td>
-      <td><input type="password" name="password" value="%password"/></td>
-   </tr>
-   </table>
-
-   <div><input type="submit" value="Update"><input type="submit" value="Reset" onclick="document.getElementById('action').value = 'reset';"></div>
-
-</form>
-
-<div>%info</div>
+	<img src="flexscreen-logo.jpg"/>
+	
+	<div id="description-div">
+	Name your product counter station and connect to an Internet-connected wireless access point.
+	</div>
+	
+	<form method="post">
+	   <input id="action" type="hidden" name="action" value="update"/>
+	   <table>
+	   <tr><td><h1>Device Configuration</h1></td></tr>
+	   <tr>
+	      <td>Station id:</td>
+	      <td><input type="text" name="deviceName" value="%name"/></td>
+	   </tr>
+	   <tr><td><h1>Wifi Configuration</h1></td></tr>
+	   <tr>
+	      <td>SSID:</td>
+	      <td><input type="text" name="ssid" value="%ssid"/></td>
+	   </tr>
+	   <tr>
+	      <td>Password:</td>
+	      <td><input type="password" name="password" value="%password"/></td>
+	   </tr>
+	   </table>
+	
+	   <div>
+	      <input type="submit" value="Update">
+	      &nbsp;&nbsp;
+	      <input type="submit" value="Reset" onclick="document.getElementById('action').value = 'reset';">
+	   </div>
+	
+	</form>
+	
+	<div>%info</div>
 
 </body>
 
