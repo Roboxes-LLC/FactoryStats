@@ -88,6 +88,8 @@ HEREDOC;
       <div><img src="../images/flexscreen-logo-hompage-2.png" width="350px"></div>
    </div>
    
+   <?php include '../common/menu.php';?>
+   
    <?php renderStationSummaries();?>
      
 </div>

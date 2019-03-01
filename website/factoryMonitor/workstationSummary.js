@@ -84,8 +84,8 @@ function updateUpdateTime(stationId, updateTime)
       var dateTime = new Date(updateTime);
       
       var hours = dateTime.getHours();
-      hours = (hours > 12) ? (hours - 12) : hours;
       var amPm = (hours > 12) ? "pm" : "am";
+      hours = (hours > 12) ? (hours - 12) : hours;
       
       var minutes = dateTime.getMinutes();
       if (minutes < 10)

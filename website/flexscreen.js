@@ -1,4 +1,30 @@
+var Page = {
+   FIRST : 0,
+   SPLASH : 0,
+   WORKSTATION_SUMMARY : 0,
+   PRODUCTION_HISTORY : 1,
+   HARDWARE_BUTTON : 2,
+   LAST : 3
+};
+
 var lastCountTime = null;
+
+function jumpTo(page)
+{
+   var urls = [
+   "index.php",
+   "factoryMonitor/workstationSummary.php",
+   "factoryMonitor/productionHistory.php",
+   "factoryMonitor/hardwareButton.php",
+   ];
+   
+   if ((page >= Page.FIRST) && (page < Page.LAST))
+   {
+      
+   }
+
+   location.href = urls[page];
+}
 
 function update()
 {

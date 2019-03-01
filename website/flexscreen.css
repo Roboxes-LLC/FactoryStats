@@ -1,5 +1,33 @@
 @CHARSET "ISO-8859-1";
 
+.menu-div {
+	width: 100%;
+}
+
+.menu-item-spacer {
+  flex-grow: 1;
+}
+
+.menu-item, .menu-item-spacer {
+   height : 30px;
+   padding-right: 10px;
+   padding-left: 10px;
+   color: #14a3db;
+   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+   font-size: 15px;
+   border-bottom-style: solid;
+   border-color: white;
+   border-width: 2px;
+   padding-top: 5px;
+   padding-bottom: 5px; 
+}
+
+.menu-item:hover {
+   color: white;
+   border-color: #14a3db;
+   cursor: pointer;
+}
+
 table {
    border-collapse: collapse;
 }
