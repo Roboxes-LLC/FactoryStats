@@ -26,7 +26,7 @@ body {
    border-color: white;
    border-width: 2px;
    padding-top: 5px;
-   padding-bottom: 5px;   
+   padding-bottom: 5px;
 }
 
 .left-panel {
@@ -87,6 +87,14 @@ body {
    background-color: #05e502;
    border-radius: 50%;
    box-shadow: #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px;
+}
+
+.historical-data-table {
+   margin: 20px 0px 0px 20px;  /*top, right, bottom, left */
+}
+
+.historical-data-filter-div {
+   margin: 20px 0px 0px 20px;  /*top, right, bottom, left */
 }
 
 /* 

@@ -35,7 +35,7 @@ function updateWorkstation(workstationStatus)
       divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.stationId;
       updateHardwareButtonIndicator(workstationStatus.stationId, workstationStatus.hardwareButtonStatus);
       divElement.getElementsByClassName("count-div")[0].innerHTML = workstationStatus.count;
-      divElement.getElementsByClassName("update-time-div")[0].innerHTML = workstationStatus.updateTime;
+      updateUpdateTime(workstationStatus.stationId, workstationStatus.updateTime);
       updateAverageCountTime(workstationStatus.stationId, workstationStatus.averageCountTime);
    }
 }
@@ -77,6 +77,34 @@ function updateHardwareButtonIndicator(stationId, hardwareButtonStatus)
 
 function updateUpdateTime(stationId, updateTime)
 {
+   divElement = getWorkstationDiv(stationId);
+   
+   if (divElement)
+   {
+      var dateTime = new Date(updateTime);
+      
+      var hours = dateTime.getHours();
+      hours = (hours > 12) ? (hours - 12) : hours;
+      var amPm = (hours > 12) ? "pm" : "am";
+      
+      var minutes = dateTime.getMinutes();
+      if (minutes < 10)
+      {
+         minutes = "0" + minutes;
+      }
+
+      // TODO: Revisit, maybe using phrases like "yesterday", "last week", "3 months ago".
+      /*
+      var dateString = (dateTime.getMonth() + 1) + "/" + dateTime.getDay() + "/" + dateTime.getFullYear() + " " +
+                       hours + ":" + dateTime.getMinutes() + " " + amPm;
+      */
+      
+      var dateString = hours + ":" + minutes + " " + amPm;
+      
+      
+      var element = divElement.getElementsByClassName("update-time-div")[0]
+      element.innerHTML = dateString;
+   }   
 }
 
 function updateAverageCountTime(stationId, averageCountTime)

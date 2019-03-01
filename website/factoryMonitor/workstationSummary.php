@@ -4,7 +4,7 @@ require_once '../common/workstationStatus.php';
 
 function renderStationSummaries()
 {
-   echo "<div class=\"station-summaries-div\">";
+   echo "<div class=\"station-summaries-div flex-horizontal\">";
    
    $database = new FlexscreenDatabase();
    
@@ -36,10 +36,9 @@ function renderStationSummary($stationId)
       echo 
 <<<HEREDOC
       <div class="flex-horizontal" style="justify-content: flex-start;">
-         <div class="stat-label">Station</div>
+         <div class="medium-stat station-id-div">$stationId</div>
          <div class="flex-horizontal hardware-button-led"></div>
       </div>
-      <div class="large-stat station-id-div">$stationId</div>
 
       <div class="flex-vertical">
          <div class="stat-label">Today's screen count</div>
@@ -47,10 +46,10 @@ function renderStationSummary($stationId)
       </div>
       
       <div class="stat-label">Average time between screens</div>
-      <div class="large-stat average-count-time-div"></div>
+      <div class="medium-stat average-count-time-div"></div>
       
       <div class="stat-label">Time of last screen</div>
-      <div class="large-stat update-time-div"></div>
+      <div class="medium-stat update-time-div"></div>
 HEREDOC;
    }
       
@@ -70,6 +69,7 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
    <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="workstationSummary.css"/>
    
    <style>
    .station-summary-div {
