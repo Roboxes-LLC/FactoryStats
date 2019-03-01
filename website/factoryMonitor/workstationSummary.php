@@ -27,7 +27,7 @@ function renderStationSummaries()
 
 function renderStationSummary($stationId)
 {
-   echo "<div id=\"summary-$stationId\" class=\"flex-vertical station-summary-div\">";
+   echo "<div id=\"workstation-summary-$stationId\" class=\"flex-vertical station-summary-div\">";
    
    $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
    
@@ -35,10 +35,22 @@ function renderStationSummary($stationId)
    {
       echo 
 <<<HEREDOC
-      <div>Station ID: $workstationStatus->stationId</div>
-      <div>Count: $workstationStatus->count</div> 
-      <div>Last update: $workstationStatus->updateTime</div>
-      <div>Average time: $workstationStatus->averageCountTime</div>
+      <div class="flex-horizontal" style="justify-content: flex-start;">
+         <div class="stat-label">Station</div>
+         <div class="flex-horizontal hardware-button-led"></div>
+      </div>
+      <div class="large-stat station-id-div">$stationId</div>
+
+      <div class="flex-vertical">
+         <div class="stat-label">Today's screen count</div>
+         <div class="large-stat urgent-stat count-div"></div>
+      </div>
+      
+      <div class="stat-label">Average time between screens</div>
+      <div class="large-stat average-count-time-div"></div>
+      
+      <div class="stat-label">Time of last screen</div>
+      <div class="large-stat update-time-div"></div>
 HEREDOC;
    }
       

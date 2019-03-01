@@ -101,7 +101,7 @@ HEREDOC;
       
       if ($hours == 0)
       {
-         $timeString += $seconds . " seconds";
+         $timeString .= $seconds . " seconds";
       }
       
       echo

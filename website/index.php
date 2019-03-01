@@ -94,8 +94,8 @@ function getStationId()
 <script src="chart/chart.js"></script>
 <script src="flexscreen.js"></script>
 <script>
-   // Start a five-second timer to update the count/hourly count div.
-   setInterval(function(){update();}, 5000);
+   // Start a timer to update the count/hourly count div.
+   setInterval(function(){update();}, 3000);
 
    // Start a one-second timer to update the elapsed-time-div.
    setInterval(function(){updateElapsedTime();}, 500);

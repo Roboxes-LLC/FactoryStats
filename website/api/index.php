@@ -3,6 +3,7 @@
 require_once '../common/database.php';
 require_once '../common/registryEntry.php';
 require_once '../common/time.php';
+require_once '../common/workstationStatus.php';
 require_once 'rest.php';
 
 function updateCount($stationId, $screenCount)
@@ -197,7 +198,7 @@ $router->add("update", function($params) {
    {
       updateCount($params->get("stationId"), $params->get("count"));
       
-      echo "New screen count for this hour: " . getCount($stationId, Time::startOfHour(Time::now("Y-m-d H:i:s")), Time::endOfHour(Time::now("Y-m-d H:i:s")));
+      echo "New screen count for this hour: " . getCount($params->get("stationId"), Time::startOfHour(Time::now("Y-m-d H:i:s")), Time::endOfHour(Time::now("Y-m-d H:i:s")));
    }
 });
 
@@ -265,6 +266,25 @@ $router->add("stations", function($params) {
    $result = new stdClass();
    
    $result->stations = getStations();
+   
+   echo json_encode($result);
+});
+
+$router->add("workstationSummary", function($params) {
+   $result = new stdClass();
+   $result->workstationSummary = array();
+   
+   $stations = getStations();
+   
+   foreach ($stations as $stationId)
+   {
+      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
+      
+      if ($workstationStatus)
+      {
+         $result->workstationSummary[] = $workstationStatus;
+      }
+   }
    
    echo json_encode($result);
 });

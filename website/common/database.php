@@ -322,7 +322,7 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $countTime = 0;
       
-      $now = new DateTime(Time::now("Y-m-d H:i:s"));
+      $now = new DateTime("now", new DateTimeZone('America/New_York'));
       
       $updateTime = new DateTime(FlexscreenDatabase::getUpdateTime($stationId), new DateTimeZone('America/New_York'));
       
@@ -330,8 +330,10 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $interval = $updateTime->diff($now);
          
-         // With this day?  // TODO: Refine
-         if ($interval->days == 0)
+         $sameDay = (($interval->days == 0) &&
+                     (intval($now->format('d')) == intval($updateTime->format('d'))));
+         
+         if ($sameDay)
          {
             // Convert to seconds.
             $countTime = (($interval->h * 60 * 60) + ($interval->i * 60) + $interval->s);
