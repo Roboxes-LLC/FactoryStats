@@ -28,6 +28,17 @@
    cursor: pointer;
 }
 
+.menu-item a {
+  color: #14a3db;
+  text-decoration: none;
+}
+
+.menu-item:hover a {
+   color: white;
+   text-decoration: none;
+}
+
+
 table {
    border-collapse: collapse;
 }

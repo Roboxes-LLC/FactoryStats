@@ -174,6 +174,8 @@ function renderStationOptions()
    <div class="flex-horizontal header">
       <div><img src="../images/flexscreen-logo-hompage-2.png" width="350px"></div>
    </div>
+   
+   <?php include '../common/menu.php';?>
 
    <div class="flex-horizonal historical-data-filter-div">
       <form action="#">
