@@ -193,7 +193,11 @@ function renderStationOptions()
      
 </div>
 
+<script src="../flexscreen.js"></script>
 <script src="historicalData.js"></script>
+<script>
+   setMenuSelection(MenuItem.PRODUCTION_HISTORY);
+</script>
 
 </body>
 

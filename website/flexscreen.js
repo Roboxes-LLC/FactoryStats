@@ -26,6 +26,39 @@ function jumpTo(page)
    location.href = urls[page];
 }
 
+var MenuItem = {
+   FIRST : 0,
+   WORKSTATION_SUMMARY : 0,
+   PRODUCTION_HISTORY : 1,
+   CONFIGURATION : 2,
+   LAST : 3
+};
+
+function setMenuSelection(menuItem)
+{
+   var menuItemElements = [
+      "menu-item-workstation-summary",
+      "menu-item-production-history",
+      "menu-item-configuration"
+   ];
+   
+   for (var tempMenuItem = MenuItem.FIRST; tempMenuItem < MenuItem.LAST; tempMenuItem++)
+   {
+      var element = document.getElementById(menuItemElements[tempMenuItem]);
+      
+      if (menuItem == tempMenuItem)
+      {
+         // Set.
+         element.classList.add("selected");
+      }
+      else
+      {
+         // Clear.
+         element.classList.remove("selected");
+      }
+   }
+}
+
 function update()
 {
    var requestURL = "api/status/?stationId=" + getStationId() + "&action=status";

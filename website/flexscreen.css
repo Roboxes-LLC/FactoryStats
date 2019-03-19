@@ -28,6 +28,16 @@
    cursor: pointer;
 }
 
+.menu-item.selected {
+   color: white;
+   border-color: #14a3db;
+}
+
+.menu-item.selected a {
+   color: white;
+   text-decoration: none;
+}
+
 .menu-item a {
   color: #14a3db;
   text-decoration: none;
@@ -38,6 +48,9 @@
    text-decoration: none;
 }
 
+a {
+  text-decoration: none;
+}
 
 table {
    border-collapse: collapse;

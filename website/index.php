@@ -50,6 +50,8 @@ function getStationId()
       <div><img src="images/flexscreen-logo-hompage-2.png" width="350px"></div>
    </div>
    
+   <?php include 'common/menu.php';?>
+   
    <div class="flex-horizontal" style="flex-wrap: wrap;">
    
       <div class="flex-vertical left-panel">

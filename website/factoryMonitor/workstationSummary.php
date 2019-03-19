@@ -27,7 +27,9 @@ function renderStationSummaries()
 
 function renderStationSummary($stationId)
 {
-   echo "<div id=\"workstation-summary-$stationId\" class=\"flex-vertical station-summary-div\">";
+   $url= "/flexscreen/index.php?stationId=" . $stationId;
+
+   echo "<a href=\"$url\"><div id=\"workstation-summary-$stationId\" class=\"flex-vertical station-summary-div\">";
    
    $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
    
@@ -55,7 +57,7 @@ HEREDOC;
       
    // <div>Button status: {$workstationStatus->hardwareButtonStatus->lastContact}</div>
       
-   echo "</div>";
+   echo "</div></a>";
 }
 ?>
 
@@ -94,8 +96,12 @@ HEREDOC;
      
 </div>
 
+<script src="../flexscreen.js"></script>
 <script src="workstationSummary.js"></script>
 <script>
+   // Set menu selection.
+   setMenuSelection(MenuItem.WORKSTATION_SUMMARY);
+
    // Start a five-second timer to update the count/hourly count div.
    setInterval(function(){update();}, 5000);
 </script>
