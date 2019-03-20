@@ -1,5 +1,24 @@
 @CHARSET "ISO-8859-1";
 
+.nav-username {
+   font-size: 14px;
+   color: #ffffff;
+}
+
+.nav-link {
+   font-size: 14px;
+   color: #ffffff;
+   text-decoration: none; /* changed from text-decoration:underline */
+}
+
+.nav-link:hover {
+   text-decoration: underline;
+}
+
+.icon {
+   fill: currentColor;
+}
+
 .menu-div {
 	width: 100%;
 }
@@ -79,6 +98,58 @@ body {
    border-width: 2px;
    padding-top: 5px;
    padding-bottom: 5px;
+}
+
+.main.splash {
+   background-image: url("images/Maddie-Hands-Fade-In-Graphic-01-1500x870.png");
+   background-repeat: no-repeat;
+   width: 100%;
+   height: 100%;
+}
+
+.login-div {
+	width: 300px;
+	height: 300px;
+	background-color: white;
+	color: black;
+}
+
+.login-div label {
+   color: black;
+   font-size: 18px;
+   margin-bottom: 5px;	
+}
+
+.login-div .title {
+   color: black;
+   font-size: 24px;  
+   font-style: strong;
+   margin-bottom: 15px;
+}
+
+.login-div input {
+	border: 2px solid #14a3db;
+	border-radius: 4px;
+	height: 30px;
+	width: 250px;
+	padding: 5px;
+	margin-bottom: 5px;    
+}
+
+.login-div button {
+  background-color: #14a3db;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  border-radius: 4px;
+  margin: 5px;
+}
+
+.login-div button:hover {
+   box-shadow:0px 0px 0px 2px black inset;
 }
 
 .left-panel {

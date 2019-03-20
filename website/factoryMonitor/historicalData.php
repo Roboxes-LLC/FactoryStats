@@ -151,6 +151,9 @@ function renderStationOptions()
    
    <title>Historical Data</title>
    
+   <!--  Material Design Lite -->
+   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+   
    <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
    <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
    
@@ -171,9 +174,7 @@ function renderStationOptions()
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <div class="flex-horizontal header">
-      <div><img src="../images/flexscreen-logo-hompage-2.png" width="350px"></div>
-   </div>
+   <?php include '../common/header.php';?>
    
    <?php include '../common/menu.php';?>
 
