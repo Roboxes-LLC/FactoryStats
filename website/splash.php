@@ -23,7 +23,7 @@
 
    <?php include 'common/header.php';?>
    
-   <div class="flex-horizontal main splash" style="flex-wrap: wrap;">
+   <div class="flex-horizontal main splash" style="flex-wrap: wrap; align-items: center;">
    
       <form action="/flexscreen/factoryMonitor/workstationSummary.php">
       <div class="flex-vertical login-div">

@@ -4,7 +4,7 @@ require_once '../common/workstationStatus.php';
 
 function renderStationSummaries()
 {
-   echo "<div class=\"station-summaries-div flex-horizontal\">";
+   echo "<div class=\"flex-horizontal main summary\">";
    
    $database = new FlexscreenDatabase();
    

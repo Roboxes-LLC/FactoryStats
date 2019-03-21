@@ -15,6 +15,12 @@
    color: yellow;
 }
 
+.station-summaries-div {
+	width: 100%;
+   justify-content: center;
+   align-items: flex-start;
+}
+
 .station-summary-div {
 	width: 300px;
 	margin: 20px 20px 0px 0px;  /*top, right, bottom, left */

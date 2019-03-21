@@ -177,20 +177,24 @@ function renderStationOptions()
    <?php include '../common/header.php';?>
    
    <?php include '../common/menu.php';?>
+   
+   <div class="main vertical">
 
-   <div class="flex-horizonal historical-data-filter-div">
-      <form action="#">
-      <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
-      <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
-      <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
-      <button type="submit">Filter</button>
-      </form>
+      <div class="flex-horizonal historical-data-filter-div">
+         <form action="#">
+         <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
+         <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
+         <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
+         <button type="submit">Filter</button>
+         </form>
+      </div>
+   
+      <?php renderTable();?>
+      
+      <br>
+      <button onclick="exportCsv()">Export as CSV</button>
+   
    </div>
-   
-   <?php renderTable();?>
-   
-   <br>
-   <button onclick="exportCsv()">Export as CSV</button>
      
 </div>
 

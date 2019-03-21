@@ -88,7 +88,9 @@ HEREDOC;
    
    <?php include '../common/menu.php';?>
    
-   <?php renderTable();?>
+   <div class="flex-horizontal main">
+      <?php renderTable();?>
+   </div>
      
 </div>
 
