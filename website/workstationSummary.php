@@ -1,6 +1,7 @@
 <?php
-require_once '../common/database.php';
-require_once '../common/workstationStatus.php';
+require_once 'common/database.php';
+require_once 'common/stationInfo.php';
+require_once 'common/workstationStatus.php';
 
 function renderStationSummaries()
 {
@@ -27,18 +28,20 @@ function renderStationSummaries()
 
 function renderStationSummary($stationId)
 {
-   $url= "/flexscreen/index.php?stationId=" . $stationId;
+   $url= "workstation.php?stationId=" . $stationId;
 
    echo "<a href=\"$url\"><div id=\"workstation-summary-$stationId\" class=\"flex-vertical station-summary-div\">";
    
+   $stationInfo = StationInfo::load($stationId);
+   
    $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
    
-   if ($workstationStatus)
+   if ($stationInfo && $workstationStatus)
    {
       echo 
 <<<HEREDOC
       <div class="flex-horizontal" style="justify-content: flex-start;">
-         <div class="medium-stat station-id-div">$stationId</div>
+         <div class="medium-stat station-id-div">$stationInfo->name</div>
          <div class="flex-horizontal hardware-button-led"></div>
       </div>
 
@@ -72,9 +75,9 @@ HEREDOC;
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="workstationSummary.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/workstationSummary.css"/>
    
    <style>
    .station-summary-div {
@@ -89,16 +92,16 @@ HEREDOC;
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include '../common/header.php';?>
+   <?php include 'common/header.php';?>
    
-   <?php include '../common/menu.php';?>
+   <?php include 'common/menu.php';?>
    
    <?php renderStationSummaries();?>
      
 </div>
 
-<script src="../flexscreen.js"></script>
-<script src="workstationSummary.js"></script>
+<script src="script/flexscreen.js"></script>
+<script src="script/workstationSummary.js"></script>
 <script>
    // Set menu selection.
    setMenuSelection(MenuItem.WORKSTATION_SUMMARY);

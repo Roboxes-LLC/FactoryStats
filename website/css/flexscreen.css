@@ -117,12 +117,12 @@ body {
 }
 
 .main.splash {
-   background-image: url("images/Maddie-Hands-Fade-In-Graphic-01-1500x870.png");
+   background-image: url("../images/Maddie-Hands-Fade-In-Graphic-01-1500x870.png");
    background-repeat: no-repeat;
 }
 
 .main.summary {
-   background-image: url("images/Invisible-fade-in.png");
+   background-image: url("../images/Invisible-fade-in.png");
    background-repeat: no-repeat;
    background-position: right;
 }
@@ -174,7 +174,7 @@ body {
 
 .left-panel {
    height: 100%;
-   background-image: url("images/Joe-Hands-Fade-In-Graphic-half.png");
+   background-image: url("../images/Joe-Hands-Fade-In-Graphic-half.png");
    background-repeat: no-repeat;
    align-items: stretch;
    justify-content: center;

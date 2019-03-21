@@ -1,8 +1,7 @@
 <?php
 
-require_once '../common/dailySummary.php';
-require_once '../common/database.php';
-require_once '../common/registryEntry.php';
+require_once 'common/dailySummary.php';
+require_once 'common/database.php';
 
 function getStationId()
 {
@@ -154,8 +153,8 @@ function renderStationOptions()
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
    
    <style>
       body {
@@ -174,9 +173,9 @@ function renderStationOptions()
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include '../common/header.php';?>
+   <?php include 'common/header.php';?>
    
-   <?php include '../common/menu.php';?>
+   <?php include 'common/menu.php';?>
    
    <div class="main vertical">
 
@@ -198,8 +197,8 @@ function renderStationOptions()
      
 </div>
 
-<script src="../flexscreen.js"></script>
-<script src="historicalData.js"></script>
+<script src="script/flexscreen.js"></script>
+<script src="script/historicalData.js"></script>
 <script>
    setMenuSelection(MenuItem.PRODUCTION_HISTORY);
 </script>

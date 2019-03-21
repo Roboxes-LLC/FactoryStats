@@ -1,6 +1,6 @@
 function update()
 {
-   var requestURL = "../api/workstationSummary/"
+   var requestURL = "api/workstationSummary/"
       
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -32,10 +32,14 @@ function updateWorkstation(workstationStatus)
    
    if (divElement)
    {
-      divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.stationId;
+      divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.name;
+      
       updateHardwareButtonIndicator(workstationStatus.stationId, workstationStatus.hardwareButtonStatus);
+      
       divElement.getElementsByClassName("count-div")[0].innerHTML = workstationStatus.count;
+      
       updateUpdateTime(workstationStatus.stationId, workstationStatus.updateTime);
+      
       updateAverageCountTime(workstationStatus.stationId, workstationStatus.averageCountTime);
    }
 }

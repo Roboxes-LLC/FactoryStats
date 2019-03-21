@@ -1,3 +1,4 @@
+/*
 var Page = {
    FIRST : 0,
    SPLASH : 0,
@@ -12,10 +13,10 @@ var lastCountTime = null;
 function jumpTo(page)
 {
    var urls = [
-   "index.php",
-   "factoryMonitor/workstationSummary.php",
-   "factoryMonitor/productionHistory.php",
-   "factoryMonitor/hardwareButton.php",
+      "index.php",
+      "workstationSummary.php",
+      "productionHistory.php",
+      "hardwareButton.php",
    ];
    
    if ((page >= Page.FIRST) && (page < Page.LAST))
@@ -25,6 +26,7 @@ function jumpTo(page)
 
    location.href = urls[page];
 }
+*/
 
 var MenuItem = {
    FIRST : 0,
@@ -199,7 +201,9 @@ function incrementCount()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         // Silently ignore this.responseText for now.
+         var json = JSON.parse(this.responseText);
+
+         updateCount(json.count);
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -215,7 +219,9 @@ function decrementCount()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         // Silently ignore this.responseText for now.
+         var json = JSON.parse(this.responseText);
+         
+         updateCount(json.count);
       }
    };
    xhttp.open("GET", requestURL, true);

@@ -1,7 +1,8 @@
 <?php
 
+require_once '../common/buttonInfo.php';
 require_once '../common/database.php';
-require_once '../common/registryEntry.php';
+require_once '../common/displayInfo.php';
 require_once '../common/time.php';
 require_once '../common/workstationStatus.php';
 require_once 'rest.php';
@@ -94,7 +95,7 @@ function getAverageCountTime($stationId, $startDateTime, $endDateTime)
 function getHardwareButtonStatus($stationId)
 {
    $hardwareButtonStatus = new stdClass();
-   $hardwareButtonStatus->chipId = RegistryEntry::UNKNOWN_CHIP_ID;
+   $hardwareButtonStatus->buttonId = ButtonInfo::UNKNOWN_BUTTON_ID;
    
    $database = new FlexscreenDatabase();
    
@@ -103,15 +104,15 @@ function getHardwareButtonStatus($stationId)
    if ($database->isConnected())
    {
       // Note: Results returned ordered by lastContact, DESC.
-      $results = $database->getRegistryEntriesForStation($stationId);
+      $results = $database->getButtonsForStation($stationId);
       
       if ($results && ($row = $results->fetch_assoc()))
       {
-         $registryEntry = RegistryEntry::load($row["chipId"]);
+         $buttonInfo = ButtonInfo::load($row["buttonId"]);
          
-         $hardwareButtonStatus->chipId = $registryEntry->chipId;
-         $hardwareButtonStatus->ipAddress = $registryEntry->ipAddress;
-         $hardwareButtonStatus->lastContact = $registryEntry->lastContact;
+         $hardwareButtonStatus->buttonId= $buttonInfo->buttonId;
+         $hardwareButtonStatus->ipAddress = $buttonInfo->ipAddress;
+         $hardwareButtonStatus->lastContact = $buttonInfo->lastContact;
       }
    }
    
@@ -144,16 +145,13 @@ function getStations()
 
 $router = new Router();
 
-$router->add("register", function($params) {
-   if (isset($params["chipId"]))
+$router->add("registerButton", function($params) {
+   if (isset($params["macAddress"]))
    {
-      $registryEntry = new RegistryEntry();
-      $registryEntry->chipId = $params->get("chipId");
-      $registryEntry->macAddress = $params->get("macAddress");
-      $registryEntry->ipAddress = $params->get("ipAddress");
-      $registryEntry->roboxName = $params->get("roboxName");
-      $registryEntry->userId = $params->get("userId");
-      $registryEntry->lastContact = Time::now("Y-m-d H:i:s");
+      $buttonInfo = new ButtonInfo();
+      $buttonInfo->macAddress = $params->get("macAddress");
+      $buttonInfo->ipAddress = $params->get("ipAddress");
+      $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
       
       $database = new FlexscreenDatabase();
       
@@ -161,23 +159,25 @@ $router->add("register", function($params) {
       
       if ($database->isConnected())
       {
-         if ($database->existsInRegistry($registryEntry->chipId))
+         if ($database->buttonExists($buttonInfo->macAddress))
          {
-            $database->updateRegistry($registryEntry);
+            $database->updateButton($buttonInfo);
          }
          else
          {
-            $database->register($registryEntry);
+            $database->addButton($buttonInfo);
          }
       }
    }
 });
 
-$router->add("unregister", function($params) {
-   
-   if (isset($params["chipId"]))
+$router->add("registerDisplay", function($params) {
+   if (isset($params["macAddress"]))
    {
-      $chipId = $params->get("chipId");
+      $displayInfo = new DisplayInfo();
+      $displayInfo->macAddress = $params->get("macAddress");
+      $displayInfo->ipAddress = $params->get("ipAddress");
+      $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
       
       $database = new FlexscreenDatabase();
       
@@ -185,9 +185,13 @@ $router->add("unregister", function($params) {
       
       if ($database->isConnected())
       {
-         if ($database->existsInRegistry($chipId))
+         if ($database->displayExists($displayInfo->macAddress))
          {
-            $database->unregister($chipId);
+            $database->updateDisplay($displayInfo);
+         }
+         else
+         {
+            $database->addDisplay($displayInfo);
          }
       }
    }
@@ -196,9 +200,20 @@ $router->add("unregister", function($params) {
 $router->add("update", function($params) {
    if (isset($params["stationId"]) && isset($params["count"]))
    {
+      $stationId = $params->get("stationId");
+      
       updateCount($params->get("stationId"), $params->get("count"));
       
-      echo "New screen count for this hour: " . getCount($params->get("stationId"), Time::startOfHour(Time::now("Y-m-d H:i:s")), Time::endOfHour(Time::now("Y-m-d H:i:s")));
+      $now = Time::now("Y-m-d H:i:s");
+      $startDateTime = Time::startOfDay($now);
+      $endDateTime = Time::endOfDay($now);
+      
+      $count = getCount($stationId, $startDateTime, $endDateTime);
+      
+      $result["stationId"] = $stationId;
+      $result["count"] = $count;
+      
+      echo json_encode($result);
    }
 });
 

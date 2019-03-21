@@ -1,11 +1,12 @@
 <?php
+require_once 'buttonInfo.php';
 require_once 'database.php';
-require_once 'registryEntry.php';
 require_once 'time.php';
 
 class WorkstationStatus
 {
    public $stationId;
+   public $name;
    public $count;
    public $hourlyCount;
    public $updateTime;
@@ -31,6 +32,8 @@ class WorkstationStatus
          
          $workstationStatus->stationId = $stationId;
          
+         $workstationStatus->name = WorkStationStatus::getWorkstationName($stationId, $database);
+         
          $workstationStatus->count = WorkstationStatus::getCount($stationId, $startDateTime, $endDateTime, $database);
          
          $workstationStatus->hourlyCount = WorkstationStatus::getHourlyCount($stationId, $startDateTime, $endDateTime, $database);
@@ -43,6 +46,20 @@ class WorkstationStatus
       }
       
       return ($workstationStatus);
+   }
+   
+   private static function getWorkstationName($stationId, $database)
+   {
+      $name = "";
+      
+      $result = $database->getStation($stationId);
+      
+      if ($result && ($row = $result->fetch_assoc()))
+      {
+         $name = $row['name'];
+      }
+      
+      return ($name);
    }
    
    private static function getCount($stationId, $startDateTime, $endDateTime, $database)
@@ -96,18 +113,18 @@ class WorkstationStatus
    private static function getHardwareButtonStatus($stationId, $database)
    {
       $hardwareButtonStatus = new stdClass();
-      $hardwareButtonStatus->chipId = RegistryEntry::UNKNOWN_CHIP_ID;
+      $hardwareButtonStatus->chipId = ButtonInfo::UNKNOWN_BUTTON_ID;
       
       // Note: Results returned ordered by lastContact, DESC.
-      $results = $database->getRegistryEntriesForStation($stationId);
+      $results = $database->getButtonsForStation($stationId);
       
       if ($results && ($row = $results->fetch_assoc()))
       {
-         $registryEntry = RegistryEntry::load($row["chipId"]);
+         $buttonInfo = ButtonInfo::load($row["buttonId"]);
          
-         $hardwareButtonStatus->chipId = $registryEntry->chipId;
-         $hardwareButtonStatus->ipAddress = $registryEntry->ipAddress;
-         $hardwareButtonStatus->lastContact = $registryEntry->lastContact;
+         $hardwareButtonStatus->buttonId = $buttonInfo->buttonId;
+         $hardwareButtonStatus->ipAddress = $buttonInfo->ipAddress;
+         $hardwareButtonStatus->lastContact = $buttonInfo->lastContact;
       }
       
       return ($hardwareButtonStatus);

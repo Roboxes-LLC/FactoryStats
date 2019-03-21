@@ -1,7 +1,8 @@
 <?php
 
-require_once '../common/database.php';
-require_once '../common/registryEntry.php';
+require_once 'common/buttonInfo.php';
+require_once 'common/database.php';
+require_once 'common/stationInfo.php';
 
 function renderTable()
 {
@@ -26,24 +27,35 @@ HEREDOC;
    
    if ($database->isConnected())
    {
-      $result = $database->getRegistryEntries("");
+      $result = $database->getButtons();
       
       while ($result && $row = $result->fetch_assoc())
       {
-         $registryEntry = RegistryEntry::load($row["chipId"]);
+         $buttonInfo = ButtonInfo::load($row["buttonId"]);
          
-         $isOnline = $registryEntry->isOnline();
+         $stationName = "";
+         if ($buttonInfo->stationId != StationInfo::UNKNOWN_STATION_ID)
+         {
+            $stationInfo = StationInfo::load($buttonInfo->stationId);
+            
+            if ($stationInfo)
+            {
+               $stationName = $stationInfo->name;
+            }
+         }
+         
+         $isOnline = $buttonInfo->isOnline();
          $status = $isOnline ? "Online" : "Offline";
          $ledClass = $isOnline ? "led-green" : "led-red";
          
          echo 
 <<<HEREDOC
          <tr>
-            <td>$registryEntry->chipId</td>
-            <td>$registryEntry->macAddress</td>
-            <td>$registryEntry->ipAddress</td>
-            <td>$registryEntry->roboxName</td>
-            <td>$registryEntry->lastContact</td>
+            <td>$buttonInfo->buttonId</td>
+            <td>$buttonInfo->macAddress</td>
+            <td>$buttonInfo->ipAddress</td>
+            <td>$stationName</td>
+            <td>$buttonInfo->lastContact</td>
             <td>$status <div class="$ledClass"></div></td>
             <td><button>Configure</button></div></td>
             <td><button>Delete</button></div></td>
@@ -67,9 +79,9 @@ HEREDOC;
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="hardwareButton.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/hardwareButton.css"/>
    
    <style>
       table, th, td {
@@ -84,9 +96,9 @@ HEREDOC;
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include '../common/header.php';?>
+   <?php include 'common/header.php';?>
    
-   <?php include '../common/menu.php';?>
+   <?php include 'common/menu.php';?>
    
    <div class="flex-horizontal main">
       <?php renderTable();?>
@@ -94,8 +106,8 @@ HEREDOC;
      
 </div>
 
-<script src="../flexscreen.js"></script>
-<script src="hardwareButton.js"></script>
+<script src="script/flexscreen.js"></script>
+<script src="script/hardwareButton.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
