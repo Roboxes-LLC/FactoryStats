@@ -10,7 +10,7 @@ ScreenCounter::ScreenCounter(
    Component(id),
    doubleClickTimer(0)
 {
-  
+   getMacAddress(macAddress);
 }
 
 ScreenCounter::~ScreenCounter()
@@ -98,19 +98,20 @@ void ScreenCounter::onButtonUp()
    {
       message->setDestination("http");
       message->setMessageId("update");
+      message->set("macAddress", macAddress);
       message->set("count", 1);
-      message->set("stationId", ToastBot::getId());
+
       Messaging::send(message);
 
-       // TODO: Send in reponse to HTTP 200 response.
-       if (WifiBoard::getBoard()->isConnected() == true)
-       {
-          StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
-          if (led)
-          {
-             led->onCounterDecremented();
-          }
-       }
+      // TODO: Send in reponse to HTTP 200 response.
+      if (WifiBoard::getBoard()->isConnected() == true)
+      {
+         StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+         if (led)
+         {
+            led->onCounterDecremented();
+         }
+      }
    }
 }
 
@@ -123,8 +124,9 @@ void ScreenCounter::onDoubleClick()
    {
       message->setDestination("http");
       message->setMessageId("update");
+      message->set("macAddress", macAddress);
       message->set("count", -1);
-      message->set("stationId", ToastBot::getId());
+      
       Messaging::send(message);
 
        // TODO: Send in reponse to HTTP 200 response.
@@ -153,4 +155,14 @@ void ScreenCounter::onLongPress()
    {
       timer->start();
    }
+}
+
+void ScreenCounter::getMacAddress(
+   char macAddress[18])
+{
+   // Get the MAC address.
+   unsigned char mac[6] = {0, 0, 0, 0, 0, 0};
+   WifiBoard::getBoard()->getMacAddress(mac);
+
+   sprintf(macAddress, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }

@@ -63,7 +63,6 @@ void ConfigPage::replaceContent(
 {
    Properties& properties = ToastBot::getProperties();
   
-   content.replace("%name", properties.getString("deviceName"));
    content.replace("%ssid", properties.getString("wifi.ssid"));
    content.replace("%password", properties.getString("wifi.password"));
    content.replace("%info", infoText);
@@ -74,7 +73,6 @@ void ConfigPage::onConfigUpdate(
 {
    Properties& properties = ToastBot::getProperties();
      
-   properties.set("deviceName", arguments.getString("deviceName"));
    properties.set("wifi.ssid", arguments.getString("ssid"));
    properties.set("wifi.password", arguments.getString("password"));
 

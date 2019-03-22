@@ -3,6 +3,7 @@
 require_once '../common/buttonInfo.php';
 require_once '../common/database.php';
 require_once '../common/displayInfo.php';
+require_once '../common/stationInfo.php';
 require_once '../common/time.php';
 require_once '../common/workstationStatus.php';
 require_once 'rest.php';
@@ -159,13 +160,16 @@ $router->add("registerButton", function($params) {
       
       if ($database->isConnected())
       {
-         if ($database->buttonExists($buttonInfo->macAddress))
+         $queryResult = $database->getButtonByMacAddress($buttonInfo->macAddress);
+         
+         if ($queryResult && ($row = $queryResult->fetch_assoc()))
          {
+            $buttonInfo->buttonId = $row["buttonId"];
             $database->updateButton($buttonInfo);
          }
          else
          {
-            $database->addButton($buttonInfo);
+            $database->newButton($buttonInfo);
          }
       }
    }
@@ -198,11 +202,37 @@ $router->add("registerDisplay", function($params) {
 });
 
 $router->add("update", function($params) {
-   if (isset($params["stationId"]) && isset($params["count"]))
+   $result = new stdClass();
+   
+   $stationId = StationInfo::UNKNOWN_STATION_ID;
+   
+   if (isset($params["stationId"]))
    {
       $stationId = $params->get("stationId");
+   }
+   else if (isset($params["macAddress"]))
+   {
+      $macAddress = $params->get("macAddress");
       
-      updateCount($params->get("stationId"), $params->get("count"));
+      $database = new FlexscreenDatabase();
+      
+      $database->connect();
+      
+      if ($database->isConnected())
+      {
+         $queryResult = $database->getButtonByMacAddress($macAddress);
+         
+         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         {
+            $stationId = $row["stationId"];
+         }
+      }
+   }
+   
+   if (($stationId != StationInfo::UNKNOWN_STATION_ID) && 
+       isset($params["count"]))
+   {
+      updateCount($stationId, $params->get("count"));
       
       $now = Time::now("Y-m-d H:i:s");
       $startDateTime = Time::startOfDay($now);
@@ -210,11 +240,11 @@ $router->add("update", function($params) {
       
       $count = getCount($stationId, $startDateTime, $endDateTime);
       
-      $result["stationId"] = $stationId;
-      $result["count"] = $count;
-      
-      echo json_encode($result);
+      $result->stationId = $stationId;
+      $result->count = $count;
    }
+   
+   echo json_encode($result);
 });
 
 $router->add("count", function($params) {

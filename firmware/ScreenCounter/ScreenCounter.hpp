@@ -33,5 +33,10 @@ protected:
 
 private:
 
+   static void getMacAddress(
+      char macAddress[18]);
+
+   char macAddress[18];
+
    Timer* doubleClickTimer;
 };

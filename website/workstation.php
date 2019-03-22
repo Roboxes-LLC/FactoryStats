@@ -92,7 +92,7 @@ $isReadOnly = isReadOnly();
    
    <?php if (!$isReadOnly) {include 'common/menu.php';}?>
    
-   <div class="flex-horizontal" style="flex-wrap: wrap;">
+   <div class="main workstation" style="align-items: center; flex-wrap: wrap;">
    
       <div class="flex-vertical left-panel">
       
