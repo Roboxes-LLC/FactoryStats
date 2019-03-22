@@ -109,8 +109,9 @@ HEREDOC;
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
-   // Start a five-second timer to update the count/hourly count div.
-   setInterval(function(){update();}, 5000);
+   setTimeout(function(){
+      window.location.reload(1);
+   }, 5000); 
 </script>
 
 </body>

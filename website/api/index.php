@@ -176,6 +176,8 @@ $router->add("registerButton", function($params) {
 });
 
 $router->add("registerDisplay", function($params) {
+   $result = new stdClass();
+   
    if (isset($params["macAddress"]))
    {
       $displayInfo = new DisplayInfo();
@@ -189,16 +191,34 @@ $router->add("registerDisplay", function($params) {
       
       if ($database->isConnected())
       {
-         if ($database->displayExists($displayInfo->macAddress))
+         $queryResult = $database->getDisplayByMacAddress($displayInfo->macAddress);
+         
+         if ($queryResult && ($row = $queryResult->fetch_assoc()))
          {
+            $displayInfo->displayId = $row["displayId"];
             $database->updateDisplay($displayInfo);
          }
          else
          {
-            $database->addDisplay($displayInfo);
+            $database->newDisplay($displayInfo);
          }
+         
+         $result->success = true;
+         $result->displayInfo = $displayInfo;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
       }
    }
+   else
+   {
+      $result->success = false;
+      $result->error = "No MAC address supplied";
+   }
+   
+   echo json_encode($result);
 });
 
 $router->add("update", function($params) {

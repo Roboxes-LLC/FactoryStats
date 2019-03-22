@@ -125,15 +125,11 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getDisplayByMacAddress($macAddress)
    {
-      $buttonId = DisplayInfo::UNKNOWN_DISPLAY_ID;
-      
       $query = "SELECT * from display WHERE macAddress = \"$macAddress\";";
       
       $result = $this->query($query);
-
-      $buttonId = ($result && ($row = $result->fetch_assoc())) ? $row["displayId"] : ButtonInfo::UNKNOWN_DISPLAY_ID;
       
-      return ($buttonId);
+      return ($result);
    }
    
    public function displayExists($macAddress)
@@ -145,14 +141,26 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($result && ($result->num_rows > 0));
    }
    
-   public function newDisplay($buttonInfo)
+   public function newDisplay($displayInfo)
    {
-      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
+      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
       $query =
       "INSERT INTO display (macAddress, ipAddress, lastContact) " .
-      "VALUES ('$buttonInfo->macAddress', '$buttonInfo->ipAddress', '$lastContact');";
+      "VALUES ('$displayInfo->macAddress', '$displayInfo->ipAddress', '$lastContact');";
+
+      $this->query($query);
+   }
+   
+   public function updateDisplay($displayInfo)
+   {
+      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
+      $query =
+      "UPDATE display " .
+      "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", lastContact = \"$lastContact\" " .
+      "WHERE displayId = $displayInfo->displayId;";
+      echo $query;
       $this->query($query);
    }
    
@@ -187,8 +195,6 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getButtonByMacAddress($macAddress)
    {
-      $buttonId = ButtonInfo::UNKNOWN_BUTTON_ID;
-      
       $query = "SELECT * from button WHERE macAddress = \"$macAddress\";";
 
       $result = $this->query($query);

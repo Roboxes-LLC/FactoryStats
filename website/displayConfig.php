@@ -108,6 +108,10 @@ HEREDOC;
 <script src="script/flexscreen.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
+
+   setTimeout(function(){
+      window.location.reload(1);
+   }, 5000);   
 </script>
 
 </body>
