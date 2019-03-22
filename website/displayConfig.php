@@ -81,7 +81,6 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/hardwareButton.css"/>
    
    <style>
       table, th, td {
@@ -92,7 +91,7 @@ HEREDOC;
    
 </head>
 
-<body onload="update()">
+<body>
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
@@ -107,7 +106,6 @@ HEREDOC;
 </div>
 
 <script src="script/flexscreen.js"></script>
-<script src="script/hardwareButton.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 </script>

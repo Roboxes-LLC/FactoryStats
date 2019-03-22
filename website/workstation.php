@@ -1,6 +1,8 @@
 <?php
 require_once 'common/displayInfo.php';
 require_once 'common/time.php';
+require_once 'common/displayInfo.php';
+require_once 'common/stationInfo.php';
 
 Time::init();
 
@@ -12,19 +14,53 @@ function getStationId()
    {
       $stationId = $_GET["stationId"];
    }
-   else if (isset($_GET["screenId"]))
+   else if (isset($_GET["displayId"]))
    {
-      $screenId = $_GET["screenId"];
+      $displayId = $_GET["displayId"];
       
-      $screenInfo = ScreenInfo::load($screenId);
-      if ($screenInfo)
+      $displayInfo = DisplayInfo::load($displayId);
+      if ($displayInfo)
       {
-         $stationId = $screenInfo->stationId;
+         $stationId = $displayInfo->stationId;
       }
    }
    
    return ($stationId);
 }
+
+function getStationName($stationId)
+{
+   $name = "";
+   
+   $stationInfo = StationInfo::load($stationId);
+   
+   if ($stationInfo)
+   {
+      $name = $stationInfo->name;
+   }
+   
+   return ($name);
+}
+
+function isReadOnly()
+{
+   return (isset($_GET["displayId"]));
+}
+
+function getButtons()
+{
+   echo
+<<<HEREDOC
+   <div class="btn btn-blob" onclick="incrementCount();">+</div>
+   <div class="btn btn-small btn-blob" onclick="decrementCount();" style="position: relative; left:15px; top: 80px;">-</div>
+HEREDOC;
+}
+
+$stationId = getStationId();
+
+$stationName = getStationName($stationId);
+
+$isReadOnly = isReadOnly();
 ?>
 
 <html>
@@ -47,14 +83,14 @@ function getStationId()
 <body onload="update()">
 
    <form>
-      <input id="station-id-input" type="hidden" name="stationId" value="<?php echo getStationId(); ?>">
+      <input id="station-id-input" type="hidden" name="stationId" value="<?php echo $stationId; ?>">
    </form>
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
    <?php include 'common/header.php';?>
    
-   <?php include 'common/menu.php';?>
+   <?php if (!$isReadOnly) {include 'common/menu.php';}?>
    
    <div class="flex-horizontal" style="flex-wrap: wrap;">
    
@@ -64,7 +100,7 @@ function getStationId()
             <div class="stat-label">Station</div>
             <div id="hardware-button-led" class="flex-horizontal"></div>
          </div>
-         <div class="large-stat"><?php echo getStationId(); ?></div>
+         <div class="large-stat"><?php echo $stationName; ?></div>
          
          <div class="stat-label">Average time between screens</div>
          <div id="average-count-time-div" class="large-stat"></div>
@@ -78,8 +114,7 @@ function getStationId()
       
          <div class="flex-horizontal">
          
-            <div class="btn btn-blob" onclick="incrementCount();">+</div>
-            <div class="btn btn-small btn-blob" onclick="decrementCount();" style="position: relative; left:15px; top: 80px;">-</div>
+            <?php if (!$isReadOnly) {getButtons();}?>
             
             <div class="flex-vertical" style="margin-left: 50px;">
                <div class="stat-label">Today's screen count</div>

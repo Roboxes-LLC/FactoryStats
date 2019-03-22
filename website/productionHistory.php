@@ -2,6 +2,7 @@
 
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
+require_once 'common/stationInfo.php';
 
 function getStationId()
 {
@@ -78,6 +79,8 @@ HEREDOC;
    
    foreach ($dailySummaries as $dailySummary)
    {
+      $stationInfo = StationInfo::load($dailySummary->stationId);
+      
       $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
       $dateString = $dateTime->format("m-d-Y");
       
@@ -106,7 +109,7 @@ HEREDOC;
       echo
 <<<HEREDOC
          <tr>
-            <td>$dailySummary->stationId</td>
+            <td>$stationInfo->name</td>
             <td>$dateString</td>
             <td>$dailySummary->count</td>
             <td>$timeString</td>

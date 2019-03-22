@@ -61,7 +61,6 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/hardwareButton.css"/>
    
    <style>
       table, th, td {

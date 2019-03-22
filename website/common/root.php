@@ -1,3 +1,3 @@
 <?php
-$ROOT = "http://localhost/flexscreen";
+$ROOT = "/flexscreen";
 ?>
