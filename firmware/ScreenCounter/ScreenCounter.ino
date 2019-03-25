@@ -1,8 +1,9 @@
 #include <ToastBot.h>
 
-#include "WebServer.hpp"
+#include "ButtonRegistrar.hpp"
 #include "ConfigPage.hpp"
 #include "ScreenCounter.hpp"
+#include "WebServer.hpp"
 
 WebServer webServer(80);
 

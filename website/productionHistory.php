@@ -1,8 +1,8 @@
 <?php
 
-require_once '../common/dailySummary.php';
-require_once '../common/database.php';
-require_once '../common/registryEntry.php';
+require_once 'common/dailySummary.php';
+require_once 'common/database.php';
+require_once 'common/stationInfo.php';
 
 function getStationId()
 {
@@ -64,7 +64,7 @@ function renderTable()
 <<<HEREDOC
    <table>
       <tr>
-         <th>Station ID</th>
+         <th>Workstation</th>
          <th>Date</th>
          <th>Screen Count</th>
          <th>Average Time Between Screens</th>
@@ -79,6 +79,8 @@ HEREDOC;
    
    foreach ($dailySummaries as $dailySummary)
    {
+      $stationInfo = StationInfo::load($dailySummary->stationId);
+      
       $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
       $dateString = $dateTime->format("m-d-Y");
       
@@ -101,13 +103,13 @@ HEREDOC;
       
       if ($hours == 0)
       {
-         $timeString += $seconds . " seconds";
+         $timeString .= $seconds . " seconds";
       }
       
       echo
 <<<HEREDOC
          <tr>
-            <td>$dailySummary->stationId</td>
+            <td>$stationInfo->name</td>
             <td>$dateString</td>
             <td>$dailySummary->count</td>
             <td>$timeString</td>
@@ -135,9 +137,10 @@ function renderStationOptions()
       while ($result && ($row = $result->fetch_assoc()))
       {
          $stationId = $row["stationId"];
+         $stationName = $row["name"];
          $selected = ($stationId == $selectedStationId) ? "selected" : "";
          
-         echo "<option value=\"$stationId\" $selected>$stationId</option>";
+         echo "<option value=\"$stationId\" $selected>$stationName</option>";
       }
    }
 }
@@ -151,9 +154,11 @@ function renderStationOptions()
    
    <title>Historical Data</title>
    
-   <link rel="stylesheet" type="text/css" href="../common/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="../flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="hardwareButton.css"/>
+   <!--  Material Design Lite -->
+   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+   
+   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
    
    <style>
       body {
@@ -172,22 +177,35 @@ function renderStationOptions()
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <div class="flex-horizontal header">
-      <div><img src="../images/flexscreen-logo-hompage-2.png" width="350px"></div>
-   </div>
-
-   <form action="#">
-   <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
-   <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
-   <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
-   <button type="submit">Filter</button>
-   </form>
+   <?php include 'common/header.php';?>
    
-   <?php renderTable();?>
+   <?php include 'common/menu.php';?>
+   
+   <div class="main vertical">
+
+      <div class="flex-horizonal historical-data-filter-div">
+         <form action="#">
+         <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
+         <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
+         <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
+         <button type="submit">Filter</button>
+         </form>
+      </div>
+   
+      <?php renderTable();?>
+      
+      <br>
+      <button onclick="exportCsv()">Export as CSV</button>
+   
+   </div>
      
 </div>
 
-<script src="historicalData.js"></script>
+<script src="script/flexscreen.js"></script>
+<script src="script/historicalData.js"></script>
+<script>
+   setMenuSelection(MenuItem.PRODUCTION_HISTORY);
+</script>
 
 </body>
 

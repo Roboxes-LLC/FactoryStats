@@ -19,6 +19,18 @@ class Router
    {
       $command = $this->parseCommand($_SERVER["REQUEST_URI"]);
       $params = $this->parseParams();
+      
+      // Log API requests.
+      if ($this->loggingEnabled)
+      {
+         $now = Time::now("d-m-Y h:i:s a");
+         
+         $url = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+         
+         $logEntry = $now . " " . $url  . "\r\n";
+         
+         file_put_contents(Router::LOG_FILE, $logEntry, FILE_APPEND | LOCK_EX);
+      }
 
       if (($command) && isset($this->handlers[$command]))
       {
@@ -28,6 +40,11 @@ class Router
       {
          echo("No handlers specified for \"$command\" command.");
       }
+   }
+   
+   public function setLogging($loggingEnabled)
+   {
+      $this->loggingEnabled = $loggingEnabled;
    }
    
    private function tokenize($string, $delimiter)
@@ -77,6 +94,10 @@ class Router
    }
    
    private $handlers = array();
+   
+   private $loggingEnabled = false;
+   
+   const LOG_FILE = "rest.log";
 }
 
 ?>

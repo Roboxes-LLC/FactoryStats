@@ -1,4 +1,65 @@
+/*
+var Page = {
+   FIRST : 0,
+   SPLASH : 0,
+   WORKSTATION_SUMMARY : 0,
+   PRODUCTION_HISTORY : 1,
+   HARDWARE_BUTTON : 2,
+   LAST : 3
+};
+
 var lastCountTime = null;
+
+function jumpTo(page)
+{
+   var urls = [
+      "index.php",
+      "workstationSummary.php",
+      "productionHistory.php",
+      "hardwareButton.php",
+   ];
+   
+   if ((page >= Page.FIRST) && (page < Page.LAST))
+   {
+      
+   }
+
+   location.href = urls[page];
+}
+*/
+
+var MenuItem = {
+   FIRST : 0,
+   WORKSTATION_SUMMARY : 0,
+   PRODUCTION_HISTORY : 1,
+   CONFIGURATION : 2,
+   LAST : 3
+};
+
+function setMenuSelection(menuItem)
+{
+   var menuItemElements = [
+      "menu-item-workstation-summary",
+      "menu-item-production-history",
+      "menu-item-configuration"
+   ];
+   
+   for (var tempMenuItem = MenuItem.FIRST; tempMenuItem < MenuItem.LAST; tempMenuItem++)
+   {
+      var element = document.getElementById(menuItemElements[tempMenuItem]);
+      
+      if (menuItem == tempMenuItem)
+      {
+         // Set.
+         element.classList.add("selected");
+      }
+      else
+      {
+         // Clear.
+         element.classList.remove("selected");
+      }
+   }
+}
 
 function update()
 {
@@ -140,7 +201,9 @@ function incrementCount()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         // Silently ignore this.responseText for now.
+         var json = JSON.parse(this.responseText);
+
+         updateCount(json.count);
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -156,7 +219,9 @@ function decrementCount()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         // Silently ignore this.responseText for now.
+         var json = JSON.parse(this.responseText);
+         
+         updateCount(json.count);
       }
    };
    xhttp.open("GET", requestURL, true);

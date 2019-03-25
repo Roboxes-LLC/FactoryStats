@@ -103,72 +103,156 @@ class FlexscreenDatabase extends MySqlDatabase
       parent::__construct($SERVER, $USER, $PASSWORD, $DATABASE);
    }
    
-   public function getRegistryEntry($chipId)
+   // **************************************************************************
+   
+   public function getDisplay($displayId)
    {
-      $query = "SELECT * from registry WHERE chipId = \"$chipId\";";
+      $query = "SELECT * from display WHERE displayId = \"$displayId\";";
       
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function getRegistryEntries($userId)
+   public function getDisplays()
    {
-      $userClause = empty($userId) ? "" : "WHERE userId = \"$userId\"";
-      $query = "SELECT * from registry $userClause ORDER BY chipId DESC;";
+      $query = "SELECT * from display ORDER BY macAddress DESC;";
       
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function getRegistryEntriesForStation($stationId)
+   public function getDisplayByMacAddress($macAddress)
    {
-      $query = "SELECT * from registry WHERE roboxName = \"$stationId\" ORDER BY lastContact DESC;";
+      $query = "SELECT * from display WHERE macAddress = \"$macAddress\";";
       
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function existsInRegistry($chipId)
+   public function displayExists($macAddress)
    {
-      $query = "SELECT chipId from registry WHERE chipId = \"$chipId\";";
+      $query = "SELECT displayId from display WHERE macAddress = \"$macAddress\";";
       
       $result = $this->query($query);
       
       return ($result && ($result->num_rows > 0));
    }
    
-   public function register($registryEntry)
+   public function newDisplay($displayInfo)
    {
-      $lastContact = Time::toMySqlDate($registryEntry->lastContact);
+      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
       $query =
-      "INSERT INTO registry (chipId, macAddress, ipAddress, roboxName, userId, lastContact) " .
-      "VALUES ('$registryEntry->chipId', '$registryEntry->macAddress', '$registryEntry->ipAddress', '$registryEntry->roboxName', '$registryEntry->userId', '$lastContact');";
+      "INSERT INTO display (macAddress, ipAddress, lastContact) " .
+      "VALUES ('$displayInfo->macAddress', '$displayInfo->ipAddress', '$lastContact');";
+
+      $this->query($query);
+   }
+   
+   public function updateDisplay($displayInfo)
+   {
+      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
+      
+      $query =
+      "UPDATE display " .
+      "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", lastContact = \"$lastContact\" " .
+      "WHERE displayId = $displayInfo->displayId;";
       echo $query;
       $this->query($query);
    }
    
-   public function updateRegistry($registryEntry)
+   // **************************************************************************
+   
+   public function getButton($buttonId)
    {
-      $lastContact = Time::toMySqlDate($registryEntry->lastContact);
+      $query = "SELECT * from button WHERE buttonId = \"$buttonId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getButtons()
+   {
+      $query = "SELECT * from button ORDER BY macAddress DESC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getButtonsForStation($stationId)
+   {
+      $query = "SELECT * from button WHERE stationId = \"$stationId\" ORDER BY lastContact DESC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getButtonByMacAddress($macAddress)
+   {
+      $query = "SELECT * from button WHERE macAddress = \"$macAddress\";";
+
+      $result = $this->query($query);
+     
+      return ($result);
+   }
+   
+   public function buttonExists($macAddress)
+   {
+      $query = "SELECT buttonId from button WHERE macAddress = \"$macAddress\";";
+      
+      $result = $this->query($query);
+      
+      return ($result && ($result->num_rows > 0));
+   }
+   
+   public function newButton($buttonInfo)
+   {
+      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
       
       $query =
-      "UPDATE registry " .
-      "SET macAddress = \"$registryEntry->macAddress\", ipAddress = \"$registryEntry->ipAddress\", roboxName = \"$registryEntry->roboxName\", userId = \"$registryEntry->userId\", lastContact = \"$lastContact\" " .
-      "WHERE chipId = $registryEntry->chipId;";
-      echo $query;
+      "INSERT INTO button (macAddress, ipAddress, lastContact) " .
+      "VALUES ('$buttonInfo->macAddress', '$buttonInfo->ipAddress', '$lastContact');";
+
       $this->query($query);
    }
    
-   public function unregister($chipId)
+   public function updateButton($buttonInfo)
    {
-      $query = "DELETE FROM registry WHERE chipId = $chipId;";
+      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
       
+      $query =
+      "UPDATE button " .
+      "SET macAddress = \"$buttonInfo->macAddress\", ipAddress = \"$buttonInfo->ipAddress\", lastContact = \"$lastContact\" " .
+      "WHERE buttonId = $buttonInfo->buttonId;";
+
       $this->query($query);
    }
+   
+   // **************************************************************************
+   
+   public function getStation($stationId)
+   {
+      $query = "SELECT * from station WHERE stationId = \"$stationId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getStations()
+   {
+      $query = "SELECT * from station;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   } 
    
    public function stationExists($stationId)
    {
@@ -179,23 +263,36 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($result && ($result->num_rows > 0));
    }
    
-   public function newStation($stationId)
+   public function newStation($stationInfo)
    {
-      $now = new DateTime(Time::now("Y-m-d H:i:s"));
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       
-      $query = "INSERT INTO station (stationId, updateTime) VALUES ('$stationId', '$now');";
+      $query = "INSERT INTO station (name, label, description, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', $now');";
 
       $this->query($query);
    }
    
-   public function getStations()
+   public function updateStation($stationInfo)
    {
-      $query = "SELECT stationId from station;";
+      $query =
+      "UPDATE station " .
+      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\" " .
+      "WHERE stationId = $stationInfo->stationId;";
       
-      $result = $this->query($query);
-      
-      return ($result);
-   } 
+      $this->query($query);
+   }
+   
+   public function touchStation($stationId)
+   {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+
+      // Record last update time.
+      $query = "UPDATE station SET updateTime = \"$now\" WHERE stationId = \"$stationId\";";
+
+      $this->query($query);
+   }
+   
+   // **************************************************************************
 
    public function getCount($stationId, $startDateTime, $endDateTime)
    {
@@ -216,11 +313,6 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function updateCount($stationId, $screenCount)
    {
-      if (!FlexscreenDatabase::stationExists($stationId))
-      {
-         FlexscreenDatabase::newStation($stationId);
-      }
-      
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
       
       // Calculate the time since the update (in seconds).
@@ -253,7 +345,7 @@ class FlexscreenDatabase extends MySqlDatabase
       }
       
       // Store a new updateTime for this station.
-      $this->updateStation($stationId);
+      $this->touchStation($stationId);
    }
    
    public function getUpdateTime($stationId)
@@ -288,41 +380,11 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($countTime);
    }
    
-   protected function updateStation($stationId)
-   {
-      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
-      
-      // Determine if we have an entry for this station.
-      $query = "SELECT * from station WHERE stationId = \"$stationId\";";
-      //echo $query . "<br/>";
-      $result = $this->query($query);
-      
-      // New entry.
-      if ($result && ($result->num_rows == 0))
-      {
-         $query =
-         "INSERT INTO station " .
-         "(stationId, updateTime) " .
-         "VALUES " .
-         "('$stationId', '$now');";
-         //echo $query . "<br/>";
-         $this->query($query);
-      }
-      // Updated entry.
-      else
-      {
-         // Record last update time.
-         $query = "UPDATE station SET updateTime = \"$now\" WHERE stationId = \"$stationId\";";
-         //echo $query . "<br/>";
-         $this->query($query);
-      }
-   }
-   
    protected function calculateCountTime($stationId)
    {
       $countTime = 0;
       
-      $now = new DateTime(Time::now("Y-m-d H:i:s"));
+      $now = new DateTime("now", new DateTimeZone('America/New_York'));
       
       $updateTime = new DateTime(FlexscreenDatabase::getUpdateTime($stationId), new DateTimeZone('America/New_York'));
       
@@ -330,8 +392,10 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $interval = $updateTime->diff($now);
          
-         // With this day?  // TODO: Refine
-         if ($interval->days == 0)
+         $sameDay = (($interval->days == 0) &&
+                     (intval($now->format('d')) == intval($updateTime->format('d'))));
+         
+         if ($sameDay)
          {
             // Convert to seconds.
             $countTime = (($interval->h * 60 * 60) + ($interval->i * 60) + $interval->s);
