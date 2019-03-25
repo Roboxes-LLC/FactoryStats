@@ -6,7 +6,7 @@ require_once 'time.php';
 class WorkstationStatus
 {
    public $stationId;
-   public $name;
+   public $label;
    public $count;
    public $hourlyCount;
    public $updateTime;
@@ -32,7 +32,7 @@ class WorkstationStatus
          
          $workstationStatus->stationId = $stationId;
          
-         $workstationStatus->name = WorkStationStatus::getWorkstationName($stationId, $database);
+         $workstationStatus->label = WorkStationStatus::getWorkstationLabel($stationId, $database);
          
          $workstationStatus->count = WorkstationStatus::getCount($stationId, $startDateTime, $endDateTime, $database);
          
@@ -48,7 +48,7 @@ class WorkstationStatus
       return ($workstationStatus);
    }
    
-   private static function getWorkstationName($stationId, $database)
+   private static function getWorkstationLabel($stationId, $database)
    {
       $name = "";
       
@@ -56,7 +56,7 @@ class WorkstationStatus
       
       if ($result && ($row = $result->fetch_assoc()))
       {
-         $name = $row['name'];
+         $name = $row['label'];
       }
       
       return ($name);

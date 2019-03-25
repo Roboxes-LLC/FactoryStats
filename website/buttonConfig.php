@@ -82,13 +82,6 @@ HEREDOC;
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
    
-   <style>
-      table, th, td {
-         color: white;
-         border: 1px solid white;
-      }
-   </style>
-   
 </head>
 
 <body>

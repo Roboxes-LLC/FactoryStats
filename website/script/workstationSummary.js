@@ -32,7 +32,7 @@ function updateWorkstation(workstationStatus)
    
    if (divElement)
    {
-      divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.name;
+      divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.label;
       
       updateHardwareButtonIndicator(workstationStatus.stationId, workstationStatus.hardwareButtonStatus);
       

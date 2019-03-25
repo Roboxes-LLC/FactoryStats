@@ -9,8 +9,8 @@ function renderTable()
 <<<HEREDOC
    <table>
       <tr>
-         <th>Station ID</th>
-         <th>Name</th>
+         <th>Workstation</th>
+         <th>Label</th>
          <th>Description</th>
          <th>Last Update</th>
          <th></th>
@@ -33,8 +33,8 @@ HEREDOC;
          echo 
 <<<HEREDOC
          <tr>
-            <td>$stationInfo->stationId</td>
             <td>$stationInfo->name</td>
+            <td>$stationInfo->label</td>
             <td>$stationInfo->description</td>
             <td>$stationInfo->updateTime</td>
             <td><button>Configure</button></div></td>

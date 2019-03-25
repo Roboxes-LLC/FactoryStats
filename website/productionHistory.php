@@ -62,9 +62,9 @@ function renderTable()
 {
    echo 
 <<<HEREDOC
-   <table class="historical-data-table">
+   <table>
       <tr>
-         <th>Station ID</th>
+         <th>Workstation</th>
          <th>Date</th>
          <th>Screen Count</th>
          <th>Average Time Between Screens</th>
@@ -137,9 +137,10 @@ function renderStationOptions()
       while ($result && ($row = $result->fetch_assoc()))
       {
          $stationId = $row["stationId"];
+         $stationName = $row["name"];
          $selected = ($stationId == $selectedStationId) ? "selected" : "";
          
-         echo "<option value=\"$stationId\" $selected>$stationId</option>";
+         echo "<option value=\"$stationId\" $selected>$stationName</option>";
       }
    }
 }

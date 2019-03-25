@@ -247,7 +247,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getStations()
    {
-      $query = "SELECT stationId from station;";
+      $query = "SELECT * from station;";
       
       $result = $this->query($query);
       
@@ -267,7 +267,7 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       
-      $query = "INSERT INTO station (name, description, updateTime) VALUES ('$stationInfo->name', '$stationInfo->description', $now');";
+      $query = "INSERT INTO station (name, label, description, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', $now');";
 
       $this->query($query);
    }
@@ -276,7 +276,7 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $query =
       "UPDATE station " .
-      "SET name = \"$stationInfo->name\", description = \"$stationInfo->description\" " .
+      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\" " .
       "WHERE stationId = $stationInfo->stationId;";
       
       $this->query($query);

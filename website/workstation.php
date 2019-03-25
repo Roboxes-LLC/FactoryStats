@@ -24,19 +24,32 @@ function getStationId()
          $stationId = $displayInfo->stationId;
       }
    }
+   else if (isset($_GET["macAddress"]))
+   {
+      $macAddress = $_GET["macAddress"];
+      
+      $displayId = DisplayInfo::getDisplayIdFromMac($macAddress);
+
+      $displayInfo = DisplayInfo::load($displayId);
+      
+      if ($displayInfo)
+      {
+         $stationId = $displayInfo->stationId;
+      }
+   }
    
    return ($stationId);
 }
 
-function getStationName($stationId)
+function getStationLabel($stationId)
 {
-   $name = "";
+   $label = "";
    
    $stationInfo = StationInfo::load($stationId);
    
    if ($stationInfo)
    {
-      $name = $stationInfo->name;
+      $name = $stationInfo->getLabel();
    }
    
    return ($name);
@@ -44,7 +57,7 @@ function getStationName($stationId)
 
 function isReadOnly()
 {
-   return (isset($_GET["displayId"]));
+   return (isset($_GET["displayId"]) || isset($_GET["macAddress"]));
 }
 
 function getButtons()
@@ -58,7 +71,7 @@ HEREDOC;
 
 $stationId = getStationId();
 
-$stationName = getStationName($stationId);
+$stationLabel = getStationLabel($stationId);
 
 $isReadOnly = isReadOnly();
 ?>
@@ -100,7 +113,7 @@ $isReadOnly = isReadOnly();
             <div class="stat-label">Station</div>
             <div id="hardware-button-led" class="flex-horizontal"></div>
          </div>
-         <div class="large-stat"><?php echo $stationName; ?></div>
+         <div class="large-stat"><?php echo $stationLabel; ?></div>
          
          <div class="stat-label">Average time between screens</div>
          <div id="average-count-time-div" class="large-stat"></div>

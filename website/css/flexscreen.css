@@ -43,6 +43,11 @@
    display: flex;
    flex-direction: row;
    justify-content: center;
+   
+   -webkit-user-select: none; /* Safari */        
+   -moz-user-select: none; /* Firefox */
+   -ms-user-select: none; /* IE10+/Edge */
+   user-select: none; /* Standard */
 }
 
 .menu-item:hover {
@@ -99,9 +104,19 @@ table {
 }
 
 table, th, td {
-   border: 1px solid black;
+   color: white;
+   border: 1px solid white;
    text-align: center;
 }
+
+th, td {
+	padding: 10px;
+}
+/*
+table {
+   margin: 20px 0px 0px 20px;  /*top, right, bottom, left */
+}
+*/
 
 html {
 	height: 100%;
@@ -221,8 +236,7 @@ body {
 
 .large-stat {
    color: white;
-   font-size: 100px;
-   margin-bottom: 30px;
+   font-size: 75px;
 }
 
 .urgent-stat {
@@ -254,10 +268,6 @@ body {
    background-color: #05e502;
    border-radius: 50%;
    box-shadow: #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px;
-}
-
-.historical-data-table {
-   margin: 20px 0px 0px 20px;  /*top, right, bottom, left */
 }
 
 .historical-data-filter-div {

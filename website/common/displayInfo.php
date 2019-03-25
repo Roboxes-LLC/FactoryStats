@@ -45,6 +45,27 @@ class DisplayInfo
       return ($displayInfo);
    }
    
+   public static function getDisplayIdFromMac($macAddress)
+   {
+      $displayId = DisplayInfo::UNKNOWN_DISPLAY_ID;
+      
+      $database = new FlexscreenDatabase();
+      
+      $database->connect();
+      
+      if ($database->isConnected())
+      {
+         $result = $database->getDisplayByMacAddress($macAddress);
+         
+         if ($result && ($row = $result->fetch_assoc()))
+         {
+            $displayId = $row["displayId"];
+         }
+      }
+      
+      return ($displayId);
+   }
+   
    public function isOnline()
    {
       $isOnline = false;
