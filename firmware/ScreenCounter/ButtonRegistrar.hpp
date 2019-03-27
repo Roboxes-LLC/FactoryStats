@@ -16,9 +16,13 @@ public:
 
    virtual ~ButtonRegistrar();
 
+   virtual void setup();
+
 private:
 
    virtual void pingRegistry();
+
+   String serverUrl;
 };
 
 REGISTER(ButtonRegistrar, ButtonRegistrar)

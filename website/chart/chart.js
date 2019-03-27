@@ -31,8 +31,8 @@ function setupChart()
          },
          format: 'ha',
          viewWindow: {
-            min: [7, 30, 0],
-            max: [17, 30, 0]
+            min: [5, 30, 0],
+            max: [16, 30, 0]
           },
           gridlines: {
              color: 'transparent'

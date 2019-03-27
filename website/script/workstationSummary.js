@@ -85,26 +85,28 @@ function updateUpdateTime(stationId, updateTime)
    
    if (divElement)
    {
+      var dateString = "----";
+      
+      var now = new Date();
+      
       var dateTime = new Date(updateTime);
       
-      var hours = dateTime.getHours();
-      var amPm = (hours > 12) ? "pm" : "am";
-      hours = (hours == 0) ? 12 : (hours > 12) ? (hours - 12) : hours;
-      
-      var minutes = dateTime.getMinutes();
-      if (minutes < 10)
+      if ((now.getYear() == dateTime.getYear()) &&
+          (now.getMonth() == dateTime.getMonth()) &&
+          (now.getDay() == dateTime.getDay()))
       {
-         minutes = "0" + minutes;
+         var hours = dateTime.getHours();
+         var amPm = (hours > 12) ? "pm" : "am";
+         hours = (hours == 0) ? 12 : (hours > 12) ? (hours - 12) : hours;
+         
+         var minutes = dateTime.getMinutes();
+         if (minutes < 10)
+         {
+            minutes = "0" + minutes;
+         }
+         
+         var dateString = hours + ":" + minutes + " " + amPm;
       }
-
-      // TODO: Revisit, maybe using phrases like "yesterday", "last week", "3 months ago".
-      /*
-      var dateString = (dateTime.getMonth() + 1) + "/" + dateTime.getDay() + "/" + dateTime.getFullYear() + " " +
-                       hours + ":" + dateTime.getMinutes() + " " + amPm;
-      */
-      
-      var dateString = hours + ":" + minutes + " " + amPm;
-      
       
       var element = divElement.getElementsByClassName("update-time-div")[0]
       element.innerHTML = dateString;

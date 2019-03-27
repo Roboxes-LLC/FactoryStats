@@ -1,4 +1,5 @@
 #include "ButtonRegistrar.hpp"
+#include "ToastBot.hpp"
 #include "WifiBoard.hpp"
 
 ButtonRegistrar::ButtonRegistrar(
@@ -15,6 +16,15 @@ ButtonRegistrar::ButtonRegistrar(
 {
 }
 
+void ButtonRegistrar::setup()
+{
+   Registrar::setup();
+      
+   Properties& properties = ToastBot::getProperties();
+
+   serverUrl = properties.getString("server");
+}
+
 ButtonRegistrar::~ButtonRegistrar()
 {
 }
@@ -29,6 +39,11 @@ void ButtonRegistrar::pingRegistry()
       {
          message->setMessageId("registerButton");
          message->setDestination(getAdapterId());
+
+         if (serverUrl != "")
+         {
+            message->set("url", serverUrl);
+         }
 
          // Get the MAC address.
          unsigned char mac[6] = {0, 0, 0, 0, 0, 0};

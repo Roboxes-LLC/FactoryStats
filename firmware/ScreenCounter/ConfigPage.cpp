@@ -65,6 +65,7 @@ void ConfigPage::replaceContent(
   
    content.replace("%ssid", properties.getString("wifi.ssid"));
    content.replace("%password", properties.getString("wifi.password"));
+   content.replace("%server", properties.getString("server"));
    content.replace("%info", infoText);
 }
 
@@ -75,6 +76,7 @@ void ConfigPage::onConfigUpdate(
      
    properties.set("wifi.ssid", arguments.getString("ssid"));
    properties.set("wifi.password", arguments.getString("password"));
+   properties.set("server", arguments.getString("server"));
 
    properties.save();
 }
