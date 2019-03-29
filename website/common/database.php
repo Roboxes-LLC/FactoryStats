@@ -158,10 +158,19 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "UPDATE display " .
-      "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", lastContact = \"$lastContact\" " .
+      "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", stationId = \"$displayInfo->stationId\", lastContact = \"$lastContact\" " .
       "WHERE displayId = $displayInfo->displayId;";
       echo $query;
       $this->query($query);
+   }
+   
+   public function deleteDisplay($displayId)
+   {
+      $query = "DELETE FROM display WHERE displayId = $displayId;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
    }
    
    // **************************************************************************
@@ -228,10 +237,19 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "UPDATE button " .
-      "SET macAddress = \"$buttonInfo->macAddress\", ipAddress = \"$buttonInfo->ipAddress\", lastContact = \"$lastContact\" " .
+      "SET macAddress = \"$buttonInfo->macAddress\", ipAddress = \"$buttonInfo->ipAddress\", stationId = \"$buttonInfo->stationId\", lastContact = \"$lastContact\" " .
       "WHERE buttonId = $buttonInfo->buttonId;";
 
       $this->query($query);
+   }
+   
+   public function deleteButton($buttonId)
+   {
+      $query = "DELETE FROM button WHERE buttonId = $buttonId;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
    }
    
    // **************************************************************************

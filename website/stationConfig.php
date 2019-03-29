@@ -37,8 +37,8 @@ HEREDOC;
             <td>$stationInfo->label</td>
             <td>$stationInfo->description</td>
             <td>$stationInfo->updateTime</td>
-            <td><button>Configure</button></div></td>
-            <td><button>Delete</button></div></td>
+            <td><button class="config-button" onclick="showModal('config-station-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
       }
@@ -61,6 +61,7 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css"/>
    
    <style>
       table, th, td {
@@ -79,19 +80,48 @@ HEREDOC;
    
    <?php include 'common/menu.php';?>
    
-   <div class="flex-horizontal main">
+   <div class="main vertical">
       <?php renderTable();?>
    </div>
      
 </div>
 
+<!--  Modal dialogs -->
+
+<div id="config-station-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <label>Station name</label>
+      <input type="text" name="name"></input>
+      <label>Station label</label>
+      <input type="text" name="label"></input>
+      <label>Station description</label>
+      <input type="text" name="description"></input>
+      <div class="flex-horizontal">
+         <button class="config-button">Save</button>
+      </div>
+   </div>
+</div>
+
+<div id="confirm-delete-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Really delete station?</p>
+      <button class="config-button">Confirm</button>
+   </div>
+</div>
+
 <script src="script/flexscreen.js"></script>
+<script src="script/modal.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
-   
+
    setTimeout(function(){
-      window.location.reload(1);
-   }, 5000); 
+      if (!isModalVisible())
+      {
+         window.location.reload(1);
+      }
+   }, 5000);
 </script>
 
 </body>

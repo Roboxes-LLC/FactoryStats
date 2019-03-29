@@ -2,6 +2,7 @@
 
 require_once 'common/buttonInfo.php';
 require_once 'common/database.php';
+require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 
 function renderTable()
@@ -57,8 +58,8 @@ HEREDOC;
             <td>$stationName</td>
             <td>$buttonInfo->lastContact</td>
             <td>$status <div class="$ledClass"></div></td>
-            <td><button>Configure</button></div></td>
-            <td><button>Delete</button></div></td>
+            <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
       }
@@ -66,6 +67,80 @@ HEREDOC;
    
    echo "</table>";
 }
+
+function getOptions()
+{
+   $options = "";
+
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $result = $database->getStations();
+      
+      while ($result && $row = $result->fetch_assoc())
+      {
+         $options .= "<option value=\"{$row["stationId"]}\">{$row["name"]}</option>";
+      }
+   }
+   
+   return ($options);
+}
+
+function deleteButton($buttonId)
+{
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $database->deleteButton($buttonId);
+   }
+}
+
+function updateButton($buttonId, $stationId)
+{
+   $buttonInfo = ButtonInfo::load($buttonId);
+   $buttonInfo->stationId = $stationId;
+   
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $database->updateButton($buttonInfo);
+   }
+}
+
+// *****************************************************************************
+//                              Action handling
+
+$params = Params::parse();
+
+switch ($params->get("action"))
+{
+   case "delete":
+   {
+      deleteButton($params->get("buttonId"));
+      break;      
+   }
+   
+   case "update":
+   {
+      updateButton($params->get("buttonId"), $params->get("stationId"));
+      break;
+   }
+   
+   default:
+   {
+      break;
+   }
+}
+
 ?>
 
 <html>
@@ -81,10 +156,16 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css"/>
    
 </head>
 
 <body>
+
+<form id="config-form" method="post">
+   <input id="action-input" type="hidden" name="action">
+   <input id="button-id-input" type="hidden" name="buttonId">
+</form>
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
@@ -98,13 +179,52 @@ HEREDOC;
      
 </div>
 
+<!--  Modal dialogs -->
+
+<div id="config-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <label>Associated workstation</label>
+      <select form="config-form" name="stationId">
+         <?php echo getOptions();?>
+      </select>
+      <div class="flex-horizontal">
+         <button class="config-button" type="submit" form="config-form" onclick="setAction('update')">Save</button>
+      </div>
+   </div>
+</div>
+
+<div id="confirm-delete-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Really delete button?</p>
+      <button class="config-button" type="submit" form="config-form" onclick="setAction('delete')">Confirm</button>
+   </div>
+</div>
+
 <script src="script/flexscreen.js"></script>
+<script src="script/modal.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
    setTimeout(function(){
-      window.location.reload(1);
-   }, 5000); 
+      if (!isModalVisible())
+      {
+         window.location.reload(1);
+      }
+   }, 5000);
+
+   function setButtonId(buttonId)
+   {
+      var input = document.getElementById('button-id-input');
+      input.setAttribute('value', buttonId);
+   }
+
+   function setAction(action)
+   {
+      var input = document.getElementById('action-input');
+      input.setAttribute('value', action);
+   }
 </script>
 
 </body>

@@ -1,12 +1,6 @@
 <?php
 
-class Params extends ArrayObject
-{
-   public function get($key)
-   {
-      return (isset($this[$key]) ? $this[$key] : "");
-   }
-}
+require_once '../common/params.php';
 
 class Router
 {
@@ -18,7 +12,7 @@ class Router
    public function route()
    {
       $command = $this->parseCommand($_SERVER["REQUEST_URI"]);
-      $params = $this->parseParams();
+      $params = Params::parse();
       
       // Log API requests.
       if ($this->loggingEnabled)
@@ -69,28 +63,6 @@ class Router
       $requestTokens = $this->tokenize($requestUri, "/");
       
       return $requestTokens[count($baseTokens) - 1];
-   }
-   
-   private function parseParams()
-   {
-      $params = new Params(array());
-      
-      if ($_SERVER["REQUEST_METHOD"] === "GET")
-      {
-         foreach ($_GET as $key => $value)
-         {
-            $params[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
-         }
-      }
-      else if ($_SERVER["REQUEST_METHOD"] === "POST")
-      {
-         foreach ($_POST as $key => $value)
-         {
-            $params[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
-         }
-      }
-      
-      return $params;
    }
    
    private $handlers = array();

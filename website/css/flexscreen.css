@@ -274,6 +274,22 @@ body {
    margin: 20px 0px 0px 20px;  /*top, right, bottom, left */
 }
 
+.config-button {
+  background-color: #14a3db;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  border-radius: 4px;
+  margin: 5px;	
+}
+
+.config-button:hover {
+   cursor: pointer;
+}
+
 /* 
 Device = Most of the Smartphones Mobiles (Portrait)
 Screen = B/w 320px to 479px
