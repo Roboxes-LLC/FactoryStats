@@ -20,18 +20,23 @@ ScreenCounter::~ScreenCounter()
 
 void ScreenCounter::setup()
 {
-  Messaging::subscribe(this, "buttonUp");
-  Messaging::subscribe(this, "buttonLongPress");
+   Component::setup();
+      
+   Messaging::subscribe(this, "buttonUp");
+   Messaging::subscribe(this, "buttonLongPress");
 
-  // TODO: Have StatusLed react to broadcast "wifiConnected" message.
-  if (WifiBoard::getBoard()->isConnected() == true)
-  {
-     StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
-     if (led)
-     {
-        led->onWifiConnected();
-     }
-  }
+   Properties& properties = ToastBot::getProperties();
+   serverUrl = properties.getString("server");
+
+   // TODO: Have StatusLed react to broadcast "wifiConnected" message.
+   if (WifiBoard::getBoard()->isConnected() == true)
+   {
+      StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+      if (led)
+      {
+         led->onWifiConnected();
+      }
+   }  
 }
 
 void ScreenCounter::handleMessage(
@@ -96,8 +101,14 @@ void ScreenCounter::onButtonUp()
    MessagePtr message = Messaging::newMessage();
    if (message)
    {
-      message->setDestination("http");
       message->setMessageId("update");
+      message->setDestination("http");
+
+      if (serverUrl != "")
+      {
+         message->set("url", serverUrl);
+      }
+               
       message->set("macAddress", macAddress);
       message->set("count", 1);
 
@@ -122,8 +133,14 @@ void ScreenCounter::onDoubleClick()
    MessagePtr message = Messaging::newMessage();
    if (message)
    {
-      message->setDestination("http");
       message->setMessageId("update");
+      message->setDestination("http");
+
+      if (serverUrl != "")
+      {
+         message->set("url", serverUrl);
+      }
+            
       message->set("macAddress", macAddress);
       message->set("count", -1);
       

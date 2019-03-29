@@ -150,26 +150,35 @@ $router->setLogging(false);
 $router->add("registerButton", function($params) {
    if (isset($params["macAddress"]))
    {
-      $buttonInfo = new ButtonInfo();
-      $buttonInfo->macAddress = $params->get("macAddress");
-      $buttonInfo->ipAddress = $params->get("ipAddress");
-      $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
-      
       $database = new FlexscreenDatabase();
       
       $database->connect();
       
       if ($database->isConnected())
       {
-         $queryResult = $database->getButtonByMacAddress($buttonInfo->macAddress);
+         $queryResult = $database->getButtonByMacAddress($params->get("macAddress"));
          
          if ($queryResult && ($row = $queryResult->fetch_assoc()))
          {
-            $buttonInfo->buttonId = $row["buttonId"];
-            $database->updateButton($buttonInfo);
+            $buttonInfo = ButtonInfo::load($row["buttonId"]);
+            
+            if ($buttonInfo)
+            {
+               $buttonInfo->macAddress = $params->get("macAddress");
+               $buttonInfo->ipAddress = $params->get("ipAddress");
+               $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
+               
+               $database->updateButton($buttonInfo);
+            }
          }
          else
          {
+            $buttonInfo = new ButtonInfo();
+            
+            $buttonInfo->macAddress = $params->get("macAddress");
+            $buttonInfo->ipAddress = $params->get("ipAddress");
+            $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
+            
             $database->newButton($buttonInfo);
          }
       }

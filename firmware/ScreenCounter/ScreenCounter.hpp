@@ -38,5 +38,7 @@ private:
 
    char macAddress[18];
 
+   String serverUrl;
+
    Timer* doubleClickTimer;
 };
