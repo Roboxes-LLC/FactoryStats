@@ -29,17 +29,17 @@ void StatusLed::onWifiConnected()
 
 void StatusLed::onCounterIncremented()
 {
-   blink(SLOW_BLINK);
+   blink(FAST_BLINK);
 
-   Timer* timer = Timer::newTimer(getId() + ".timer", 2000, Timer::ONE_SHOT, this);
+   Timer* timer = Timer::newTimer(getId() + ".timer", 1000, Timer::ONE_SHOT, this);
    timer->start();
 }
 
 void StatusLed::onCounterDecremented()
 {
-   blink(SLOW_BLINK);
+   blink(FAST_BLINK);
 
-   Timer* timer = Timer::newTimer(getId() + ".timer", 4000, Timer::ONE_SHOT, this);
+   Timer* timer = Timer::newTimer(getId() + ".timer", 1000, Timer::ONE_SHOT, this);
    timer->start();
 }
 
