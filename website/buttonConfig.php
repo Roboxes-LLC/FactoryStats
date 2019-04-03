@@ -58,7 +58,7 @@ HEREDOC;
             <td>$stationName</td>
             <td>$buttonInfo->lastContact</td>
             <td>$status <div class="$ledClass"></div></td>
-            <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); setStationId($buttonInfo->stationId); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -185,7 +185,7 @@ switch ($params->get("action"))
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
       <label>Associated workstation</label>
-      <select form="config-form" name="stationId">
+      <select id="station-id-input" form="config-form" name="stationId">
          <?php echo getOptions();?>
       </select>
       <div class="flex-horizontal">
@@ -220,10 +220,16 @@ switch ($params->get("action"))
       input.setAttribute('value', buttonId);
    }
 
+   function setStationId(stationId)
+   {
+      var input = document.getElementById('station-id-input');
+      input.value = stationId;
+   }
+
    function setAction(action)
    {
       var input = document.getElementById('action-input');
-      input.setAttribute('value', action);
+      input.value = action;
    }
 </script>
 

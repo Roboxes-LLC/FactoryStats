@@ -10,6 +10,7 @@ class StationInfo
    public $name;
    public $label;
    public $description;
+   public $cycleTime;
    public $updateTime;
 
    public static function load($stationId)
@@ -32,6 +33,7 @@ class StationInfo
             $stationInfo->name = $row['name'];
             $stationInfo->label = $row['label'];
             $stationInfo->description = $row['description'];
+            $stationInfo->cycleTime = intval($row['cycleTime']);
             $stationInfo->updateTime = Time::fromMySqlDate($row['updateTime'], "Y-m-d H:i:s");
          }
       }
@@ -59,6 +61,7 @@ class StationInfo
        echo "name: " .        $stationInfo->name .        "<br/>";
        echo "label: " .       $stationInfo->label .       "<br/>";
        echo "description: " . $stationInfo->description . "<br/>";
+       echo "cycleTime: " .   $stationInfo->cycleTime .   "<br/>";
        echo "updateTime: "  . $stationInfo->updateTime .  "<br/>";
     }
     else
