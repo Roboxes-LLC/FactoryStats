@@ -99,6 +99,7 @@ function updateCountTime(countTime)
 function updateElapsedTime()
 {
    var timeString = "----";
+   var timeClass = "time-early";  // time-early, time-warning, time-late
    
    if (window.lastCountTime)
    {
@@ -115,14 +116,37 @@ function updateElapsedTime()
          
          var hours = Math.floor(diff / millisInHour);
          var minutes = Math.floor((diff % millisInHour) / millisInMinute);
-         var seconds = Math.round((diff % millisInMinute) / 1000);
+         var seconds = Math.round((diff % millisInMinute) / millisInSecond);
+         var tenths = Math.round((diff % millisInSecond) / 10);
          
-         timeString = padNumber(hours) + ":" + padNumber(minutes) + ":" + padNumber(seconds);
+         if (hours > 0)
+         {
+            timeString = padNumber(hours) + ":" + padNumber(minutes) + ":" + padNumber(seconds);
+         }
+         else
+         {
+            timeString = padNumber(minutes) + ":" + padNumber(seconds);
+         }
+         
+         // Style the elapsed time display based on its relation to the cycle time.
+         var cycleTime = getCycleTime();  // seconds
+         if (cycleTime > 0)
+         {            
+            var totalSeconds = Math.round(diff / millisInSecond);
+            var warningThreshold = Math.round(cycleTime * 0.8);  // Warning at 80% of cycle time
+            timeClass = (totalSeconds > cycleTime) ? "time-late" : (totalSeconds > warningThreshold) ? "time-warning" : "time-early";
+         }
       }
    }
    
    var element = document.getElementById("elapsed-time-div");
+   
    element.innerHTML = timeString;
+   
+   element.classList.remove("time-early");
+   element.classList.remove("time-warning");
+   element.classList.remove("time-late");
+   element.classList.add(timeClass);
 }
 
 function updateAverageCountTime(averageCountTime)
@@ -231,6 +255,13 @@ function decrementCount()
 function getStationId()
 {
    var element = document.getElementById("station-id-input");
+
+   return (element.value);
+}
+
+function getCycleTime()
+{
+   var element = document.getElementById("cycle-time-input");
 
    return (element.value);
 }
