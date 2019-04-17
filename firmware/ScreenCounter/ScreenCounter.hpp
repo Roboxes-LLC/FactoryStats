@@ -25,11 +25,14 @@ public:
 
 protected:
 
-   void onButtonUp();
+   void onButtonUp(
+      const String& buttonId);
 
-   void onDoubleClick();
+   void onDoubleClick(
+      const String& buttonId);
 
-   void onLongPress();  
+   void onLongPress(
+      const String& buttonId);
 
 private:
 
@@ -41,4 +44,6 @@ private:
    String serverUrl;
 
    Timer* doubleClickTimer;
+
+   String lastPressedButtonId;
 };
