@@ -5,6 +5,9 @@
 #include "ToastBot.hpp"
 #include "WifiBoard.hpp"
 
+static const String COUNT_BUTTON = "countButton";
+static const String UNDO_BUTTON = "undoButton";
+
 ScreenCounter::ScreenCounter(
    const String& id) :
    Component(id),
@@ -45,6 +48,8 @@ void ScreenCounter::handleMessage(
    //  buttonUp
    if (message->getTopic() == "buttonUp")
    {
+      lastPressedButtonId = message->getSource();
+
       if (doubleClickTimer == 0)
       {
          // Start a "double click" timer.
@@ -60,13 +65,13 @@ void ScreenCounter::handleMessage(
          Timer::freeTimer(doubleClickTimer);
          doubleClickTimer = 0;
                  
-         onDoubleClick();  
+         onDoubleClick(lastPressedButtonId);
       }
    }
    // buttonLongPress
    else if (message->getTopic() == "buttonLongPress")
    {
-      onLongPress();
+      onLongPress(message->getSource());
     }
    else
    {
@@ -86,7 +91,7 @@ void ScreenCounter::timeout(
    else if (timer->getId().indexOf("doubleClick") != -1)
    {
       doubleClickTimer = 0;
-      onButtonUp();
+      onButtonUp(lastPressedButtonId);
    }
    else
    {
@@ -94,9 +99,12 @@ void ScreenCounter::timeout(
    }
 }
 
-void ScreenCounter::onButtonUp()
+void ScreenCounter::onButtonUp(
+   const String& buttonId)
 {
-   Logger::logDebug("ScreenCounter::onButtonUp: Button pressed");
+   Logger::logDebug("ScreenCounter::onButtonUp: Button [%s] pressed.", buttonId.c_str());
+
+   int count = (buttonId == COUNT_BUTTON) ? 1 : (buttonId == UNDO_BUTTON) ? -1 : 0;
 
    MessagePtr message = Messaging::newMessage();
    if (message)
@@ -110,7 +118,7 @@ void ScreenCounter::onButtonUp()
       }
                
       message->set("macAddress", macAddress);
-      message->set("count", 1);
+      message->set("count", count);
 
       Messaging::send(message);
 
@@ -120,57 +128,44 @@ void ScreenCounter::onButtonUp()
          StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
          if (led)
          {
-            led->onCounterDecremented();
+            if (count > 0)
+            {
+               led->onCounterIncremented();
+            }
+            else if (count < 0)
+            {
+               led->onCounterDecremented();
+            }
          }
       }
    }
 }
 
-void ScreenCounter::onDoubleClick()
+void ScreenCounter::onDoubleClick(
+   const String& buttonId)
 {
-   Logger::logDebug("ScreenCounter::onDoubleClick: Button double-clicked");
-
-   MessagePtr message = Messaging::newMessage();
-   if (message)
-   {
-      message->setMessageId("update");
-      message->setDestination("http");
-
-      if (serverUrl != "")
-      {
-         message->set("url", serverUrl);
-      }
-            
-      message->set("macAddress", macAddress);
-      message->set("count", -1);
-      
-      Messaging::send(message);
-
-       // TODO: Send in reponse to HTTP 200 response.
-       if (WifiBoard::getBoard()->isConnected() == true)
-       {
-          StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
-          if (led)
-          {
-             led->onCounterIncremented();
-          }
-       }
-   }
+   Logger::logDebug("ScreenCounter::onDoubleClick: Button [%s] double-clicked.", buttonId.c_str());
 }
 
-void ScreenCounter::onLongPress()
+void ScreenCounter::onLongPress(
+   const String& buttonId)
 {
-   StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
-   if (led)
-   {
-      led->onFactoryReset();
-   }
+   Logger::logDebug("ScreenCounter::onLongPress: Button [%s] long-press.", buttonId.c_str());
 
-   // Factory reset after delay.
-   Timer* timer = Timer::newTimer(getId() + ".factoryReset", 5000, Timer::ONE_SHOT, this);
-   if (timer)
+   if (buttonId == UNDO_BUTTON)
    {
-      timer->start();
+      StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+      if (led)
+      {
+         led->onFactoryReset();
+      }
+
+      // Factory reset after delay.
+      Timer* timer = Timer::newTimer(getId() + ".factoryReset", 5000, Timer::ONE_SHOT, this);
+      if (timer)
+      {
+         timer->start();
+      }
    }
 }
 
