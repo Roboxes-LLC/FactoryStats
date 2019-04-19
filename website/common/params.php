@@ -23,6 +23,11 @@ class Params extends ArrayObject
       return $params;
    }
    
+   public function keyExists($key)
+   {
+       return (isset($this[$key]));
+   }
+   
    public function get($key)
    {
       return (isset($this[$key]) ? $this[$key] : "");

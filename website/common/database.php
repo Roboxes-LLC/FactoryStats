@@ -285,7 +285,7 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       
-      $query = "INSERT INTO station (name, label, description, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', $now');";
+      $query = "INSERT INTO station (name, label, description, cycleTime, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', '$stationInfo->cycleTime', $now');";
 
       $this->query($query);
    }
@@ -294,10 +294,31 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $query =
       "UPDATE station " .
-      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\" " .
+      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\", cycleTime = $stationInfo->cycleTime " .
       "WHERE stationId = $stationInfo->stationId;";
+      echo $query;
+      $this->query($query);
+   }
+   
+   public function deleteStation($stationId)
+   {
+      $query = "DELETE FROM station WHERE stationId = $stationId;";
       
       $this->query($query);
+      
+      $query = "DELETE FROM screencount WHERE stationId = $stationId;";
+      
+      $this->query($query);
+      
+      $query = "UPDATE button SET stationId = NULL WHERE stationId = $stationId;";
+      
+      $this->query($query);
+      
+      $query = "UPDATE display SET stationId = NULL WHERE stationId = $stationId;";
+      
+      $this->query($query);
+      
+      return ($result);
    }
    
    public function touchStation($stationId)
@@ -318,7 +339,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
       $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
-      //echo $query . "<br/>";
+
       $result = $this->query($query);
       
       while ($result && ($row = $result->fetch_assoc()))
@@ -327,6 +348,16 @@ class FlexscreenDatabase extends MySqlDatabase
       }
       
       return ($screenCount);
+   }
+   
+   public function getHourlyCounts($stationId, $startDateTime, $endDateTime)
+   {
+       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
+       $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
+
+       $result = $this->query($query);
+             
+       return ($result);
    }
    
    public function updateCount($stationId, $screenCount)

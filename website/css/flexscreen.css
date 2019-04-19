@@ -243,6 +243,44 @@ body {
    color: yellow;
 }
 
+.time-early {
+	color : #00ff00;
+}
+
+.tenths {
+   font-size: 35px;
+}
+
+@keyframes warning-anim {
+  from {
+    transform: scale(1.0);  
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes late-anim  {
+  from {
+    text-shadow: 0 0 0px #fff;
+    transform: scale(1.0);  
+  }
+  to {
+    text-shadow: 0 0 30px #fff;
+    transform: scale(1.1);
+  }
+}
+
+.time-warning {
+   color : yellow;
+   animation: warning-anim 1s ease-in-out infinite alternate;
+}
+
+.time-late {
+	color: #ff0000;
+   animation: late-anim 500ms ease-in-out infinite alternate;
+}
+
 .led-red {
    margin: 20px 20px 20px 20px;
    width: 12px;

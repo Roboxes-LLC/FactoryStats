@@ -55,6 +55,20 @@ function getStationLabel($stationId)
    return ($name);
 }
 
+function getCycleTime($stationId)
+{
+   $cycleTime = 0;
+   
+   $stationInfo = StationInfo::load($stationId);
+   
+   if ($stationInfo)
+   {
+      $cycleTime = $stationInfo->cycleTime;
+   }
+   
+   return ($cycleTime);
+}
+
 function isReadOnly()
 {
    return (isset($_GET["displayId"]) || isset($_GET["macAddress"]));
@@ -72,6 +86,8 @@ HEREDOC;
 $stationId = getStationId();
 
 $stationLabel = getStationLabel($stationId);
+
+$cycleTime = getCycleTime($stationId);
 
 $isReadOnly = isReadOnly();
 ?>
@@ -97,6 +113,7 @@ $isReadOnly = isReadOnly();
 
    <form>
       <input id="station-id-input" type="hidden" name="stationId" value="<?php echo $stationId; ?>">
+      <input id="cycle-time-input" type="hidden" name="cycleTime" value="<?php echo $cycleTime; ?>">
    </form>
 
 <div class="flex-vertical" style="align-items: flex-start;">
@@ -115,11 +132,15 @@ $isReadOnly = isReadOnly();
          </div>
          <div class="large-stat"><?php echo $stationLabel; ?></div>
          
+         <br>
+         
          <div class="stat-label">Average time between screens</div>
          <div id="average-count-time-div" class="large-stat"></div>
          
+         <br>
+         
          <div class="stat-label">Time since last screen</div>
-         <div id="elapsed-time-div" class="large-stat urgent-stat"></div>
+         <div id="elapsed-time-div" class="large-stat"></div>
          
       </div>
    
@@ -152,7 +173,7 @@ $isReadOnly = isReadOnly();
    setInterval(function(){update();}, 3000);
 
    // Start a one-second timer to update the elapsed-time-div.
-   setInterval(function(){updateElapsedTime();}, 500);
+   setInterval(function(){updateElapsedTime();}, 50);
 </script>
 
 </body>
