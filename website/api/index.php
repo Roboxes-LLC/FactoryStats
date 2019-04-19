@@ -1,6 +1,7 @@
 <?php
 
 require_once '../common/buttonInfo.php';
+require_once '../common/breakInfo.php';
 require_once '../common/database.php';
 require_once '../common/displayInfo.php';
 require_once '../common/stationInfo.php';
@@ -272,6 +273,42 @@ $router->add("update", function($params) {
       
       $result->stationId = $stationId;
       $result->count = $count;
+   }
+   
+   echo json_encode($result);
+});
+
+$router->add("break", function($params) {
+   $result = new stdClass();
+   
+   $stationId = $params->getInt("stationId");
+   
+   if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+   {     
+      $status = $params->get("status");
+      
+      if ($status == "start")
+      {
+         $breakInfo = BreakInfo::startBreak($stationId);
+         
+         $result->success = ($breakInfo != null);
+         
+         if ($result->success)
+         {
+            $result->breakInfo = $breakInfo;
+         }
+      }
+      else if ($status == "end")
+      {
+         $breakInfo = BreakInfo::endBreak($stationId);
+         
+         $result->success = ($breakInfo != null);
+         
+         if ($result->success)
+         {
+            $result->breakInfo = $breakInfo;
+         }
+      }
    }
    
    echo json_encode($result);

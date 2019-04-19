@@ -429,6 +429,81 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($countTime);
    }
    
+   // **************************************************************************
+   
+   public function getCurrentBreakId($stationId)
+   {
+      $breakId = 0;
+      
+      $query =
+      "SELECT breakId FROM break WHERE stationId = $stationId AND endTime IS NULL";
+      echo $query . "<br/>";
+      
+      $result = $this->query($query);
+      
+      if ($result && ($row = $result->fetch_assoc()))
+      {
+         $breakId = $row["breakId"];
+      }
+      
+      return ($breakId);
+   }
+   
+   public function isOnBreak($stationId)
+   {
+      return ($this->getCurrentBreakId($stationId) != 0);
+   }
+   
+   public function startBreak($stationId, $startDateTime)
+   {
+      $success = false;
+      
+      if (!$this->isOnBreak($stationId))
+      {
+         $query =
+         "INSERT INTO break " .
+         "(stationId, startTime) " .
+         "VALUES " .
+         "('$stationId', '" . Time::toMySqlDate($startDateTime) . "');";
+         echo $query . "<br/>";
+         
+         $success = $this->query($query);
+      }
+      
+      return ($success);
+   }
+   
+   public function endBreak($stationId, $endDateTime)
+   {
+      $success = false;
+      
+      $breakId = $this->getCurrentBreakId($stationId);
+      
+      if ($breakId != 0)
+      {
+         $query =
+         "UPDATE break " .
+         "SET endTime = \"" . Time::toMySqlDate($endDateTime) . "\" " .
+         "WHERE breakId = $breakId;";
+         echo $query . "<br/>";
+         
+         $success = $this->query($query);
+      }
+      
+      return ($success);
+   }
+   
+   public function getBreak($breakId)
+   {
+      $query = "SELECT * from break WHERE breakId = \"$breakId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
    protected function calculateCountTime($stationId)
    {
       $countTime = 0;

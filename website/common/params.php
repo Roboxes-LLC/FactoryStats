@@ -32,4 +32,9 @@ class Params extends ArrayObject
    {
       return (isset($this[$key]) ? $this[$key] : "");
    }
+   
+   public function getInt($key)
+   {
+      return (intval($this->get($key)));
+   }
 }
