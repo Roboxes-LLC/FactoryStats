@@ -11,7 +11,7 @@ function getStationId()
    
    $params = Params::parse();
    
-   if ($params->isSet("stationId"))
+   if ($params->keyExists("stationId"))
    {
        $stationId = $params->get("stationId");
    }
