@@ -2,25 +2,23 @@
 
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
+require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 
 function getStationId()
 {
    $stationId =  "ALL";
    
-   if (($_SERVER["REQUEST_METHOD"] === "GET") &&
-       (isset($_GET["stationId"])))
+   $params = Params::parse();
+   
+   if ($params->isSet("stationId"))
    {
-      $stationId = $_GET["stationId"];
-   }
-   else if (($_SERVER["REQUEST_METHOD"] === "POST") &&
-            (isset($_PUT["stationId"])))
-   {
-      $stationId = $_PUT["stationId"];
+       $stationId = $params->get("stationId");
    }
 
    return ($stationId);
 }
+
 
 function getStartDate()
 {
@@ -58,7 +56,30 @@ function getEndDate()
    return ($endDate);
 }
 
+function displayHourlyCounts()
+{
+   $displayHourly = false;
+    
+   $params = Params::parse();
+    
+   $displayHourly = ($params->get("display") == "hourly");
+    
+   return ($displayHourly);
+}
+
 function renderTable()
+{
+   if (displayHourlyCounts() == true)
+   {
+       renderHourlyCountsTable();
+   }
+   else
+   {
+      renderDailyCountsTable();
+   }
+}
+
+function renderDailyCountsTable()
 {
    echo 
 <<<HEREDOC
@@ -118,6 +139,60 @@ HEREDOC;
    }
    
    echo "</table>";
+}
+
+function renderHourlyCountsTable()
+{
+    echo
+    <<<HEREDOC
+   <table>
+      <tr>
+         <th>Workstation</th>
+         <th>Date</th>
+         <th>Hour</th>
+         <th>Screen Count</th>
+      </tr>
+HEREDOC;
+    
+    $stationId = getStationId();
+    $startDate = getStartDate();
+    $endDate = getEndDate();
+    
+    $startTime = Time::startOfDay($startDate);
+    $endTime = Time::endOfDay($endDate);
+    
+    $database = new FlexscreenDatabase();
+    
+    $database->connect();
+    
+    if ($database->isConnected())
+    {
+        $result = $database->getHourlyCounts($stationId, $startTime, $endTime);
+        
+        while ($result && ($row = $result->fetch_assoc()))
+        {
+           $stationInfo = StationInfo::load($row["stationId"]);
+            
+           $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
+                                    new DateTimeZone('America/New_York'));
+           $dateString = $dateTime->format("m-d-Y");
+           $hourString = $dateTime->format("h A");
+           
+           $count = intval($row["count"]);
+            
+           echo
+<<<HEREDOC
+           <tr>
+              <td>$stationInfo->name</td>
+              <td>$dateString</td>
+              <td>$hourString</td>
+              <td>$count</td>
+           </tr>
+HEREDOC;
+        }
+    }
+    
+    echo "</table>";
 }
 
 function renderStationOptions()
@@ -188,6 +263,8 @@ function renderStationOptions()
          <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
          <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
          <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
+         <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo displayHourlyCounts() ? "checked" : "";?>>
+         <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo displayHourlyCounts() ? "" : "checked";?>>
          <button type="submit">Filter</button>
          </form>
       </div>
