@@ -339,7 +339,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
       $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
-      //echo $query . "<br/>";
+
       $result = $this->query($query);
       
       while ($result && ($row = $result->fetch_assoc()))
@@ -348,6 +348,16 @@ class FlexscreenDatabase extends MySqlDatabase
       }
       
       return ($screenCount);
+   }
+   
+   public function getHourlyCounts($stationId, $startDateTime, $endDateTime)
+   {
+       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
+       $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
+
+       $result = $this->query($query);
+             
+       return ($result);
    }
    
    public function updateCount($stationId, $screenCount)
