@@ -81,13 +81,23 @@ function getAverageCountTime($stationId, $startDateTime, $endDateTime)
       $startDateTime = Time::startOfDay($startDateTime);
       $endDateTime = Time::endOfDay($endDateTime);
       
-      $totalCountTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
+      $countTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
+      
+      $breakTime = $database->getBreakTime($stationId, $startDateTime, $endDateTime);
+      
+      $netCountTime = $countTime - $breakTime;
       
       $count = $database->getCount($stationId, $startDateTime, $endDateTime);
       
+      //echo "countTime, breakTime, netCountTime, count: " . $countTime . "/" . $breakTime . "/" . $netCountTime . "/" . $count . "<br>";
+      
+      // Subtract off the first screen.
+      // The time for the first screen wasn't captured.  Including it in the count gives an inaccurate average.
+      $count--;
+      
       if ($count > 0)
       {
-         $averageUpdateTime = round($totalCountTime / $count);
+         $averageUpdateTime = round($netCountTime / $count);
       }
    }
    
@@ -263,6 +273,11 @@ $router->add("update", function($params) {
    if (($stationId != StationInfo::UNKNOWN_STATION_ID) && 
        isset($params["count"]))
    {
+      if (BreakInfo::getCurrentBreak($stationId))
+      {
+         BreakInfo::endBreak($stationId);
+      }
+      
       updateCount($stationId, $params->get("count"));
       
       $now = Time::now("Y-m-d H:i:s");
@@ -340,6 +355,7 @@ $router->add("status", function($params) {
    $averageUpdateTime = 0;
    $hourlyCount = array();
    $hardwareButtonStatus = new stdClass();
+   $breakInfo = null;
    
    if (isset($params["stationId"]))
    {
@@ -358,6 +374,8 @@ $router->add("status", function($params) {
       $averageCountTime = getAverageCountTime($stationId, $startDateTime, $endDateTime);
       
       $hardwareButtonStatus = getHardwareButtonStatus($stationId);
+      
+      $breakInfo = BreakInfo::getCurrentBreak($stationId);
    }
    else
    {
@@ -370,6 +388,12 @@ $router->add("status", function($params) {
    $result->updateTime = $updateTime;
    $result->averageCountTime = $averageCountTime;
    $result->hardwareButtonStatus = $hardwareButtonStatus;
+   $result->isOnBreak = ($breakInfo != null);
+
+   if ($result->isOnBreak == true)
+   {
+      $result->breakInfo = $breakInfo;
+   }
    
    echo json_encode($result);
 });

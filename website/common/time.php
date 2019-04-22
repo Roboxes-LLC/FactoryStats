@@ -80,6 +80,19 @@ class Time
       
       return ($incrementedDateTime->format("Y-m-d H:i:s"));
    }
+   
+   static public function differenceSeconds($startTime, $endTime)
+   {
+      $startDateTime = new DateTime($startTime);
+      $endDateTime = new DateTime($endTime);
+      
+      $diff = $startDateTime->diff($endDateTime);
+      
+      // Convert to seconds.
+      $seconds = (($diff->d * 12 * 60 * 60) + ($diff->h * 60 * 60) + ($diff->i * 60) + $diff->s);
+      
+      return ($seconds);
+   }
 }
 
 /*

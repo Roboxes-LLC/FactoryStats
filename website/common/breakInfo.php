@@ -49,7 +49,7 @@ class BreakInfo
       if ($database->isConnected())
       {
          $breakId = $database->getCurrentBreakId($stationId);
-         
+
          if ($breakId != BreakInfo::UNKNOWN_BREAK_ID)
          {
             $breakInfo = BreakInfo::load($breakId);
@@ -112,7 +112,7 @@ class BreakInfo
          {
             $database->endBreak($stationId, Time::now("Y-m-d H:i:s"));
             
-            $breakInfo = BreakInfo::getCurrentBreak($breakInfo->breakId);
+            $breakInfo = BreakInfo::load($breakInfo->breakId);
          }
       }
       
@@ -121,7 +121,7 @@ class BreakInfo
    
    public function getDuration()
    {
-      return (0);
+      return (Time::differenceSeconds($this->startTime, $this->endTime));
    }
 }
 

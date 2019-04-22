@@ -437,7 +437,6 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "SELECT breakId FROM break WHERE stationId = $stationId AND endTime IS NULL";
-      echo $query . "<br/>";
       
       $result = $this->query($query);
       
@@ -465,7 +464,6 @@ class FlexscreenDatabase extends MySqlDatabase
          "(stationId, startTime) " .
          "VALUES " .
          "('$stationId', '" . Time::toMySqlDate($startDateTime) . "');";
-         echo $query . "<br/>";
          
          $success = $this->query($query);
       }
@@ -485,7 +483,6 @@ class FlexscreenDatabase extends MySqlDatabase
          "UPDATE break " .
          "SET endTime = \"" . Time::toMySqlDate($endDateTime) . "\" " .
          "WHERE breakId = $breakId;";
-         echo $query . "<br/>";
          
          $success = $this->query($query);
       }
@@ -500,6 +497,44 @@ class FlexscreenDatabase extends MySqlDatabase
       $result = $this->query($query);
       
       return ($result);
+   }
+   
+   public function getBreaks($stationId, $startDateTime, $endDateTime)
+   {
+      $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
+      $query = "SELECT * FROM break WHERE $stationClause startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, startTime ASC;";
+
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getBreakTime($stationId, $startDateTime, $endDateTime)
+   {
+      $breakTime = 0;
+      
+      $query = "SELECT * FROM break WHERE stationId = \"$stationId\" AND startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY startTime DESC;";
+
+      $result = $this->query($query);
+      
+      $updateTime = getUpdateTime($stationId);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         // Only count complete breaks.
+         $isCompleteBreak = ($row["endTime"] != null);
+         
+         // Don't count breaks that start *after* the last screen count.
+         $startTime = Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s");
+         $isValidBreak = (new DateTime($startTime) < new DateTime($updateTime));
+
+         if ($isCompleteBreak && $isValidBreak)
+         {
+            $breakTime += Time::differenceSeconds($row["startTime"], $row["endTime"]);
+         }
+      }
+      
+      return ($breakTime);
    }
    
    // **************************************************************************

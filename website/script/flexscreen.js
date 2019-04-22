@@ -73,11 +73,25 @@ function update()
          var json = JSON.parse(this.responseText);
 
          updateCount(json.count);
+         
          updateHourlyCount(json.hourlyCount);
-         updateCountTime(json.updateTime);
+         
+         if (json.isOnBreak == true)
+         {
+            updateCountTime(json.breakInfo.startTime);
+         }
+         else
+         {
+            updateCountTime(json.updateTime);
+         }
+         
          updateElapsedTime();
+         
          updateAverageCountTime(json.averageCountTime);
+         
          updateHardwareButtonIndicator(json.hardwareButtonStatus);
+         
+         updateBreak(json.isOnBreak, json.breakInfo)
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -99,14 +113,17 @@ function updateCountTime(countTime)
 function updateElapsedTime()
 {
    var timeString = "----";
-   var timeClass = "time-early";  // time-early, time-warning, time-late
+   var timeClass = window.isOnBreak ? "time-paused" : "";  // time-early, time-warning, time-late, time-paused
    
    if (window.lastCountTime)
    {
       var now = new Date(Date.now());
       var lastCountTime = new Date(Date.parse(window.lastCountTime));
       
-      if (lastCountTime)
+      if (lastCountTime &&
+          ((lastCountTime.getYear() == now.getYear()) &&
+           (lastCountTime.getMonth() == now.getMonth()) &&
+           (lastCountTime.getDay() == now.getDay())))
       {
          var diff = new Date(now - lastCountTime);
          
@@ -134,7 +151,7 @@ function updateElapsedTime()
          {            
             var totalSeconds = Math.round(diff / millisInSecond);
             var warningThreshold = Math.round(cycleTime * 0.8);  // Warning at 80% of cycle time
-            timeClass = (totalSeconds > cycleTime) ? "time-late" : (totalSeconds > warningThreshold) ? "time-warning" : "time-early";
+            timeClass = window.isOnBreak ? "time-paused" : (totalSeconds > cycleTime) ? "time-late" : (totalSeconds > warningThreshold) ? "time-warning" : "time-early";
          }
       }
    }
@@ -143,10 +160,14 @@ function updateElapsedTime()
    
    element.innerHTML = timeString;
    
+   element.classList.remove("time-paused");
    element.classList.remove("time-early");
    element.classList.remove("time-warning");
    element.classList.remove("time-late");
-   element.classList.add(timeClass);
+   if (timeClass != "")
+   {
+      element.classList.add(timeClass);
+   }
 }
 
 function updateAverageCountTime(averageCountTime)
@@ -227,7 +248,7 @@ function incrementCount()
       {
          var json = JSON.parse(this.responseText);
 
-         updateCount(json.count);
+         update();
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -245,7 +266,7 @@ function decrementCount()
       {
          var json = JSON.parse(this.responseText);
          
-         updateCount(json.count);
+         update();
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -269,4 +290,87 @@ function getCycleTime()
 function padNumber(number)
 {
    return ((number < 10 ? '0' : '') + number);
+}
+
+function toggleBreakButton()
+{
+   var element = document.getElementById("break-button");
+   
+   var isOnBreak = element.classList.contains("paused");
+   
+   if (!isOnBreak)
+   {
+      startBreak();
+   }
+   else
+   {
+      endBreak();
+   }
+}
+
+function startBreak()
+{
+   console.log("startBreak");
+   
+   var requestURL = "api/break/?stationId=" + getStationId() + "&status=start";
+   
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         var json = JSON.parse(this.responseText);
+         
+         if (json.success)
+         {
+            update();
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();   
+}
+
+function endBreak(stationId)
+{
+   console.log("endBreak");
+   
+   var requestURL = "api/break/?stationId=" + getStationId() + "&status=end";
+   
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         var json = JSON.parse(this.responseText);
+
+         if (json.success)
+         {
+            update();
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();     
+}
+
+function updateBreak(isOnBreak, breakInfo)
+{
+   window.isOnBreak = isOnBreak;
+
+   var element = document.getElementById("break-button");
+   
+   if (isOnBreak)
+   {
+      element.classList.add("paused");
+      document.getElementById("break-time-label").style.display = "block"; 
+      document.getElementById("elapsed-time-label").style.display = "none"; 
+      document.getElementsByClassName("main")[0].classList.add("paused");
+   }
+   else
+   {
+      element.classList.remove("paused");
+      document.getElementById("break-time-label").style.display = "none"; 
+      document.getElementById("elapsed-time-label").style.display = "block"; 
+   }
 }
