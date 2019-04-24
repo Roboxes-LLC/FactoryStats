@@ -362,6 +362,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function updateCount($stationId, $screenCount)
    {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
       
       // Calculate the time since the update (in seconds).
@@ -369,7 +370,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       // Determine if we have an entry for this station/hour.
       $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
-      //echo $query . "<br/>";
+
       $result = $this->query($query);
       
       // New entry.
@@ -377,9 +378,9 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO screencount " .
-         "(stationId, dateTime, count, countTime) " .
+         "(stationId, dateTime, count, countTime, firstEntry, lastEntry) " .
          "VALUES " .
-         "('$stationId', '$nowHour', '$screenCount', '$countTime');";
+         "('$stationId', '$nowHour', '$screenCount', '$countTime', '$now', '$now');";
          //echo $query . "<br/>";
          
          $this->query($query);
@@ -388,7 +389,7 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Update counter count.
-         $query = "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+         $query = "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime, lastEntry = \"$now\" WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
          //echo $query . "<br/>";
          $this->query($query);
       }
@@ -427,6 +428,44 @@ class FlexscreenDatabase extends MySqlDatabase
       }
       
       return ($countTime);
+   }
+   
+   public function getFirstEntry($stationId, $startDateTime, $endDateTime)
+   {
+      $firstEntry = null;
+      
+      $query = "SELECT firstEntry FROM screencount WHERE stationId = \"$stationId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime ASC LIMIT 1;";
+      //echo $query . "<br/>";
+      $result = $this->query($query);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         if ($row["firstEntry"])
+         {
+            $firstEntry = Time::fromMySqlDate($row["firstEntry"], "Y-m-d H:i:s");
+         }
+      }
+      
+      return ($firstEntry);
+   }
+   
+   public function getLastEntry($stationId, $startDateTime, $endDateTime)
+   {
+      $lastEntry = null;
+      
+      $query = "SELECT lastEntry FROM screencount WHERE stationId = \"$stationId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
+      //echo $query . "<br/>";
+      $result = $this->query($query);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         if ($row["lastEntry"])
+         {
+            $lastEntry = Time::fromMySqlDate($row["lastEntry"], "Y-m-d H:i:s");
+         }
+      }
+      
+      return ($lastEntry);
    }
    
    // **************************************************************************

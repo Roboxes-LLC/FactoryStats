@@ -6,6 +6,8 @@ require_once 'common/database.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 
+Time::init();
+
 class Table
 {
    const UNKNOWN       = 0;
@@ -132,6 +134,8 @@ function renderDailyCountsTable()
          <th>Workstation</th>
          <th>Date</th>
          <th>Screen Count</th>
+         <th>First Screen</th>
+         <th>Last Screen</th>
          <th>Average Time Between Screens</th>
       </tr>
 HEREDOC;
@@ -154,21 +158,41 @@ HEREDOC;
       $minutes = round((($averageCountTime % 3600) / 60), 0);
       $seconds = ($averageCountTime % 60);
       
-      $timeString = "";
+      $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
       
-      if ($hours > 0)
+      $firstEntryString = "---";
+      if ($dailySummary->firstEntry)
       {
-         $timeString .= $hours . " hours ";
+         $dateTime = new DateTime($dailySummary->firstEntry, new DateTimeZone('America/New_York'));
+         $firstEntryString = $dateTime->format("h:i A");
       }
       
-      if (($hours > 0) || ($minutes > 0))
+      $lastEntryString = "---";
+      if ($dailySummary->lastEntry)
       {
-         $timeString .= $minutes . " minutes ";
+         $dateTime = new DateTime($dailySummary->lastEntry, new DateTimeZone('America/New_York'));
+         $lastEntryString = $dateTime->format("h:i A");
       }
       
-      if ($hours == 0)
+      $timeString = "---";
+      if ($dailySummary->countTime > 0)
       {
-         $timeString .= $seconds . " seconds";
+         $timeString = "";
+         
+         if ($hours > 0)
+         {
+            $timeString .= $hours . " hours ";
+         }
+         
+         if (($hours > 0) || ($minutes > 0))
+         {
+            $timeString .= $minutes . " minutes ";
+         }
+         
+         if ($hours == 0)
+         {
+            $timeString .= $seconds . " seconds";
+         }
       }
       
       echo
@@ -177,6 +201,8 @@ HEREDOC;
             <td>$stationInfo->name</td>
             <td>$dateString</td>
             <td>$dailySummary->count</td>
+            <td>$firstEntryString</td>
+            <td>$lastEntryString</td>
             <td>$timeString</td>
          </tr>
 HEREDOC;
