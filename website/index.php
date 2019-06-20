@@ -19,7 +19,7 @@
 
 <body>
 
-<div class="flex-vertical" style="align-items: flex-start;">
+<div class="flex-vertical" style="align-items: flex-start; height:100%;">
 
    <?php include 'common/header.php';?>
    

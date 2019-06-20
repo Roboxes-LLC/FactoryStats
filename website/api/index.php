@@ -9,11 +9,23 @@ require_once '../common/time.php';
 require_once '../common/workstationStatus.php';
 require_once 'rest.php';
 
+function getDatabase()
+{
+   static $database = null;
+   
+   if ($database == null)
+   {
+      $database = new FlexscreenDatabase();
+      
+      $database->connect();
+   }
+   
+   return ($database);
+}
+
 function updateCount($stationId, $screenCount)
 {
-   $database = new FlexscreenDatabase();
-   
-   $database->connect();
+   $database = getDatabase();
    
    if ($database->isConnected())
    {
@@ -25,9 +37,7 @@ function getCount($stationId, $startDateTime, $endDateTime)
 {
    $screenCount = 0;
    
-   $database = new FlexscreenDatabase();
-   
-   $database->connect();
+   $database = getDatabase();
    
    if ($database->isConnected())
    {
@@ -56,9 +66,7 @@ function getUpdateTime($stationId)
 {
    $updateTime = "";
    
-   $database = new FlexscreenDatabase();
-   
-   $database->connect();
+   $database = getDatabase();
    
    if ($database->isConnected())
    {
@@ -72,9 +80,7 @@ function getAverageCountTime($stationId, $startDateTime, $endDateTime)
 {
    $averageUpdateTime = 0;
    
-   $database = new FlexscreenDatabase();
-   
-   $database->connect();
+   $database = getDatabase();
    
    if ($database->isConnected())
    {
@@ -109,9 +115,7 @@ function getHardwareButtonStatus($stationId)
    $hardwareButtonStatus = new stdClass();
    $hardwareButtonStatus->buttonId = ButtonInfo::UNKNOWN_BUTTON_ID;
    
-   $database = new FlexscreenDatabase();
-   
-   $database->connect();
+   $database = getDatabase();
    
    if ($database->isConnected())
    {
@@ -131,13 +135,29 @@ function getHardwareButtonStatus($stationId)
    return ($hardwareButtonStatus);
 }
 
+function getFirstEntry($stationId)
+{
+   $firstEntry = null;
+   
+   $database = getDatabase();
+   
+   if ($database->isConnected())
+   {
+      $now = Time::now("Y-m-d H:i:s");
+      $startDateTime = Time::startOfDay($now);
+      $endDateTime = Time::endOfDay($now);
+      
+      $firstEntry = $database->getFirstEntry($stationId, $startDateTime, $endDateTime);
+   }
+   
+   return ($firstEntry);
+}
+
 function getStations()
 {
    $stations = array();
 
-   $database = new FlexscreenDatabase();
-   
-   $database->connect();
+   $database = getDatabase();
    
    if ($database->isConnected())
    {
@@ -161,9 +181,7 @@ $router->setLogging(false);
 $router->add("registerButton", function($params) {
    if (isset($params["macAddress"]))
    {
-      $database = new FlexscreenDatabase();
-      
-      $database->connect();
+      $database = getDatabase();
       
       if ($database->isConnected())
       {
@@ -206,9 +224,7 @@ $router->add("registerDisplay", function($params) {
       $displayInfo->ipAddress = $params->get("ipAddress");
       $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
       
-      $database = new FlexscreenDatabase();
-      
-      $database->connect();
+      $database = getDatabase();
       
       if ($database->isConnected())
       {
@@ -255,9 +271,7 @@ $router->add("update", function($params) {
    {
       $macAddress = $params->get("macAddress");
       
-      $database = new FlexscreenDatabase();
-      
-      $database->connect();
+      $database = getDatabase();
       
       if ($database->isConnected())
       {
@@ -356,6 +370,7 @@ $router->add("status", function($params) {
    $hourlyCount = array();
    $hardwareButtonStatus = new stdClass();
    $breakInfo = null;
+   $firstEntry = null;
    
    if (isset($params["stationId"]))
    {
@@ -376,6 +391,8 @@ $router->add("status", function($params) {
       $hardwareButtonStatus = getHardwareButtonStatus($stationId);
       
       $breakInfo = BreakInfo::getCurrentBreak($stationId);
+      
+      $firstEntry = getFirstEntry($stationId);
    }
    else
    {
@@ -389,6 +406,7 @@ $router->add("status", function($params) {
    $result->averageCountTime = $averageCountTime;
    $result->hardwareButtonStatus = $hardwareButtonStatus;
    $result->isOnBreak = ($breakInfo != null);
+   $result->firstEntry = $firstEntry;
 
    if ($result->isOnBreak == true)
    {

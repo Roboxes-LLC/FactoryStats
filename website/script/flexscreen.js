@@ -91,7 +91,9 @@ function update()
          
          updateHardwareButtonIndicator(json.hardwareButtonStatus);
          
-         updateBreak(json.isOnBreak, json.breakInfo)
+         updateBreak(json.isOnBreak, json.breakInfo);
+         
+         updateFirstEntry(json.firstEntry);
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -372,5 +374,17 @@ function updateBreak(isOnBreak, breakInfo)
       element.classList.remove("paused");
       document.getElementById("break-time-label").style.display = "none"; 
       document.getElementById("elapsed-time-label").style.display = "block"; 
+   }
+}
+
+function updateFirstEntry(firstEntry)
+{
+   if (firstEntry)
+   {
+      var date = new Date(Date.parse(firstEntry));
+      var timeString = date.toLocaleTimeString("en-US", {hour: 'numeric', minute: 'numeric'});
+      
+      var element = document.getElementById("first-entry-div");
+      element.innerHTML = "Time of first screen:&nbsp&nbsp" + timeString;
    }
 }

@@ -406,3 +406,9 @@ Screen = B/w 768px to 1024px
 #break-button.paused #pause-icon {
    display: none;
 }
+
+#first-entry-div {
+	color: white;
+   font-size: 18px;
+   margin-top: 10px;
+}

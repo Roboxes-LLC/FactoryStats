@@ -1,4 +1,5 @@
 <?php
+require_once 'common/dailySummary.php';
 require_once 'common/displayInfo.php';
 require_once 'common/time.php';
 require_once 'common/displayInfo.php';
@@ -173,6 +174,8 @@ $isReadOnly = isReadOnly();
          </div>
          
          <div id="hourly-count-chart-div" style="margin-top: 50px;"></div>
+         
+         <div id="first-entry-div"></div>
          
       </div>
       
