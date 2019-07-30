@@ -30,7 +30,9 @@ HEREDOC;
       
       while ($result && $row = $result->fetch_assoc())
       {
-         $stationInfo = StationInfo::load($row["stationId"]);
+         $stationId = $row["stationId"];
+         
+         $stationInfo = StationInfo::load($stationId);
 
          echo 
 <<<HEREDOC
@@ -39,7 +41,7 @@ HEREDOC;
             <td>$stationInfo->label</td>
             <td>$stationInfo->description</td>
             <td>$stationInfo->cycleTime</td>
-            <td>$stationInfo->updateTime</td>
+            <td id="station-$stationId-update-time"></td>
             <td><button class="config-button" onclick="setStationId($stationInfo->stationId); setStationInfo('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', $stationInfo->cycleTime); showModal('config-station-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setStationId($stationInfo->stationId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
@@ -48,6 +50,24 @@ HEREDOC;
    }
    
    echo "</table>";
+}
+
+function addStation($name, $label, $description, $cycleTime)
+{
+   $stationInfo = new StationInfo();
+   $stationInfo->name = $name;
+   $stationInfo->label = $label;
+   $stationInfo->description = $description;
+   $stationInfo->cycleTime = is_numeric($cycleTime) ? intval($cycleTime) : 0;
+   
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $database->addStation($stationInfo);
+   }
 }
 
 function deleteStation($stationId)
@@ -87,27 +107,37 @@ function updateStation($stationId, $name, $label, $description, $cycleTime)
 $params = Params::parse();
 
 switch ($params->get("action"))
-{
+{      
    case "delete":
-      {
-         deleteStation($params->get("stationId"));
-         break;
-      }
+   {
+      deleteStation($params->get("stationId"));
+      break;
+   }
       
    case "update":
+   {
+      if (is_numeric($params->get("stationId")))
       {
          updateStation($params->get("stationId"), 
                        $params->get("name"),
                        $params->get("label"),
                        $params->get("description"),
                        $params->get("cycleTime"));
-         break;
       }
+      else
+      {
+         addStation($params->get("name"),
+                    $params->get("label"),
+                    $params->get("description"),
+                    $params->get("cycleTime"));
+      }
+      break;
+   }
       
    default:
-      {
-         break;
-      }
+   {
+      break;
+   }
 }
 ?>
 
@@ -147,9 +177,13 @@ switch ($params->get("action"))
    <?php include 'common/header.php';?>
    
    <?php include 'common/menu.php';?>
-   
+     
    <div class="main vertical">
-      <?php renderTable();?>
+      <div class="flex-vertical" style="align-items: flex-end;">
+         <button class="config-button" onclick="showModal('config-station-modal');">New Station</button>
+         <br>
+         <?php renderTable();?>
+      </div>
    </div>
      
 </div>
@@ -183,13 +217,16 @@ switch ($params->get("action"))
 
 <script src="script/flexscreen.js"></script>
 <script src="script/modal.js"></script>
+<script src="script/stationConfig.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
-   setTimeout(function(){
+   updateStationInfo();
+
+   setInterval(function(){
       if (!isModalVisible())
       {
-         window.location.reload(1);
+         updateStationInfo();
       }
    }, 5000);
 

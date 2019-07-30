@@ -290,13 +290,22 @@ class FlexscreenDatabase extends MySqlDatabase
       $this->query($query);
    }
    
+   public function addStation($stationInfo)
+   {
+      $query =
+      "INSERT INTO station (name, label, description, cycleTime) " .
+      "VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', '$stationInfo->cycleTime');";
+
+      $this->query($query);
+   }
+   
    public function updateStation($stationInfo)
    {
       $query =
       "UPDATE station " .
       "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\", cycleTime = $stationInfo->cycleTime " .
       "WHERE stationId = $stationInfo->stationId;";
-      echo $query;
+
       $this->query($query);
    }
    
@@ -317,8 +326,6 @@ class FlexscreenDatabase extends MySqlDatabase
       $query = "UPDATE display SET stationId = NULL WHERE stationId = $stationId;";
       
       $this->query($query);
-      
-      return ($result);
    }
    
    public function touchStation($stationId)

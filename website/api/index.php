@@ -443,5 +443,27 @@ $router->add("workstationSummary", function($params) {
    echo json_encode($result);
 });
 
+$router->add("stationInfoSummary", function($params) {
+   $result = new stdClass();
+   $result->stationInfoSummary = array();
+   
+   $stations = getStations();
+   
+   foreach ($stations as $stationId)
+   {
+      $stationInfo = StationInfo::load($stationId);
+      
+      if ($stationInfo)
+      {
+         $dateTime = new DateTime($stationInfo->updateTime, new DateTimeZone('America/New_York'));
+         $stationInfo->updateTime = $dateTime->format("m-d-Y h:i a");
+         
+         $result->stationInfoSummary[] = $stationInfo;
+      }
+   }
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>
