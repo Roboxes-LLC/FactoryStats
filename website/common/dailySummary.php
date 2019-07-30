@@ -8,6 +8,8 @@ class DailySummary
    public $date;
    public $count = 0;
    public $countTime = 0;
+   public $firstEntry = null;
+   public $lastEntry = null;
 
    public static function getDailySummary($stationId, $date)
    {
@@ -28,6 +30,8 @@ class DailySummary
          $dailySummary->stationId = $stationId;
          $dailySummary->date = $date;
          $dailySummary->count = $database->getCount($stationId, $startOfDay, $endOfDay);
+         $dailySummary->firstEntry = $database->getFirstEntry($stationId, $startOfDay, $endOfDay);
+         $dailySummary->lastEntry = $database->getLastEntry($stationId, $startOfDay, $endOfDay);
          $dailySummary->countTime = $database->getCountTime($stationId, $startOfDay, $endOfDay);
       }
 
@@ -90,10 +94,12 @@ if (isset($_GET["stationId"]))
 
    if ($dailySummary)
    {
-      echo "stationId: " . $dailySummary->stationId . "<br/>";
-      echo "date: " .      $dailySummary->date .      "<br/>";
-      echo "count: " .     $dailySummary->count .     "<br/>";
-      echo "countTime: " . $dailySummary->countTime . "<br/>";
+      echo "stationId: " . $dailySummary->stationId .  "<br/>";
+      echo "date: " .      $dailySummary->date .       "<br/>";
+      echo "count: " .     $dailySummary->count .      "<br/>";
+      echo "firstEntry" .  $dailySummary->firstEntry . "<br/>";
+      echo "lastEntry" .   $dailySummary->lastEntry .  "<br/>";
+      echo "countTime: " . $dailySummary->countTime .  "<br/>";
    }
    else
    {
@@ -110,7 +116,7 @@ else if (isset($_GET["startDate"]) && isset($_GET["startDate"]))
 
    foreach ($dailySummaries as $dailySummary)
    {
-      echo $dailySummary->stationId . "|" . $dailySummary->date . "|" . $dailySummary->count . "|" . $dailySummary->countTime . "<br>";
+      echo $dailySummary->stationId . "|" . $dailySummary->date . "|" . $dailySummary->count . "|" . $dailySummary->firstEntry . "|" . $dailySummary->lastEntry . "|" . $dailySummary->countTime . "<br>";
    }
 }
 */

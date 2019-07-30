@@ -1,4 +1,5 @@
 <?php
+
 class Time
 {
    static public function init()
@@ -41,12 +42,16 @@ class Time
    static public function startOfHour($dateTime)
    {
       $startDateTime = new DateTime($dateTime);
+      $startDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      
       return ($startDateTime->format("Y-m-d H:00:00"));
    }
    
    static public function endOfHour($dateTime)
    {
       $endDateTime = new DateTime($dateTime);
+      $endDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      
       $endDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
       return ($endDateTime->format("Y-m-d H:00:00"));
    }
@@ -54,13 +59,17 @@ class Time
    static public function startOfDay($dateTime)
    {
       $startDateTime = new DateTime($dateTime);
+      $startDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      
       return ($startDateTime->format("Y-m-d 00:00:00"));
    }
    
    static public function endOfDay($dateTime)
    {
-      $startDateTime = new DateTime($dateTime);
-      return ($startDateTime->format("Y-m-d 23:00:00"));
+      $endDateTime = new DateTime($dateTime);
+      $endDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      
+      return ($endDateTime->format("Y-m-d 23:59:59"));
    }
    
    static public function incrementHour($dateTime)
@@ -80,6 +89,19 @@ class Time
       
       return ($incrementedDateTime->format("Y-m-d H:i:s"));
    }
+   
+   static public function differenceSeconds($startTime, $endTime)
+   {
+      $startDateTime = new DateTime($startTime);
+      $endDateTime = new DateTime($endTime);
+      
+      $diff = $startDateTime->diff($endDateTime);
+      
+      // Convert to seconds.
+      $seconds = (($diff->d * 12 * 60 * 60) + ($diff->h * 60 * 60) + ($diff->i * 60) + $diff->s);
+      
+      return ($seconds);
+   }
 }
 
 /*
@@ -91,5 +113,13 @@ echo "<br/>";
 echo "toMySql: $toMySql";
 echo "<br/>";
 echo "fromMySql: $fromMySql";
+echo "<br/>";
+echo "startOfDay: " . Time::startOfDay($now);
+echo "<br/>";
+echo "endOfDay: " . Time::endOfDay($now);
+echo "<br/>";
+echo "startOfHour: " . Time::startOfHour($now);
+echo "<br/>";
+echo "endOfHour: " . Time::endOfHour($now);
 */
 ?>

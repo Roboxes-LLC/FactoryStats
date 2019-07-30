@@ -1,9 +1,20 @@
 <?php
 
+require_once 'common/breakInfo.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
+
+Time::init();
+
+class Table
+{
+   const UNKNOWN       = 0;
+   const HOURLY_COUNTS = 1;
+   const DAILY_COUNTS  = 2;
+   const BREAKS        = 3;
+}
 
 function getStationId()
 {
@@ -56,26 +67,61 @@ function getEndDate()
    return ($endDate);
 }
 
-function displayHourlyCounts()
+function getTable()
 {
-   $displayHourly = false;
-    
+   $table = Table::DAILY_COUNTS;
+   
    $params = Params::parse();
-    
-   $displayHourly = ($params->get("display") == "hourly");
-    
-   return ($displayHourly);
+   
+   switch ($params->get("display"))
+   {
+      case "hourly":
+      {
+         $table = Table::HOURLY_COUNTS;
+         break;
+      }
+      
+      case "breaks":
+      {
+         $table = Table::BREAKS;
+         break;
+      }
+      
+      case "daily":
+      default:
+      {
+         $table = Table::DAILY_COUNTS;
+         break;
+      }
+   }
+   
+   return ($table);
 }
 
 function renderTable()
 {
-   if (displayHourlyCounts() == true)
+   $params = Params::parse();
+   
+   switch (getTable())
    {
-       renderHourlyCountsTable();
-   }
-   else
-   {
-      renderDailyCountsTable();
+      case Table::HOURLY_COUNTS:
+      {
+         renderHourlyCountsTable();
+         break;
+      }
+      
+      case Table::BREAKS:
+      {
+         renderBreaksTable();
+         break;
+      }
+      
+      case Table::DAILY_COUNTS:
+      default:
+      {
+         renderDailyCountsTable();
+         break;
+      } 
    }
 }
 
@@ -88,6 +134,8 @@ function renderDailyCountsTable()
          <th>Workstation</th>
          <th>Date</th>
          <th>Screen Count</th>
+         <th>First Screen</th>
+         <th>Last Screen</th>
          <th>Average Time Between Screens</th>
       </tr>
 HEREDOC;
@@ -110,21 +158,41 @@ HEREDOC;
       $minutes = round((($averageCountTime % 3600) / 60), 0);
       $seconds = ($averageCountTime % 60);
       
-      $timeString = "";
+      $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
       
-      if ($hours > 0)
+      $firstEntryString = "---";
+      if ($dailySummary->firstEntry)
       {
-         $timeString .= $hours . " hours ";
+         $dateTime = new DateTime($dailySummary->firstEntry, new DateTimeZone('America/New_York'));
+         $firstEntryString = $dateTime->format("h:i A");
       }
       
-      if (($hours > 0) || ($minutes > 0))
+      $lastEntryString = "---";
+      if ($dailySummary->lastEntry)
       {
-         $timeString .= $minutes . " minutes ";
+         $dateTime = new DateTime($dailySummary->lastEntry, new DateTimeZone('America/New_York'));
+         $lastEntryString = $dateTime->format("h:i A");
       }
       
-      if ($hours == 0)
+      $timeString = "---";
+      if ($dailySummary->countTime > 0)
       {
-         $timeString .= $seconds . " seconds";
+         $timeString = "";
+         
+         if ($hours > 0)
+         {
+            $timeString .= $hours . " hours ";
+         }
+         
+         if (($hours > 0) || ($minutes > 0))
+         {
+            $timeString .= $minutes . " minutes ";
+         }
+         
+         if ($hours == 0)
+         {
+            $timeString .= $seconds . " seconds";
+         }
       }
       
       echo
@@ -133,6 +201,8 @@ HEREDOC;
             <td>$stationInfo->name</td>
             <td>$dateString</td>
             <td>$dailySummary->count</td>
+            <td>$firstEntryString</td>
+            <td>$lastEntryString</td>
             <td>$timeString</td>
          </tr>
 HEREDOC;
@@ -195,11 +265,95 @@ HEREDOC;
     echo "</table>";
 }
 
+function renderBreaksTable()
+{
+   echo
+<<<HEREDOC
+   <table>
+      <tr>
+         <th>Workstation</th>
+         <th>Date</th>
+         <th>Start time</th>
+         <th>End time</th>
+         <th>Duration</th>
+      </tr>
+HEREDOC;
+   
+   $stationId = getStationId();
+   $startDate = getStartDate();
+   $endDate = getEndDate();
+   
+   $startTime = Time::startOfDay($startDate);
+   $endTime = Time::endOfDay($endDate);
+   
+   $database = new FlexscreenDatabase();
+   
+   $database->connect();
+   
+   if ($database->isConnected())
+   {
+      $result = $database->getBreaks($stationId, $startTime, $endTime);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $breakInfo = BreakInfo::load($row["breakId"]);
+         
+         $stationInfo = StationInfo::load($row["stationId"]);
+         
+         $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s"),
+            new DateTimeZone('America/New_York'));
+         $dateString = $startDateTime->format("m-d-Y");
+         $startTimeString = $startDateTime->format("h:i A");
+         
+         $endTimeString = "---";
+         $durationString = "---";
+         if ($row["endTime"] != null)
+         {
+            $endDateTime = new DateTime(Time::fromMySqlDate($row["endTime"], "Y-m-d H:i:s"),
+               new DateTimeZone('America/New_York'));
+            $endTimeString = $endDateTime->format("h:i A");
+            
+            $interval = $startDateTime->diff($endDateTime);
+            
+            if ($interval->d >= 1)
+            {
+               $durationString = $interval->d . " days";
+            }
+            else if ($interval->h >= 1)
+            {
+               $durationString = $interval->h . " hr " . $interval->i . " min";
+            }
+            else if ($interval->i >= 1)
+            {
+               $durationString = $interval->i . " min";
+            }
+            else
+            {
+               $durationString = "< 1 min";
+            }
+         }
+         
+         echo
+<<<HEREDOC
+           <tr>
+              <td>$stationInfo->name</td>
+              <td>$dateString</td>
+              <td>$startTimeString</td>
+              <td>$endTimeString</td>
+              <td>$durationString</td>
+           </tr>
+HEREDOC;
+      }
+   }
+   
+   echo "</table>";
+}
+
 function renderStationOptions()
 {
    $selectedStationId = getStationId();
    
-   echo "<option value=\"ALL\" $selected>All stations</option>";
+   echo "<option value=\"ALL\">All stations</option>";
 
    $database = new FlexscreenDatabase();
 
@@ -263,8 +417,9 @@ function renderStationOptions()
          <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
          <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
          <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
-         <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo displayHourlyCounts() ? "checked" : "";?>>
-         <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo displayHourlyCounts() ? "" : "checked";?>>
+         <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>
+         <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo (getTable() == Table::HOURLY_COUNTS) ? "checked" : "";?>>
+         <label>Breaks</label><input type="radio" name="display" value="breaks" <?php echo (getTable() == Table::BREAKS) ? "checked" : "";?>>
          <button type="submit">Filter</button>
          </form>
       </div>

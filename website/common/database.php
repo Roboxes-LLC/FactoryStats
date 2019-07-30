@@ -290,13 +290,22 @@ class FlexscreenDatabase extends MySqlDatabase
       $this->query($query);
    }
    
+   public function addStation($stationInfo)
+   {
+      $query =
+      "INSERT INTO station (name, label, description, cycleTime) " .
+      "VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', '$stationInfo->cycleTime');";
+
+      $this->query($query);
+   }
+   
    public function updateStation($stationInfo)
    {
       $query =
       "UPDATE station " .
       "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\", cycleTime = $stationInfo->cycleTime " .
       "WHERE stationId = $stationInfo->stationId;";
-      echo $query;
+
       $this->query($query);
    }
    
@@ -317,8 +326,6 @@ class FlexscreenDatabase extends MySqlDatabase
       $query = "UPDATE display SET stationId = NULL WHERE stationId = $stationId;";
       
       $this->query($query);
-      
-      return ($result);
    }
    
    public function touchStation($stationId)
@@ -362,6 +369,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function updateCount($stationId, $screenCount)
    {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
       
       // Calculate the time since the update (in seconds).
@@ -369,7 +377,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       // Determine if we have an entry for this station/hour.
       $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
-      //echo $query . "<br/>";
+
       $result = $this->query($query);
       
       // New entry.
@@ -377,9 +385,9 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO screencount " .
-         "(stationId, dateTime, count, countTime) " .
+         "(stationId, dateTime, count, countTime, firstEntry, lastEntry) " .
          "VALUES " .
-         "('$stationId', '$nowHour', '$screenCount', '$countTime');";
+         "('$stationId', '$nowHour', '$screenCount', '$countTime', '$now', '$now');";
          //echo $query . "<br/>";
          
          $this->query($query);
@@ -388,7 +396,7 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Update counter count.
-         $query = "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+         $query = "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime, lastEntry = \"$now\" WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
          //echo $query . "<br/>";
          $this->query($query);
       }
@@ -428,6 +436,154 @@ class FlexscreenDatabase extends MySqlDatabase
       
       return ($countTime);
    }
+   
+   public function getFirstEntry($stationId, $startDateTime, $endDateTime)
+   {
+      $firstEntry = null;
+      
+      $query = "SELECT firstEntry FROM screencount WHERE stationId = \"$stationId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime ASC LIMIT 1;";
+      //echo $query . "<br/>";
+      $result = $this->query($query);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         if ($row["firstEntry"])
+         {
+            $firstEntry = Time::fromMySqlDate($row["firstEntry"], "Y-m-d H:i:s");
+         }
+      }
+      
+      return ($firstEntry);
+   }
+   
+   public function getLastEntry($stationId, $startDateTime, $endDateTime)
+   {
+      $lastEntry = null;
+      
+      $query = "SELECT lastEntry FROM screencount WHERE stationId = \"$stationId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
+      //echo $query . "<br/>";
+      $result = $this->query($query);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         if ($row["lastEntry"])
+         {
+            $lastEntry = Time::fromMySqlDate($row["lastEntry"], "Y-m-d H:i:s");
+         }
+      }
+      
+      return ($lastEntry);
+   }
+   
+   // **************************************************************************
+   
+   public function getCurrentBreakId($stationId)
+   {
+      $breakId = 0;
+      
+      $query =
+      "SELECT breakId FROM break WHERE stationId = $stationId AND endTime IS NULL";
+      
+      $result = $this->query($query);
+      
+      if ($result && ($row = $result->fetch_assoc()))
+      {
+         $breakId = $row["breakId"];
+      }
+      
+      return ($breakId);
+   }
+   
+   public function isOnBreak($stationId)
+   {
+      return ($this->getCurrentBreakId($stationId) != 0);
+   }
+   
+   public function startBreak($stationId, $startDateTime)
+   {
+      $success = false;
+      
+      if (!$this->isOnBreak($stationId))
+      {
+         $query =
+         "INSERT INTO break " .
+         "(stationId, startTime) " .
+         "VALUES " .
+         "('$stationId', '" . Time::toMySqlDate($startDateTime) . "');";
+         
+         $success = $this->query($query);
+      }
+      
+      return ($success);
+   }
+   
+   public function endBreak($stationId, $endDateTime)
+   {
+      $success = false;
+      
+      $breakId = $this->getCurrentBreakId($stationId);
+      
+      if ($breakId != 0)
+      {
+         $query =
+         "UPDATE break " .
+         "SET endTime = \"" . Time::toMySqlDate($endDateTime) . "\" " .
+         "WHERE breakId = $breakId;";
+         
+         $success = $this->query($query);
+      }
+      
+      return ($success);
+   }
+   
+   public function getBreak($breakId)
+   {
+      $query = "SELECT * from break WHERE breakId = \"$breakId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getBreaks($stationId, $startDateTime, $endDateTime)
+   {
+      $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
+      $query = "SELECT * FROM break WHERE $stationClause startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, startTime ASC;";
+
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getBreakTime($stationId, $startDateTime, $endDateTime)
+   {
+      $breakTime = 0;
+      
+      $query = "SELECT * FROM break WHERE stationId = \"$stationId\" AND startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY startTime DESC;";
+
+      $result = $this->query($query);
+      
+      $updateTime = getUpdateTime($stationId);
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         // Only count complete breaks.
+         $isCompleteBreak = ($row["endTime"] != null);
+         
+         // Don't count breaks that start *after* the last screen count.
+         $startTime = Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s");
+         $isValidBreak = (new DateTime($startTime) < new DateTime($updateTime));
+
+         if ($isCompleteBreak && $isValidBreak)
+         {
+            $breakTime += Time::differenceSeconds($row["startTime"], $row["endTime"]);
+         }
+      }
+      
+      return ($breakTime);
+   }
+   
+   // **************************************************************************
    
    protected function calculateCountTime($stationId)
    {

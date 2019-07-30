@@ -58,8 +58,6 @@ function renderStationSummary($stationId)
 HEREDOC;
    }
       
-   // <div>Button status: {$workstationStatus->hardwareButtonStatus->lastContact}</div>
-      
    echo "</div></a>";
 }
 ?>
