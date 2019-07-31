@@ -96,6 +96,18 @@ class MySqlDatabase implements Database
 
 class FlexscreenDatabase extends MySqlDatabase
 {
+   public static function getInstance()
+   {
+      if (!FlexscreenDatabase::$databaseInstance)
+      {
+         self::$databaseInstance = new FlexscreenDatabase();
+         
+         self::$databaseInstance->connect();
+      }
+      
+      return (self::$databaseInstance);
+   }
+   
    public function __construct()
    {
       global $SERVER, $USER, $PASSWORD, $DATABASE;
@@ -360,7 +372,7 @@ class FlexscreenDatabase extends MySqlDatabase
    public function getHourlyCounts($stationId, $startDateTime, $endDateTime)
    {
        $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-       $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
+       $query = "SELECT dateTime, count FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
 
        $result = $this->query($query);
              
@@ -609,6 +621,10 @@ class FlexscreenDatabase extends MySqlDatabase
       
       return ($countTime);
    }
+   
+   // **************************************************************************
+   
+   private static $databaseInstance = null;
 }
 
 ?>

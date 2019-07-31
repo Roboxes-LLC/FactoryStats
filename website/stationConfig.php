@@ -20,11 +20,9 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       
@@ -60,11 +58,9 @@ function addStation($name, $label, $description, $cycleTime)
    $stationInfo->description = $description;
    $stationInfo->cycleTime = is_numeric($cycleTime) ? intval($cycleTime) : 0;
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $database->addStation($stationInfo);
    }
@@ -72,11 +68,9 @@ function addStation($name, $label, $description, $cycleTime)
 
 function deleteStation($stationId)
 {
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $database->deleteStation($stationId);
    }
@@ -91,11 +85,9 @@ function updateStation($stationId, $name, $label, $description, $cycleTime)
    $stationInfo->description = $description;
    $stationInfo->cycleTime = $cycleTime;
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $database->updateStation($stationInfo);
    }

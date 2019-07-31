@@ -17,12 +17,9 @@ class WorkstationStatus
    {
       $dailySummary = null;
       
-      $database = new FlexscreenDatabase();
-      
-      $database->connect();
-      
-      if (($database->isConnected()) &&
-          ($database->stationExists($stationId)))
+      $database = FlexscreenDatabase::getInstance();
+
+      if ($database->stationExists($stationId))
       {
          $workstationStatus = new WorkstationStatus();
          
@@ -71,14 +68,14 @@ class WorkstationStatus
    
    private static function getHourlyCount($stationId, $startDateTime, $endDateTime, $database)
    {
-      $startDateTime = Time::startOfDay($startDateTime);
-      $endDateTime = Time::endOfDay($endDateTime);
+      $hourlyCount = array();
       
-      while (new DateTime($startDateTime) < new DateTime($endDateTime))
+      $result = $database->getHourlyCounts($stationId, $startDateTime, $endDateTime);
+      
+      while ($result && ($row = $result->fetch_assoc()))
       {
-         $hourlyCount[$startDateTime] = WorkstationStatus::getCount($stationId, $startDateTime, $startDateTime, $database);
-         
-         $startDateTime = Time::incrementHour($startDateTime);
+         $dateTime = Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s");
+         $hourlyCount[$dateTime] = $row["count"];
       }
       
       return ($hourlyCount);
@@ -94,9 +91,6 @@ class WorkstationStatus
    private static function getAverageCountTime($stationId, $startDateTime, $endDateTime, $database)
    {
       $averageUpdateTime = 0;
-
-      $startDateTime = Time::startOfDay($startDateTime);
-      $endDateTime = Time::endOfDay($endDateTime);
       
       $totalCountTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
       

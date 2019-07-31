@@ -17,11 +17,9 @@ class StationInfo
    {
       $stationInfo = null;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $result = $database->getStation($stationId);
          

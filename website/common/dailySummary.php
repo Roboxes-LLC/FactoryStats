@@ -15,12 +15,9 @@ class DailySummary
    {
       $dailySummary = null;
 
-      $database = new FlexscreenDatabase();
-
-      $database->connect();
-
-      if (($database->isConnected()) &&
-          ($database->stationExists($stationId)))
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected() && $database->stationExists($stationId))
       {
          $dailySummary = new DailySummary();
 
@@ -42,11 +39,9 @@ class DailySummary
    {
       $dailySummaries = array();
 
-      $database = new FlexscreenDatabase();
-
-      $database->connect();
-
-      if ($database->isConnected())
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
       {
          $firstDay = Time::startOfDay($startDate);
          $lastDay = Time::startOfDay($endDate);

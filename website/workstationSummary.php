@@ -7,20 +7,13 @@ function renderStationSummaries()
 {
    echo "<div class=\"flex-horizontal main summary\">";
    
-   $database = new FlexscreenDatabase();
+   $result = FlexscreenDatabase::getInstance()->getStations();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   while ($result && ($row = $result->fetch_assoc()))
    {
-      $result = $database->getStations();
+      $stationId = $row["stationId"];
       
-      while ($result && ($row = $result->fetch_assoc()))
-      {
-         $stationId = $row["stationId"];
-         
-         renderStationSummary($stationId);
-      }
+      renderStationSummary($stationId);
    }
    
    echo "</div>";

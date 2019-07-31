@@ -22,11 +22,9 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $result = $database->getDisplays();
       
@@ -72,11 +70,9 @@ function getOptions()
 {
    $options = "";
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       
@@ -91,11 +87,9 @@ function getOptions()
 
 function deleteDisplay($displayId)
 {
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $database->deleteDisplay($displayId);
    }
@@ -106,11 +100,9 @@ function updateDisplay($displayId, $stationId)
    $diplayInfo = DisplayInfo::load($displayId);
    $diplayInfo->stationId = $stationId;
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $database->updateDisplay($diplayInfo);
    }

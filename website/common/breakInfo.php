@@ -14,11 +14,9 @@ class BreakInfo
    {
       $breakInfo = null;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $result = $database->getBreak($breakId);
          
@@ -42,11 +40,9 @@ class BreakInfo
    {
       $breakInfo = null;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $breakId = $database->getCurrentBreakId($stationId);
 
@@ -63,11 +59,9 @@ class BreakInfo
    {
       $isOnBreak = false;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $isOnBreak = $database->isOnBreak($stationId);
       }
@@ -81,11 +75,9 @@ class BreakInfo
       
       if (BreakInfo::isOnBreak($stationId) == false)
       {
-         $database = new FlexscreenDatabase();
+         $database = FlexscreenDatabase::getInstance();
          
-         $database->connect();
-         
-         if ($database->isConnected())
+         if ($database && $database->isConnected())
          {
             $database->startBreak($stationId, Time::now("Y-m-d H:i:s"));
             
@@ -104,11 +96,9 @@ class BreakInfo
       {
          $duration = 0;
          
-         $database = new FlexscreenDatabase();
+         $database = FlexscreenDatabase::getInstance();
          
-         $database->connect();
-         
-         if ($database->isConnected())
+         if ($database && $database->isConnected())
          {
             $database->endBreak($stationId, Time::now("Y-m-d H:i:s"));
             

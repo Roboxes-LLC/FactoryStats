@@ -9,40 +9,16 @@ require_once '../common/time.php';
 require_once '../common/workstationStatus.php';
 require_once 'rest.php';
 
-function getDatabase()
-{
-   static $database = null;
-   
-   if ($database == null)
-   {
-      $database = new FlexscreenDatabase();
-      
-      $database->connect();
-   }
-   
-   return ($database);
-}
-
 function updateCount($stationId, $screenCount)
 {
-   $database = getDatabase();
-   
-   if ($database->isConnected())
-   {
-      $database->updateCount($stationId, $screenCount);
-   }
+   FlexscreenDatabase::getInstance()->updateCount($stationId, $screenCount);
 }
 
 function getCount($stationId, $startDateTime, $endDateTime)
 {
    $screenCount = 0;
    
-   $database = getDatabase();
-   
-   if ($database->isConnected())
-   {
-      $screenCount = $database->getCount($stationId, $startDateTime, $endDateTime);
-   }
+   FlexscreenDatabase::getInstance()->getCount($stationId, $startDateTime, $endDateTime);
    
    return ($screenCount);
 }
@@ -64,14 +40,7 @@ function getHourlyCount($stationId, $startDateTime, $endDateTime)
 
 function getUpdateTime($stationId)
 {
-   $updateTime = "";
-   
-   $database = getDatabase();
-   
-   if ($database->isConnected())
-   {
-      $updateTime = $database->getUpdateTime($stationId);
-   }
+   $updateTime = FlexscreenDatabase::getInstance()->getUpdateTime($stationId);
    
    return ($updateTime);
 }
@@ -80,31 +49,28 @@ function getAverageCountTime($stationId, $startDateTime, $endDateTime)
 {
    $averageUpdateTime = 0;
    
-   $database = getDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   if ($database->isConnected())
+   $startDateTime = Time::startOfDay($startDateTime);
+   $endDateTime = Time::endOfDay($endDateTime);
+   
+   $countTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
+   
+   $breakTime = $database->getBreakTime($stationId, $startDateTime, $endDateTime);
+   
+   $netCountTime = $countTime - $breakTime;
+   
+   $count = $database->getCount($stationId, $startDateTime, $endDateTime);
+   
+   //echo "countTime, breakTime, netCountTime, count: " . $countTime . "/" . $breakTime . "/" . $netCountTime . "/" . $count . "<br>";
+   
+   // Subtract off the first screen.
+   // The time for the first screen wasn't captured.  Including it in the count gives an inaccurate average.
+   $count--;
+   
+   if ($count > 0)
    {
-      $startDateTime = Time::startOfDay($startDateTime);
-      $endDateTime = Time::endOfDay($endDateTime);
-      
-      $countTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
-      
-      $breakTime = $database->getBreakTime($stationId, $startDateTime, $endDateTime);
-      
-      $netCountTime = $countTime - $breakTime;
-      
-      $count = $database->getCount($stationId, $startDateTime, $endDateTime);
-      
-      //echo "countTime, breakTime, netCountTime, count: " . $countTime . "/" . $breakTime . "/" . $netCountTime . "/" . $count . "<br>";
-      
-      // Subtract off the first screen.
-      // The time for the first screen wasn't captured.  Including it in the count gives an inaccurate average.
-      $count--;
-      
-      if ($count > 0)
-      {
-         $averageUpdateTime = round($netCountTime / $count);
-      }
+      $averageUpdateTime = round($netCountTime / $count);
    }
    
    return ($averageUpdateTime);
@@ -115,21 +81,16 @@ function getHardwareButtonStatus($stationId)
    $hardwareButtonStatus = new stdClass();
    $hardwareButtonStatus->buttonId = ButtonInfo::UNKNOWN_BUTTON_ID;
    
-   $database = getDatabase();
+   // Note: Results returned ordered by lastContact, DESC.
+   $results = FlexscreenDatabase::getInstance()->getButtonsForStation($stationId);
    
-   if ($database->isConnected())
+   if ($results && ($row = $results->fetch_assoc()))
    {
-      // Note: Results returned ordered by lastContact, DESC.
-      $results = $database->getButtonsForStation($stationId);
+      $buttonInfo = ButtonInfo::load($row["buttonId"]);
       
-      if ($results && ($row = $results->fetch_assoc()))
-      {
-         $buttonInfo = ButtonInfo::load($row["buttonId"]);
-         
-         $hardwareButtonStatus->buttonId= $buttonInfo->buttonId;
-         $hardwareButtonStatus->ipAddress = $buttonInfo->ipAddress;
-         $hardwareButtonStatus->lastContact = $buttonInfo->lastContact;
-      }
+      $hardwareButtonStatus->buttonId= $buttonInfo->buttonId;
+      $hardwareButtonStatus->ipAddress = $buttonInfo->ipAddress;
+      $hardwareButtonStatus->lastContact = $buttonInfo->lastContact;
    }
    
    return ($hardwareButtonStatus);
@@ -139,16 +100,11 @@ function getFirstEntry($stationId)
 {
    $firstEntry = null;
    
-   $database = getDatabase();
+   $now = Time::now("Y-m-d H:i:s");
+   $startDateTime = Time::startOfDay($now);
+   $endDateTime = Time::endOfDay($now);
    
-   if ($database->isConnected())
-   {
-      $now = Time::now("Y-m-d H:i:s");
-      $startDateTime = Time::startOfDay($now);
-      $endDateTime = Time::endOfDay($now);
-      
-      $firstEntry = $database->getFirstEntry($stationId, $startDateTime, $endDateTime);
-   }
+   $firstEntry = FlexscreenDatabase::getInstance()->getFirstEntry($stationId, $startDateTime, $endDateTime);
    
    return ($firstEntry);
 }
@@ -157,16 +113,11 @@ function getStations()
 {
    $stations = array();
 
-   $database = getDatabase();
+   $result = FlexscreenDatabase::getInstance()->getStations();
    
-   if ($database->isConnected())
+   while ($result && $row = $result->fetch_assoc())
    {
-      $result = $database->getStations();
-      
-      while ($result && $row = $result->fetch_assoc())
-      {
-         $stations[] = $row["stationId"];
-      }
+      $stations[] = $row["stationId"];
    }
    
    return ($stations);
@@ -180,36 +131,31 @@ $router->setLogging(false);
 
 $router->add("registerButton", function($params) {
    if (isset($params["macAddress"]))
-   {
-      $database = getDatabase();
+   {     
+      $queryResult = $database->getButtonByMacAddress($params->get("macAddress"));
       
-      if ($database->isConnected())
+      if ($queryResult && ($row = $queryResult->fetch_assoc()))
       {
-         $queryResult = $database->getButtonByMacAddress($params->get("macAddress"));
+         $buttonInfo = ButtonInfo::load($row["buttonId"]);
          
-         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         if ($buttonInfo)
          {
-            $buttonInfo = ButtonInfo::load($row["buttonId"]);
-            
-            if ($buttonInfo)
-            {
-               $buttonInfo->macAddress = $params->get("macAddress");
-               $buttonInfo->ipAddress = $params->get("ipAddress");
-               $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
-               
-               $database->updateButton($buttonInfo);
-            }
-         }
-         else
-         {
-            $buttonInfo = new ButtonInfo();
-            
             $buttonInfo->macAddress = $params->get("macAddress");
             $buttonInfo->ipAddress = $params->get("ipAddress");
             $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
             
-            $database->newButton($buttonInfo);
+            FlexscreenDatabase::getInstance()->updateButton($buttonInfo);
          }
+      }
+      else
+      {
+         $buttonInfo = new ButtonInfo();
+         
+         $buttonInfo->macAddress = $params->get("macAddress");
+         $buttonInfo->ipAddress = $params->get("ipAddress");
+         $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
+         
+         FlexscreenDatabase::getInstance()->newButton($buttonInfo);
       }
    }
 });
@@ -224,9 +170,9 @@ $router->add("registerDisplay", function($params) {
       $displayInfo->ipAddress = $params->get("ipAddress");
       $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
       
-      $database = getDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $queryResult = $database->getDisplayByMacAddress($displayInfo->macAddress);
          
@@ -271,9 +217,9 @@ $router->add("update", function($params) {
    {
       $macAddress = $params->get("macAddress");
       
-      $database = getDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $queryResult = $database->getButtonByMacAddress($macAddress);
          
@@ -281,6 +227,11 @@ $router->add("update", function($params) {
          {
             $stationId = $row["stationId"];
          }
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
       }
    }
    

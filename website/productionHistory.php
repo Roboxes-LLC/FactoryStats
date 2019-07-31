@@ -231,11 +231,9 @@ HEREDOC;
     $startTime = Time::startOfDay($startDate);
     $endTime = Time::endOfDay($endDate);
     
-    $database = new FlexscreenDatabase();
+    $database = FlexscreenDatabase::getInstance();
     
-    $database->connect();
-    
-    if ($database->isConnected())
+    if ($database && $database->isConnected())
     {
         $result = $database->getHourlyCounts($stationId, $startTime, $endTime);
         
@@ -286,11 +284,9 @@ HEREDOC;
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
    
-   $database = new FlexscreenDatabase();
+   $database = FlexscreenDatabase::getInstance();
    
-   $database->connect();
-   
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $result = $database->getBreaks($stationId, $startTime, $endTime);
       
@@ -355,11 +351,9 @@ function renderStationOptions()
    
    echo "<option value=\"ALL\">All stations</option>";
 
-   $database = new FlexscreenDatabase();
-
-   $database->connect();
+   $database = FlexscreenDatabase::getInstance();
    
-   if ($database->isConnected())
+   if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       

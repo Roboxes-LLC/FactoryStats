@@ -20,11 +20,9 @@ class DisplayInfo
    {
       $displayInfo = null;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $result = $database->getDisplay($displayId);
          
@@ -49,11 +47,9 @@ class DisplayInfo
    {
       $displayId = DisplayInfo::UNKNOWN_DISPLAY_ID;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $result = $database->getDisplayByMacAddress($macAddress);
          

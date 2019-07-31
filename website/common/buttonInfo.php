@@ -20,11 +20,9 @@ class ButtonInfo
    {
       $buttonInfo = null;
       
-      $database = new FlexscreenDatabase();
+      $database = FlexscreenDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $result = $database->getButton($buttonId);
          
