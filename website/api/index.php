@@ -16,9 +16,14 @@ function updateCount($stationId, $screenCount)
 
 function getCount($stationId, $startDateTime, $endDateTime)
 {
-   $screenCount = 0;
+   $database = 0;
    
-   FlexscreenDatabase::getInstance()->getCount($stationId, $startDateTime, $endDateTime);
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $screenCount = FlexscreenDatabase::getInstance()->getCount($stationId, $startDateTime, $endDateTime);
+   }
    
    return ($screenCount);
 }
@@ -30,6 +35,7 @@ function getHourlyCount($stationId, $startDateTime, $endDateTime)
    
    while (new DateTime($startDateTime) < new DateTime($endDateTime))
    {
+      // TODO: Optomize to use a single database call.  (See workstationStatus.php)
       $hourlyCount[$startDateTime] = getCount($stationId, $startDateTime, $startDateTime);
       
       $startDateTime = Time::incrementHour($startDateTime);
