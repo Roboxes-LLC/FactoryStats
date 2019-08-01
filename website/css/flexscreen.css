@@ -274,18 +274,19 @@ body {
   }
 }
 
-.time-warning {
+#elapsed-time-div.near-cycle-time {
    color : yellow;
    animation: warning-anim 1s ease-in-out infinite alternate;
 }
 
-.time-late {
+#elapsed-time-div.over-cycle-time {
 	color: #ff0000;
    animation: late-anim 500ms ease-in-out infinite alternate;
 }
 
-.time-paused {
+#elapsed-time-div.paused {
    color: orange;
+   animation: none;
 }
 
 .led-red {

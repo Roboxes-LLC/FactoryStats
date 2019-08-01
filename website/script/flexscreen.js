@@ -87,6 +87,8 @@ function update()
          
          updateElapsedTime();
          
+         updateCycleTimeStatus(json.cycleTimeStatus, json.cycleTimeStatusLabel, json.isOnBreak);
+         
          updateAverageCountTime(json.averageCountTime);
          
          updateHardwareButtonIndicator(json.hardwareButtonStatus);
@@ -115,7 +117,6 @@ function updateCountTime(countTime)
 function updateElapsedTime()
 {
    var timeString = "----";
-   var timeClass = window.isOnBreak ? "time-paused" : "";  // time-early, time-warning, time-late, time-paused
    
    if (window.lastCountTime)
    {
@@ -146,29 +147,31 @@ function updateElapsedTime()
          {
             timeString = padNumber(minutes) + ":" + padNumber(seconds);
          }
-         
-         // Style the elapsed time display based on its relation to the cycle time.
-         var cycleTime = getCycleTime();  // seconds
-         if (cycleTime > 0)
-         {            
-            var totalSeconds = Math.round(diff / millisInSecond);
-            var warningThreshold = Math.round(cycleTime * 0.8);  // Warning at 80% of cycle time
-            timeClass = window.isOnBreak ? "time-paused" : (totalSeconds > cycleTime) ? "time-late" : (totalSeconds > warningThreshold) ? "time-warning" : "time-early";
-         }
       }
    }
    
    var element = document.getElementById("elapsed-time-div");
    
    element.innerHTML = timeString;
+}
+
+function updateCycleTimeStatus(cycleTimeStatus, cycleTimeStatusLabel, isOnBreak)
+{
+   var element = document.getElementById("elapsed-time-div");
    
-   element.classList.remove("time-paused");
-   element.classList.remove("time-early");
-   element.classList.remove("time-warning");
-   element.classList.remove("time-late");
-   if (timeClass != "")
+   element.classList.remove("under-cycle-time");
+   element.classList.remove("near-cycle-time");
+   element.classList.remove("over-cycle-time");
+   element.classList.remove("paused");
+   
+   if (cycleTimeStatusLabel != "")
    {
-      element.classList.add(timeClass);
+      element.classList.add(cycleTimeStatusLabel);
+   }
+   
+   if (isOnBreak)
+   {
+      element.classList.add("paused");
    }
 }
 

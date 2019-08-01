@@ -88,17 +88,27 @@ class WorkstationStatus
    
    private static function getHourlyCount($stationId, $startDateTime, $endDateTime, $database)
    {
-      $hourlyCount = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);  // Hourly counts for 12 hours
+      $hourlyCount = array();
       
+      $tempDateTime = $startDateTime;
+      
+      // Initialize array with 24 hours.
+      while (new DateTime($tempDateTime) < new DateTime($endDateTime))
+      {
+         $index = (new DateTime($tempDateTime))->format("Y-m-d H:00:00");
+         $hourlyCount[$index] = 0;
+         
+         $tempDateTime = Time::incrementHour($tempDateTime);
+      }
+
+      // Retrieve hourly counts from the database.
       $result = $database->getHourlyCounts($stationId, $startDateTime, $endDateTime);
       
+      // Fill in hourly counts from the database.
       while ($result && ($row = $result->fetch_assoc()))
       {
-         $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"));
-         
-         $hour = intval($dateTime->format("H"));
-         
-         $hourlyCount[$hour] = intval($row["count"]);
+         $index = Time::fromMySqlDate($row["dateTime"], "Y-m-d H:00:00");
+         $hourlyCount[$index] = intval($row["count"]);
       }
       
       return ($hourlyCount);

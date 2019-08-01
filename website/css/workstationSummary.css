@@ -25,15 +25,18 @@
 }
 
 .station-summary-div.near-cycle-time {
-   background-color: rgba(255, 255, 0, 0.25);
+   /*background-color: rgba(255, 255, 0, 0.25);*/
+   background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(255, 255, 0, 0.30));
 }
 
 .station-summary-div.over-cycle-time {
-   background-color: rgba(255, 0, 0, 0.25);
+   /*background-color: rgba(255, 0, 0, 0.25);*/
+   background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(255, 0, 0, 0.30));
 }
 
 .station-summary-div.paused {
-   background-color: rgba(255, 128, 0, 0.25);
+   /*background-color: rgba(0, 0, 255, 0.25);*/
+   background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(0, 0, 255, 0.30));
 }
 
 /* 

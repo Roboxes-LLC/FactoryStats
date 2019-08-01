@@ -400,7 +400,6 @@ class FlexscreenDatabase extends MySqlDatabase
          "(stationId, dateTime, count, countTime, firstEntry, lastEntry) " .
          "VALUES " .
          "('$stationId', '$nowHour', '$screenCount', '$countTime', '$now', '$now');";
-         //echo $query . "<br/>";
          
          $this->query($query);
       }
