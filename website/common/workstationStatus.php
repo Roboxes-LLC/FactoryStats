@@ -1,5 +1,8 @@
 <?php
 require_once 'buttonInfo.php';
+require_once 'breakInfo.php';
+require_once 'cycleTimeStatus.php';
+require_once 'buttonInfo.php';
 require_once 'database.php';
 require_once 'time.php';
 
@@ -9,9 +12,13 @@ class WorkstationStatus
    public $label;
    public $count;
    public $hourlyCount;
+   public $firstEntry;
    public $updateTime;
    public $averageCountTime;
    public $hardwareButtonStatus;
+   public $cycleTimeStatus;
+   public $cycleTimeStatusLabel;
+   public $isOnBreak;
    
    public static function getWorkstationStatus($stationId)
    {
@@ -19,7 +26,9 @@ class WorkstationStatus
       
       $database = FlexscreenDatabase::getInstance();
 
-      if ($database->stationExists($stationId))
+      if ($database && 
+          $database->isConnected() && 
+          $database->stationExists($stationId))
       {
          $workstationStatus = new WorkstationStatus();
          
@@ -35,11 +44,22 @@ class WorkstationStatus
          
          $workstationStatus->hourlyCount = WorkstationStatus::getHourlyCount($stationId, $startDateTime, $endDateTime, $database);
          
+         $workstationStatus->firstEntry = WorkstationStatus::getFirstEntry($stationId, $database);
+         
          $workstationStatus->updateTime = WorkstationStatus::getUpdateTime($stationId, $database);
          
          $workstationStatus->averageCountTime = WorkstationStatus::getAverageCountTime($stationId, $startDateTime, $endDateTime, $database);
          
          $workstationStatus->hardwareButtonStatus = WorkstationStatus::getHardwareButtonStatus($stationId, $database);
+         
+         $workstationStatus->cycleTimeStatus = WorkstationStatus::getCycleTimeStatus($stationId);
+         $workstationStatus->cycleTimeStatusLabel = CycleTimeStatus::getClassLabel($workstationStatus->cycleTimeStatus);
+         
+         $workstationStatus->isOnBreak = WorkstationStatus::isOnBreak($stationId);
+         if ($workstationStatus->isOnBreak)
+         {
+            $workstationStatus->breakInfo = BreakInfo::getCurrentBreak($stationId);
+         }
       }
       
       return ($workstationStatus);
@@ -68,14 +88,17 @@ class WorkstationStatus
    
    private static function getHourlyCount($stationId, $startDateTime, $endDateTime, $database)
    {
-      $hourlyCount = array();
+      $hourlyCount = array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);  // Hourly counts for 12 hours
       
       $result = $database->getHourlyCounts($stationId, $startDateTime, $endDateTime);
       
       while ($result && ($row = $result->fetch_assoc()))
       {
-         $dateTime = Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s");
-         $hourlyCount[$dateTime] = $row["count"];
+         $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"));
+         
+         $hour = intval($dateTime->format("H"));
+         
+         $hourlyCount[$hour] = intval($row["count"]);
       }
       
       return ($hourlyCount);
@@ -86,6 +109,17 @@ class WorkstationStatus
       $updateTime = $database->getUpdateTime($stationId);
 
       return ($updateTime);
+   }
+   
+   private static function getFirstEntry($stationId, $database)
+   {
+      $now = Time::now("Y-m-d H:i:s");
+      $startDateTime = Time::startOfDay($now);
+      $endDateTime = Time::endOfDay($now);
+      
+      $firstEntry = $database->getFirstEntry($stationId, $startDateTime, $endDateTime);
+      
+      return ($firstEntry);
    }
    
    private static function getAverageCountTime($stationId, $startDateTime, $endDateTime, $database)
@@ -123,6 +157,20 @@ class WorkstationStatus
       
       return ($hardwareButtonStatus);
    }
+   
+   private static function getCycleTimeStatus($stationId)
+   {
+      $stationInfo = StationInfo::load($stationId);
+      
+      return (CycleTimeStatus::calculateCycleTimeStatus($stationInfo->updateTime, $stationInfo->cycleTime));
+   }
+   
+   private static function isOnBreak($stationId)
+   {
+      $breakInfo = BreakInfo::getCurrentBreak($stationId);
+      
+      return ($breakInfo != null);
+   }
 }
 
 /*
@@ -143,9 +191,12 @@ if (isset($_GET["stationId"]))
       }
       echo "<br/>";
       
+      echo "firstEntry: " .           $workstationStatus->firstEntry .           "<br/>";
       echo "updateTime: " .           $workstationStatus->updateTime .           "<br/>";
       echo "averageCountTime: " .     $workstationStatus->averageCountTime .     "<br/>";
       echo "hardwareButtonStatus: " . $workstationStatus->hardwareButtonStatus->lastContact . "<br/>";
+      echo "cycleTimeStatus: " .      CycleTimeStatus::getClassLabel($workstationStatus->cycleTimeStatus) . "<br/>";
+      echo "isOnBreak" .              ($workstationStatus-isOnBreak ? "true" : "false") . "<br/>";
    }
 }
 */

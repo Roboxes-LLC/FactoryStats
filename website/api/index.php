@@ -23,92 +23,6 @@ function getCount($stationId, $startDateTime, $endDateTime)
    return ($screenCount);
 }
 
-function getHourlyCount($stationId, $startDateTime, $endDateTime)
-{
-   $startDateTime = Time::startOfDay($startDateTime);
-   $endDateTime = Time::endOfDay($endDateTime);
-   
-   while (new DateTime($startDateTime) < new DateTime($endDateTime))
-   {
-      $hourlyCount[$startDateTime] = getCount($stationId, $startDateTime, $startDateTime);
-      
-      $startDateTime = Time::incrementHour($startDateTime);
-   }
-   
-   return ($hourlyCount);
-}
-
-function getUpdateTime($stationId)
-{
-   $updateTime = FlexscreenDatabase::getInstance()->getUpdateTime($stationId);
-   
-   return ($updateTime);
-}
-
-function getAverageCountTime($stationId, $startDateTime, $endDateTime)
-{
-   $averageUpdateTime = 0;
-   
-   $database = FlexscreenDatabase::getInstance();
-   
-   $startDateTime = Time::startOfDay($startDateTime);
-   $endDateTime = Time::endOfDay($endDateTime);
-   
-   $countTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
-   
-   $breakTime = $database->getBreakTime($stationId, $startDateTime, $endDateTime);
-   
-   $netCountTime = $countTime - $breakTime;
-   
-   $count = $database->getCount($stationId, $startDateTime, $endDateTime);
-   
-   //echo "countTime, breakTime, netCountTime, count: " . $countTime . "/" . $breakTime . "/" . $netCountTime . "/" . $count . "<br>";
-   
-   // Subtract off the first screen.
-   // The time for the first screen wasn't captured.  Including it in the count gives an inaccurate average.
-   $count--;
-   
-   if ($count > 0)
-   {
-      $averageUpdateTime = round($netCountTime / $count);
-   }
-   
-   return ($averageUpdateTime);
-}
-
-function getHardwareButtonStatus($stationId)
-{
-   $hardwareButtonStatus = new stdClass();
-   $hardwareButtonStatus->buttonId = ButtonInfo::UNKNOWN_BUTTON_ID;
-   
-   // Note: Results returned ordered by lastContact, DESC.
-   $results = FlexscreenDatabase::getInstance()->getButtonsForStation($stationId);
-   
-   if ($results && ($row = $results->fetch_assoc()))
-   {
-      $buttonInfo = ButtonInfo::load($row["buttonId"]);
-      
-      $hardwareButtonStatus->buttonId= $buttonInfo->buttonId;
-      $hardwareButtonStatus->ipAddress = $buttonInfo->ipAddress;
-      $hardwareButtonStatus->lastContact = $buttonInfo->lastContact;
-   }
-   
-   return ($hardwareButtonStatus);
-}
-
-function getFirstEntry($stationId)
-{
-   $firstEntry = null;
-   
-   $now = Time::now("Y-m-d H:i:s");
-   $startDateTime = Time::startOfDay($now);
-   $endDateTime = Time::endOfDay($now);
-   
-   $firstEntry = FlexscreenDatabase::getInstance()->getFirstEntry($stationId, $startDateTime, $endDateTime);
-   
-   return ($firstEntry);
-}
-
 function getStations()
 {
    $stations = array();
@@ -313,55 +227,27 @@ $router->add("count", function($params) {
 
 $router->add("status", function($params) {
    $result = new stdClass();
-   
-   $stationId = 0;
-   $totalCount = 0;
-   $lastUpdateTime = "UNKNOWN";
-   $averageUpdateTime = 0;
-   $hourlyCount = array();
-   $hardwareButtonStatus = new stdClass();
-   $breakInfo = null;
-   $firstEntry = null;
-   
-   if (isset($params["stationId"]))
+     
+   if (!isset($params["stationId"]))
    {
-      $stationId = $params->get("stationId");
-      
-      $now = Time::now("Y-m-d H:i:s");
-      $startDateTime = Time::startOfDay($now);
-      $endDateTime = Time::endOfDay($now);
-      
-      $count = getCount($stationId, $startDateTime, $endDateTime);
-      
-      $hourlyCount = getHourlyCount($stationId, $startDateTime, $endDateTime);
-      
-      $updateTime = getUpdateTime($stationId);
-      
-      $averageCountTime = getAverageCountTime($stationId, $startDateTime, $endDateTime);
-      
-      $hardwareButtonStatus = getHardwareButtonStatus($stationId);
-      
-      $breakInfo = BreakInfo::getCurrentBreak($stationId);
-      
-      $firstEntry = getFirstEntry($stationId);
+      $result->success = false;
+      $result->error = "Invalid stationId";
    }
    else
    {
-      $result->error = "Invalid stationId";
-   }
-   
-   $result->stationId = $stationId;
-   $result->count = $count;
-   $result->hourlyCount = $hourlyCount;
-   $result->updateTime = $updateTime;
-   $result->averageCountTime = $averageCountTime;
-   $result->hardwareButtonStatus = $hardwareButtonStatus;
-   $result->isOnBreak = ($breakInfo != null);
-   $result->firstEntry = $firstEntry;
-
-   if ($result->isOnBreak == true)
-   {
-      $result->breakInfo = $breakInfo;
+      $stationId = $params->get("stationId");
+      
+      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
+      
+      if ($workstationStatus)
+      {
+         $result = $workstationStatus;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "Failed to retrieve status";
+      }
    }
    
    echo json_encode($result);

@@ -7,6 +7,7 @@ function update()
    {
       if (this.readyState == 4 && this.status == 200)
       {
+         console.log(this.responseText);
          var json = JSON.parse(this.responseText);
 
          for (var i = 0; i < json.workstationSummary.length; i++)
@@ -41,6 +42,8 @@ function updateWorkstation(workstationStatus)
       updateUpdateTime(workstationStatus.stationId, workstationStatus.updateTime);
       
       updateAverageCountTime(workstationStatus.stationId, workstationStatus.averageCountTime);
+      
+      updateCycleTimeStatus(workstationStatus.stationId, workstationStatus.cycleTimeStatus, workstationStatus.cycleTimeStatusLabel, workstationStatus.isOnBreak);
    }
 }
 
@@ -147,5 +150,28 @@ function updateAverageCountTime(stationId, averageCountTime)
    
       var element = divElement.getElementsByClassName("average-count-time-div")[0]
       element.innerHTML = timeString;
+   }
+}
+
+function updateCycleTimeStatus(stationId, cycleTimeStatus, cycleTimeStatusLabel, isOnBreak)
+{
+   divElement = getWorkstationDiv(stationId);
+   
+   if (divElement)
+   {
+      divElement.classList.remove("under-cycle-time");
+      divElement.classList.remove("near-cycle-time");
+      divElement.classList.remove("over-cycle-time");
+      divElement.classList.remove("paused");
+      
+      if (cycleTimeStatusLabel != "")
+      {
+         divElement.classList.add(cycleTimeStatusLabel);
+      }
+      
+      if (isOnBreak)
+      {
+         divElement.classList.add("paused");
+      }
    }
 }

@@ -24,6 +24,18 @@
 	margin: 20px 20px 0px 0px;  /*top, right, bottom, left */
 }
 
+.station-summary-div.near-cycle-time {
+   background-color: rgba(255, 255, 0, 0.25);
+}
+
+.station-summary-div.over-cycle-time {
+   background-color: rgba(255, 0, 0, 0.25);
+}
+
+.station-summary-div.paused {
+   background-color: rgba(255, 128, 0, 0.25);
+}
+
 /* 
 Device = Most of the Smartphones Mobiles (Portrait)
 Screen = B/w 320px to 479px
