@@ -153,9 +153,9 @@ HEREDOC;
       $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
       $dateString = $dateTime->format("m-d-Y");
       
-      $averageCountTime = round(($dailySummary->countTime / $dailySummary->count), 0);
-      $hours = round(($averageCountTime / 3600), 0);
-      $minutes = round((($averageCountTime % 3600) / 60), 0);
+      $averageCountTime = floor(($dailySummary->countTime / $dailySummary->count));
+      $hours = floor(($averageCountTime / 3600));
+      $minutes = floor((($averageCountTime % 3600) / 60));
       $seconds = ($averageCountTime % 60);
       
       $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";

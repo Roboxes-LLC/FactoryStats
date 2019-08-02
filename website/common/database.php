@@ -372,7 +372,7 @@ class FlexscreenDatabase extends MySqlDatabase
    public function getHourlyCounts($stationId, $startDateTime, $endDateTime)
    {
        $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-       $query = "SELECT dateTime, count FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
+       $query = "SELECT stationId, dateTime, count FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
 
        $result = $this->query($query);
              

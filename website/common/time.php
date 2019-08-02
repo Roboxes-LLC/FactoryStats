@@ -108,6 +108,13 @@ class Time
       return ((new DateTime($dateTime) >= new DateTime($startDateTime)) &&
               (new DateTime($dateTime) <= new DateTime($endDateTime)));
    }
+   
+   static public function isToday($dateTime)
+   {
+      $now = Time::now("Y-m-d H:i:s");
+      
+      return (Time::between($dateTime, Time::startOfDay($now), Time::endOfDay($now)));
+   }
 }
 
 /*

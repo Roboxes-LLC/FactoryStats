@@ -33,7 +33,9 @@ class CycleTimeStatus
    {
       $cycleTimeStatus = CycleTimeStatus::UNKNOWN;
       
-      if (Settings::isShiftActive(Time::now("H:i:s")) && ($cycleTime > 0))
+      if (($cycleTime > 0) &&
+          Time::isToday($updateTime) &&
+          Settings::isShiftActive(Time::now("H:i:s")))
       {
          $updateDateTime = new DateTime($updateTime);
          $now = new DateTime(Time::now("Y-m-d H:i:s"));

@@ -123,6 +123,7 @@ function updateElapsedTime()
       var now = new Date(Date.now());
       var lastCountTime = new Date(Date.parse(window.lastCountTime));
       
+      // Verify lastCountTime is for this work day.
       if (lastCountTime &&
           ((lastCountTime.getYear() == now.getYear()) &&
            (lastCountTime.getMonth() == now.getMonth()) &&

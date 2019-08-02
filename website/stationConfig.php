@@ -172,7 +172,7 @@ switch ($params->get("action"))
      
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
-         <button class="config-button" onclick="showModal('config-station-modal');">New Station</button>
+         <button class="config-button" onclick="setStationInfo('', '', '', 0); showModal('config-station-modal');">New Station</button>
          <br>
          <?php renderTable();?>
       </div>
@@ -221,33 +221,6 @@ switch ($params->get("action"))
          updateStationInfo();
       }
    }, 5000);
-
-   function setStationId(stationId)
-   {
-      var input = document.getElementById('station-id-input');
-      input.setAttribute('value', stationId);
-   }
-
-   function setStationInfo(name, label, description, cycleTime)
-   {
-      var input = document.getElementById('station-name-input');
-      input.setAttribute('value', name);
-      
-      input = document.getElementById('station-label-input');
-      input.setAttribute('value', label);
-
-      input = document.getElementById('station-description-input');
-      input.setAttribute('value', description);
-
-      input = document.getElementById('station-cycle-time-input');
-      input.setAttribute('value', cycleTime);
-   }
-
-   function setAction(action)
-   {
-      var input = document.getElementById('action-input');
-      input.setAttribute('value', action);
-   }
 </script>
 
 </body>
