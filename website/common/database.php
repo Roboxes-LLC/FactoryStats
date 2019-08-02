@@ -596,6 +596,17 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getSettings()
+   {
+      $query = "SELECT * from settings;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
    protected function calculateCountTime($stationId)
    {
       $countTime = 0;

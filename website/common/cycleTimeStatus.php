@@ -1,5 +1,6 @@
 <?php
 
+require_once 'settings.php';
 require_once 'time.php';
    
 class CycleTimeStatus
@@ -32,7 +33,7 @@ class CycleTimeStatus
    {
       $cycleTimeStatus = CycleTimeStatus::UNKNOWN;
       
-      if ($cycleTime > 0)
+      if (Settings::isShiftActive(Time::now("H:i:s")) && ($cycleTime > 0))
       {
          $updateDateTime = new DateTime($updateTime);
          $now = new DateTime(Time::now("Y-m-d H:i:s"));

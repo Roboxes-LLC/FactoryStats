@@ -102,6 +102,12 @@ class Time
       
       return ($seconds);
    }
+   
+   static public function between($dateTime, $startDateTime, $endDateTime)
+   {
+      return ((new DateTime($dateTime) >= new DateTime($startDateTime)) &&
+              (new DateTime($dateTime) <= new DateTime($endDateTime)));
+   }
 }
 
 /*
