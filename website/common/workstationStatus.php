@@ -9,6 +9,7 @@ require_once 'time.php';
 class WorkstationStatus
 {
    public $stationId;
+   public $shiftId;
    public $label;
    public $count;
    public $hourlyCount;
@@ -20,7 +21,7 @@ class WorkstationStatus
    public $cycleTimeStatusLabel;
    public $isOnBreak;
    
-   public static function getWorkstationStatus($stationId)
+   public static function getWorkstationStatus($stationId, $shiftId)
    {
       $dailySummary = null;
       
@@ -38,17 +39,19 @@ class WorkstationStatus
          
          $workstationStatus->stationId = $stationId;
          
+         $workstationStatus->shiftId = $shiftId;
+         
          $workstationStatus->label = WorkStationStatus::getWorkstationLabel($stationId, $database);
          
-         $workstationStatus->count = WorkstationStatus::getCount($stationId, $startDateTime, $endDateTime, $database);
+         $workstationStatus->count = WorkstationStatus::getCount($stationId, $shiftId, $startDateTime, $endDateTime, $database);
          
-         $workstationStatus->hourlyCount = WorkstationStatus::getHourlyCount($stationId, $startDateTime, $endDateTime, $database);
+         $workstationStatus->hourlyCount = WorkstationStatus::getHourlyCount($stationId, $shiftId, $startDateTime, $endDateTime, $database);
          
-         $workstationStatus->firstEntry = WorkstationStatus::getFirstEntry($stationId, $database);
+         $workstationStatus->firstEntry = WorkstationStatus::getFirstEntry($stationId, $shiftId, $database);
          
          $workstationStatus->updateTime = WorkstationStatus::getUpdateTime($stationId, $database);
          
-         $workstationStatus->averageCountTime = WorkstationStatus::getAverageCountTime($stationId, $startDateTime, $endDateTime, $database);
+         $workstationStatus->averageCountTime = WorkstationStatus::getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime, $database);
          
          $workstationStatus->hardwareButtonStatus = WorkstationStatus::getHardwareButtonStatus($stationId, $database);
          
@@ -79,14 +82,14 @@ class WorkstationStatus
       return ($name);
    }
    
-   private static function getCount($stationId, $startDateTime, $endDateTime, $database)
+   private static function getCount($stationId, $shiftId, $startDateTime, $endDateTime, $database)
    {
-      $screenCount = $database->getCount($stationId, $startDateTime, $endDateTime);
+      $screenCount = $database->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
       
       return ($screenCount);
    }
    
-   private static function getHourlyCount($stationId, $startDateTime, $endDateTime, $database)
+   private static function getHourlyCount($stationId, $shiftId, $startDateTime, $endDateTime, $database)
    {
       $hourlyCount = array();
       
@@ -102,7 +105,7 @@ class WorkstationStatus
       }
 
       // Retrieve hourly counts from the database.
-      $result = $database->getHourlyCounts($stationId, $startDateTime, $endDateTime);
+      $result = $database->getHourlyCounts($stationId, $shiftId, $startDateTime, $endDateTime);
       
       // Fill in hourly counts from the database.
       while ($result && ($row = $result->fetch_assoc()))
@@ -121,24 +124,24 @@ class WorkstationStatus
       return ($updateTime);
    }
    
-   private static function getFirstEntry($stationId, $database)
+   private static function getFirstEntry($stationId, $shiftId, $database)
    {
       $now = Time::now("Y-m-d H:i:s");
       $startDateTime = Time::startOfDay($now);
       $endDateTime = Time::endOfDay($now);
       
-      $firstEntry = $database->getFirstEntry($stationId, $startDateTime, $endDateTime);
+      $firstEntry = $database->getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime);
       
       return ($firstEntry);
    }
    
-   private static function getAverageCountTime($stationId, $startDateTime, $endDateTime, $database)
+   private static function getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime, $database)
    {
       $averageUpdateTime = 0;
       
-      $totalCountTime = $database->getCountTime($stationId, $startDateTime, $endDateTime);
+      $totalCountTime = $database->getCountTime($stationId, $shiftId, $startDateTime, $endDateTime);
       
-      $count = $database->getCount($stationId, $startDateTime, $endDateTime);
+      $count = $database->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
       
       if ($count > 0)
       {

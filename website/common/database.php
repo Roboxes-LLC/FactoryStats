@@ -172,7 +172,7 @@ class FlexscreenDatabase extends MySqlDatabase
       "UPDATE display " .
       "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", stationId = \"$displayInfo->stationId\", lastContact = \"$lastContact\" " .
       "WHERE displayId = $displayInfo->displayId;";
-      echo $query;
+
       $this->query($query);
    }
    
@@ -351,13 +351,16 @@ class FlexscreenDatabase extends MySqlDatabase
    }
    
    // **************************************************************************
+   
+   public const ALL_SHIFTS = 0;
 
-   public function getCount($stationId, $startDateTime, $endDateTime)
+   public function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $screenCount = 0;
       
       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-      $query = "SELECT * FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
+      $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
+      $query = "SELECT * FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
 
       $result = $this->query($query);
       
@@ -369,17 +372,18 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($screenCount);
    }
    
-   public function getHourlyCounts($stationId, $startDateTime, $endDateTime)
+   public function getHourlyCounts($stationId, $shiftId, $startDateTime, $endDateTime)
    {
        $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-       $query = "SELECT stationId, dateTime, count FROM screencount WHERE $stationClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
+       $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
+       $query = "SELECT stationId, dateTime, count FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
 
        $result = $this->query($query);
              
        return ($result);
    }
    
-   public function updateCount($stationId, $screenCount)
+   public function updateCount($stationId, $shiftId, $screenCount)
    {
       $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
@@ -388,7 +392,7 @@ class FlexscreenDatabase extends MySqlDatabase
       $countTime = FlexscreenDatabase::calculateCountTime($stationId);
       
       // Determine if we have an entry for this station/hour.
-      $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
+      $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime = \"$nowHour\";";
 
       $result = $this->query($query);
       
@@ -397,9 +401,9 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO screencount " .
-         "(stationId, dateTime, count, countTime, firstEntry, lastEntry) " .
+         "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
          "VALUES " .
-         "('$stationId', '$nowHour', '$screenCount', '$countTime', '$now', '$now');";
+         "('$stationId', '$shiftId', '$nowHour', '$screenCount', '$countTime', '$now', '$now');";
          
          $this->query($query);
       }
@@ -407,8 +411,10 @@ class FlexscreenDatabase extends MySqlDatabase
       else
       {
          // Update counter count.
-         $query = "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime, lastEntry = \"$now\" WHERE stationId = \"$stationId\" AND dateTime = \"$nowHour\";";
-         //echo $query . "<br/>";
+         $query = 
+            "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime, lastEntry = \"$now\" " .
+            "WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime = \"$nowHour\";";
+
          $this->query($query);
       }
       
@@ -421,7 +427,7 @@ class FlexscreenDatabase extends MySqlDatabase
       $updateTime = "";
       
       $query = "SELECT updateTime from station WHERE stationId = \"$stationId\";";
-      //echo $query . "<br>";
+
       $result = $this->query($query);
       
       if ($result && ($row = $result->fetch_assoc()))
@@ -432,12 +438,13 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($updateTime);
    }
    
-   public function getCountTime($stationId, $startDateTime, $endDateTime)
+   public function getCountTime($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $countTime = 0;
       
-      $query = "SELECT * FROM screencount WHERE stationId = \"$stationId\" AND dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
-      //echo $query . "<br/>";
+      $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
+      $query = "SELECT * FROM screencount WHERE stationId = \"$stationId\" $shiftClause AND dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
+
       $result = $this->query($query);
       
       while ($result && ($row = $result->fetch_assoc()))
@@ -448,12 +455,14 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($countTime);
    }
    
-   public function getFirstEntry($stationId, $startDateTime, $endDateTime)
+   public function getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $firstEntry = null;
       
-      $query = "SELECT firstEntry FROM screencount WHERE stationId = \"$stationId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime ASC LIMIT 1;";
-      //echo $query . "<br/>";
+      $query = 
+         "SELECT firstEntry FROM screencount " . 
+         "WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime ASC LIMIT 1;";
+
       $result = $this->query($query);
       
       while ($result && ($row = $result->fetch_assoc()))
@@ -467,12 +476,14 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($firstEntry);
    }
    
-   public function getLastEntry($stationId, $startDateTime, $endDateTime)
+   public function getLastEntry($stationId,  $shiftId, $startDateTime, $endDateTime)
    {
       $lastEntry = null;
       
-      $query = "SELECT lastEntry FROM screencount WHERE stationId = \"$stationId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
-      //echo $query . "<br/>";
+      $query = 
+         "SELECT lastEntry FROM screencount " .
+         "WHERE stationId = \"$stationId\" shiftId = \"$shiftId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
+
       $result = $this->query($query);
       
       while ($result && ($row = $result->fetch_assoc()))
@@ -603,6 +614,55 @@ class FlexscreenDatabase extends MySqlDatabase
       $result = $this->query($query);
       
       return ($result);
+   }
+   
+   // **************************************************************************
+   
+   public function getShift($shiftId)
+   {
+      $query = "SELECT * from shift WHERE shiftId = \"$shiftId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getShifts()
+   {
+      $query = "SELECT * from shift ORDER BY startTime ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function newShift($shiftInfo)
+   {
+      $query =
+      "INSERT INTO shift (shiftName, startTime, endTime) " .
+      "VALUES ('$shiftInfo->shiftName', '$shiftInfo->startTime', '$shiftInfo->endTime');";
+      
+      $this->query($query);
+   }
+   
+   public function updateShift($shiftInfo)
+   {
+      $query =
+      "UPDATE shift " .
+      "SET shiftName = \"$shiftInfo->shiftName\", startTime = \"$shiftInfo->startTime\", endTime = \"$shiftInfo->endTime\" WHERE shiftId = $shiftInfo->shiftId;";
+      
+      $this->query($query);
+   }
+   
+   public function deleteShift($shiftId)
+   {
+      $query = "DELETE FROM shift WHERE shiftId = $shiftId;";
+      
+      $this->query($query);
+      
+      $query = "DELETE FROM screencount WHERE shiftId = $hiftId;";
+      
+      $this->query($query);
    }
    
    // **************************************************************************

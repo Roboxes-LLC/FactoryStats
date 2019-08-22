@@ -102,30 +102,32 @@ function renderTable()
 {
    $params = Params::parse();
    
+   $shiftId = $params->keyExists("shiftId") ? $params->get("shiftId") : ShiftInfo::UNKNOWN_SHIFT_ID;
+   
    switch (getTable())
    {
       case Table::HOURLY_COUNTS:
       {
-         renderHourlyCountsTable();
+         renderHourlyCountsTable($shiftId);
          break;
       }
       
       case Table::BREAKS:
       {
-         renderBreaksTable();
+         renderBreaksTable($shiftId);
          break;
       }
       
       case Table::DAILY_COUNTS:
       default:
       {
-         renderDailyCountsTable();
+         renderDailyCountsTable($shiftId);
          break;
       } 
    }
 }
 
-function renderDailyCountsTable()
+function renderDailyCountsTable($shiftId)
 {
    echo 
 <<<HEREDOC
@@ -144,7 +146,7 @@ HEREDOC;
    $startDate = getStartDate();
    $endDate = getEndDate();
    
-   $dailySummaries = DailySummary::getDailySummaries($stationId, $startDate, $endDate);
+   $dailySummaries = DailySummary::getDailySummaries($stationId, $shiftId, $startDate, $endDate);
    
    foreach ($dailySummaries as $dailySummary)
    {
@@ -211,10 +213,10 @@ HEREDOC;
    echo "</table>";
 }
 
-function renderHourlyCountsTable()
+function renderHourlyCountsTable($shiftId)
 {
-    echo
-    <<<HEREDOC
+   echo
+<<<HEREDOC
    <table>
       <tr>
          <th>Workstation</th>
@@ -224,46 +226,46 @@ function renderHourlyCountsTable()
       </tr>
 HEREDOC;
     
-    $stationId = getStationId();
-    $startDate = getStartDate();
-    $endDate = getEndDate();
+   $stationId = getStationId();
+   $startDate = getStartDate();
+   $endDate = getEndDate();
     
-    $startTime = Time::startOfDay($startDate);
-    $endTime = Time::endOfDay($endDate);
+   $startTime = Time::startOfDay($startDate);
+   $endTime = Time::endOfDay($endDate);
     
-    $database = FlexscreenDatabase::getInstance();
+   $database = FlexscreenDatabase::getInstance();
     
-    if ($database && $database->isConnected())
-    {
-        $result = $database->getHourlyCounts($stationId, $startTime, $endTime);
+   if ($database && $database->isConnected())
+   {
+      $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
         
-        while ($result && ($row = $result->fetch_assoc()))
-        {
-           $stationInfo = StationInfo::load($row["stationId"]);
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $stationInfo = StationInfo::load($row["stationId"]);
             
-           $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
+         $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
                                     new DateTimeZone('America/New_York'));
-           $dateString = $dateTime->format("m-d-Y");
-           $hourString = $dateTime->format("h A");
+         $dateString = $dateTime->format("m-d-Y");
+         $hourString = $dateTime->format("h A");
            
-           $count = intval($row["count"]);
+         $count = intval($row["count"]);
             
-           echo
+         echo
 <<<HEREDOC
-           <tr>
-              <td>$stationInfo->name</td>
-              <td>$dateString</td>
-              <td>$hourString</td>
-              <td>$count</td>
-           </tr>
+         <tr>
+            <td>$stationInfo->name</td>
+               <td>$dateString</td>
+               <td>$hourString</td>
+               <td>$count</td>
+            </tr>
 HEREDOC;
-        }
-    }
+      }
+   }
     
-    echo "</table>";
+   echo "</table>";
 }
 
-function renderBreaksTable()
+function renderBreaksTable($shiftId)
 {
    echo
 <<<HEREDOC
@@ -331,13 +333,13 @@ HEREDOC;
          
          echo
 <<<HEREDOC
-           <tr>
-              <td>$stationInfo->name</td>
-              <td>$dateString</td>
-              <td>$startTimeString</td>
-              <td>$endTimeString</td>
-              <td>$durationString</td>
-           </tr>
+         <tr>
+            <td>$stationInfo->name</td>
+            <td>$dateString</td>
+            <td>$startTimeString</td>
+            <td>$endTimeString</td>
+            <td>$durationString</td>
+         </tr>
 HEREDOC;
       }
    }

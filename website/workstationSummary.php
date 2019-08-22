@@ -1,9 +1,20 @@
 <?php
 require_once 'common/database.php';
+require_once 'common/params.php';
+require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/workstationStatus.php';
 
-function renderStationSummaries()
+function getShiftId()
+{
+   $params = Params::parse();
+   
+   $shiftId = $params->keyExists("shiftId") ? $params->getInt("shiftId") : ShiftInfo::DEFAULT_SHIFT_ID;
+
+   return ($shiftId);
+}
+
+function renderStationSummaries($shiftId)
 {
    echo "<div class=\"flex-horizontal main summary\">";
    
@@ -13,21 +24,21 @@ function renderStationSummaries()
    {
       $stationId = $row["stationId"];
       
-      renderStationSummary($stationId);
+      renderStationSummary($stationId, $shiftId);
    }
    
    echo "</div>";
 }
 
-function renderStationSummary($stationId)
+function renderStationSummary($stationId, $shiftId)
 {
-   $url= "workstation.php?stationId=" . $stationId;
+   $url= "workstation.php?stationId=" . $stationId . "&shiftId=" . $shiftId;
 
    echo "<a href=\"$url\"><div id=\"workstation-summary-$stationId\" class=\"flex-vertical station-summary-div\">";
    
    $stationInfo = StationInfo::load($stationId);
    
-   $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
+   $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
    
    if ($stationInfo && $workstationStatus)
    {
@@ -81,13 +92,17 @@ HEREDOC;
 
 <body onload="update()">
 
+<form>
+   <input id="shift-id-input" type="hidden" name="shiftId" value="<?php echo getShiftId()?>">
+</form>
+
 <div class="flex-vertical" style="align-items: flex-start;">
 
    <?php include 'common/header.php';?>
    
    <?php include 'common/menu.php';?>
    
-   <?php renderStationSummaries();?>
+   <?php renderStationSummaries(getShiftId());?>
      
 </div>
 

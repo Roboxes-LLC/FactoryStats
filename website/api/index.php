@@ -5,20 +5,19 @@ require_once '../common/breakInfo.php';
 require_once '../common/database.php';
 require_once '../common/displayInfo.php';
 require_once '../common/stationInfo.php';
+require_once '../common/shiftInfo.php';
 require_once '../common/time.php';
 require_once '../common/workstationStatus.php';
 require_once 'rest.php';
 
-function updateCount($stationId, $screenCount)
+function updateCount($stationId, $shiftId, $screenCount)
 {
-   FlexscreenDatabase::getInstance()->updateCount($stationId, $screenCount);
+   FlexscreenDatabase::getInstance()->updateCount($stationId, $shiftId, $screenCount);
 }
 
-function getCount($stationId, $startDateTime, $endDateTime)
+function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
 {
-   $screenCount = 0;
-   
-   FlexscreenDatabase::getInstance()->getCount($stationId, $startDateTime, $endDateTime);
+   $screenCount = FlexscreenDatabase::getInstance()->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
    
    return ($screenCount);
 }
@@ -122,6 +121,7 @@ $router->add("update", function($params) {
    $result = new stdClass();
    
    $stationId = StationInfo::UNKNOWN_STATION_ID;
+   $shiftId = ShiftInfo::DEFAULT_SHIFT_ID;
    
    if (isset($params["stationId"]))
    {
@@ -149,7 +149,13 @@ $router->add("update", function($params) {
       }
    }
    
+   if (isset($params["shiftId"]))
+   {
+      $shiftId = $params->get("shiftId");
+   }
+   
    if (($stationId != StationInfo::UNKNOWN_STATION_ID) && 
+       ($stationId != ShiftInfo::UNKNOWN_SHIFT_ID) &&
        isset($params["count"]))
    {
       if (BreakInfo::getCurrentBreak($stationId))
@@ -157,15 +163,16 @@ $router->add("update", function($params) {
          BreakInfo::endBreak($stationId);
       }
       
-      updateCount($stationId, $params->get("count"));
+      updateCount($stationId, $shiftId, $params->get("count"));
       
       $now = Time::now("Y-m-d H:i:s");
       $startDateTime = Time::startOfDay($now);
       $endDateTime = Time::endOfDay($now);
       
-      $count = getCount($stationId, $startDateTime, $endDateTime);
+      $count = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
       
       $result->stationId = $stationId;
+      $result->shiftId = $shiftId;
       $result->count = $count;
    }
    
@@ -210,6 +217,7 @@ $router->add("break", function($params) {
 
 $router->add("count", function($params) {
    $stationId = isset($params["stationId"]) ? $params->get("stationId") : "ALL";
+   $shiftId = isset($params["shiftId"]) ? $params->get("shiftId") : ShiftInfo::UNKNOWN_SHIFT_ID;
    
    $startDateTime =  isset($params["startDateTime"]) ? $params->get("startDateTime") : Time::now("Y-m-d H:i:s");
    $startDateTime = Time::startOfHour($startDateTime);
@@ -217,9 +225,10 @@ $router->add("count", function($params) {
    $endDateTime = isset($params["endDateTime"])? $params->get("endDateTime") : Time::now("Y-m-d H:i:s");
    $endDateTime = Time::endOfHour($endDateTime);
    
-   $count = getCount($stationId, $startDateTime, $endDateTime);
+   $count = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
    
    $result["stationId"] = $stationId;
+   $result["shiftId"] = $shiftId;
    $result["count"] = $count;
    
    echo json_encode($result);
@@ -237,7 +246,9 @@ $router->add("status", function($params) {
    {
       $stationId = $params->get("stationId");
       
-      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
+      $shiftId = isset($params["shiftId"]) ? $params->get("shiftId") : ShiftInfo::UNKNOWN_SHIFT_ID;
+      
+      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
       
       if ($workstationStatus)
       {
@@ -267,9 +278,11 @@ $router->add("workstationSummary", function($params) {
    
    $stations = getStations();
    
+   $shiftId = isset($params["shiftId"]) ? $params->get("shiftId") : ShiftInfo::UNKNOWN_SHIFT_ID;
+   
    foreach ($stations as $stationId)
    {
-      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
+      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
       
       if ($workstationStatus)
       {

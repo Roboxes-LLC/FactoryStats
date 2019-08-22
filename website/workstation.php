@@ -1,9 +1,9 @@
 <?php
 require_once 'common/dailySummary.php';
 require_once 'common/displayInfo.php';
-require_once 'common/time.php';
-require_once 'common/displayInfo.php';
+require_once 'common/params.php';
 require_once 'common/stationInfo.php';
+require_once 'common/time.php';
 
 Time::init();
 
@@ -40,6 +40,15 @@ function getStationId()
    }
    
    return ($stationId);
+}
+
+function getShiftId()
+{
+   $params = Params::parse();
+   
+   $shiftId = $params->keyExists("shiftId") ? $params->getInt("shiftId") : ShiftInfo::DEFAULT_SHIFT_ID;
+   
+   return ($shiftId);
 }
 
 function getStationLabel($stationId)
@@ -125,6 +134,7 @@ $isReadOnly = isReadOnly();
 
    <form>
       <input id="station-id-input" type="hidden" name="stationId" value="<?php echo $stationId; ?>">
+      <input id="shift-id-input" type="hidden" name="shiftId" value="<?php echo getShiftId(); ?>">
       <input id="cycle-time-input" type="hidden" name="cycleTime" value="<?php echo $cycleTime; ?>">
    </form>
 

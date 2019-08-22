@@ -11,7 +11,7 @@ class DailySummary
    public $firstEntry = null;
    public $lastEntry = null;
 
-   public static function getDailySummary($stationId, $date)
+   public static function getDailySummary($stationId, $shiftId, $date)
    {
       $dailySummary = null;
 
@@ -26,16 +26,16 @@ class DailySummary
 
          $dailySummary->stationId = $stationId;
          $dailySummary->date = $date;
-         $dailySummary->count = $database->getCount($stationId, $startOfDay, $endOfDay);
+         $dailySummary->count = $database->getCount($stationId, $shiftId, $startOfDay, $endOfDay);
          $dailySummary->firstEntry = $database->getFirstEntry($stationId, $startOfDay, $endOfDay);
          $dailySummary->lastEntry = $database->getLastEntry($stationId, $startOfDay, $endOfDay);
-         $dailySummary->countTime = $database->getCountTime($stationId, $startOfDay, $endOfDay);
+         $dailySummary->countTime = $database->getCountTime($stationId, $shiftId, $startOfDay, $endOfDay);
       }
 
       return ($dailySummary);
    }
 
-   public static function getDailySummaries($stationId, $startDate, $endDate)
+   public static function getDailySummaries($stationId, $shiftId, $startDate, $endDate)
    {
       $dailySummaries = array();
 
@@ -66,7 +66,7 @@ class DailySummary
          {
             foreach ($stations as $stationId)
             {
-               if (($dailySummary = DailySummary::getDailySummary($stationId, $day)) &&
+               if (($dailySummary = DailySummary::getDailySummary($stationId, $shiftId, $day)) &&
                    ($dailySummary->count > 0))
                {
                   $dailySummaries[] = $dailySummary;
@@ -85,7 +85,8 @@ class DailySummary
 if (isset($_GET["stationId"]))
 {
    $stationId = $_GET["stationId"];
-   $dailySummary = DailySummary::getDailySummary($stationId, Time::now("Y-m-d H:i:s"));
+   $shiftId = isset($_GET["shiftId"]) ? $_GET["shiftId"] : ShiftInfo::DEFAULT_SHIFT_ID;
+   $dailySummary = DailySummary::getDailySummary($stationId, $shiftId, Time::now("Y-m-d H:i:s"));
 
    if ($dailySummary)
    {
@@ -104,10 +105,11 @@ if (isset($_GET["stationId"]))
 else if (isset($_GET["startDate"]) && isset($_GET["startDate"]))
 {
    $stationId = isset($_GET["stationId"]) ? $_GET["stationId"] : "ALL";
+   $shiftId = isset($_GET["shiftId"]) ? $_GET["shiftId"] : ShiftInfo::DEFAULT_SHIFT_ID;
    $startDate = $_GET["startDate"];
    $endDate = $_GET["endDate"];
 
-   $dailySummaries = DailySummary::getDailySummaries($stationId, $startDate, $endDate);
+   $dailySummaries = DailySummary::getDailySummaries($stationId, $shiftId, $startDate, $endDate);
 
    foreach ($dailySummaries as $dailySummary)
    {

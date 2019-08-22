@@ -1,6 +1,6 @@
 function update()
 {
-   var requestURL = "api/workstationSummary/"
+   var requestURL = "api/workstationSummary/?shiftId=" + getShiftId();
       
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -25,6 +25,11 @@ function getWorkstationDiv(stationId)
    elementId = "workstation-summary-" + stationId;
    
    return (document.getElementById(elementId));
+}
+
+function getShiftId()
+{
+   return (document.getElementById("shift-id-input").value);
 }
 
 function updateWorkstation(workstationStatus)

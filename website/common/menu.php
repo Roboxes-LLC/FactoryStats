@@ -27,7 +27,8 @@ function toggleSubmenu(submenu)
    <div>
       <div id="menu-item-configuration" class="menu-item" ontouch="toggleSubmenu('config-submenu')">Config</div>
       <div id="config-submenu" class="flex-vertical submenu-div">
-         <div id="menu-item-station-config" class="menu-item"><a href="<?php echo $ROOT?>/stationConfig.php">Workstation</a></div>
+         <div id="menu-item-shift-config" class="menu-item"><a href="<?php echo $ROOT?>/shiftConfig.php">Shifts</a></div>
+         <div id="menu-item-station-config" class="menu-item"><a href="<?php echo $ROOT?>/stationConfig.php">Workstations</a></div>
          <div id="menu-item-button-config" class="menu-item"><a href="<?php echo $ROOT?>/buttonConfig.php">Hardware Buttons</a></div>
          <div id="menu-item-display-config" class="menu-item"><a href="<?php echo $ROOT?>/displayConfig.php">Displays</a></div>
       </div>

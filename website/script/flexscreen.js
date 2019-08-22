@@ -63,7 +63,7 @@ function setMenuSelection(menuItem)
 
 function update()
 {
-   var requestURL = "api/status/?stationId=" + getStationId() + "&action=status";
+   var requestURL = "api/status/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&action=status";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -281,16 +281,17 @@ function decrementCount()
 
 function getStationId()
 {
-   var element = document.getElementById("station-id-input");
+   return (document.getElementById("station-id-input").value);
+}
 
-   return (element.value);
+function getShiftId()
+{
+   return (document.getElementById("shift-id-input").value);
 }
 
 function getCycleTime()
 {
-   var element = document.getElementById("cycle-time-input");
-
-   return (element.value);
+   return (document.getElementById("cycle-time-input").value);
 }
 
 function padNumber(number)
