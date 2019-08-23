@@ -275,7 +275,9 @@ $router->add("break", function($params) {
       
       if ($status == "start")
       {
-         $breakInfo = BreakInfo::startBreak($stationId);
+         $breakDescriptionId = ($params->keyExists("breakDescriptionId")) ? $params->get("breakDescriptionId") : BreakDescription::UNKNOWN_DESCRIPTION_ID;
+
+         $breakInfo = BreakInfo::startBreak($stationId, $breakDescriptionId);
          
          $result->success = ($breakInfo != null);
          
