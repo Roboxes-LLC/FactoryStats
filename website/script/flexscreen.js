@@ -245,7 +245,7 @@ function updateHourlyCount(hourlyCount)
 
 function incrementCount()
 {
-   var requestURL = "api/update/?stationId=" + getStationId() + "&count=1";
+   var requestURL = "api/update/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&count=1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -263,7 +263,7 @@ function incrementCount()
 
 function decrementCount()
 {
-   var requestURL = "api/update/?stationId=" + getStationId() + "&count=-1";
+   var requestURL = "api/update/?stationId=" + getStationId() + getShiftId() + "&count=-1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()

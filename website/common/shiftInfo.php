@@ -39,7 +39,7 @@ class ShiftInfo
    
    public static function getShift($time)
    {
-      $shiftInfo = null;
+      $shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
       
       $database = FlexscreenDatabase::getInstance();
       
@@ -47,19 +47,35 @@ class ShiftInfo
       {
          $result = $database->getShifts();
          
+         $now = new DateTime(Time::now("Y-m-d H:i:s"));
+         
          while ($result && ($row = $result->fetch_assoc()))
          {
-            $tempShiftInfo = ShiftInfo::load($shifts["shiftId"]);
+            // Calculate today's shift start time.
+            $startDateTime = new DateTime($row["startTime"]);
+            $startDateTime->setDate($now->format("Y"), $now->format("m"), $now->format("d"));
             
-            if (Time::between($time, $tempShiftInfo->startTime, $tempShiftInfo->endTime))
+            // Calculate today's shift end time.
+            // Note: Extra logic for if the shift extends into the next day.
+            $endDateTime = new DateTime($row["endTime"]);
+            $day = intval($now->format("d"));
+            $startHour = intval($startDateTime->format("H"));
+            $endHour = intval($endDateTime->format("H"));
+            if ($endHour <= $startHour)
             {
-               $shiftInfo = $tempShiftInfo;
+               $day++;
+            }
+            $endDateTime->setDate($now->format("Y"), $now->format("m"), $day);
+
+            if (Time::between($now->format("Y-m-d H:i:s"), $startDateTime->format("Y-m-d H:i:s"), $endDateTime->format("Y-m-d H:i:s")))
+            {
+               $shiftId = intval($row["shiftId"]);
                break;
             }
          }
       }
       
-      return ($shiftInfo);
+      return ($shiftId);
    }
 }
 

@@ -7,9 +7,20 @@ require_once 'common/workstationStatus.php';
 
 function getShiftId()
 {
+   $shiftId = ShiftInfo::DEFAULT_SHIFT_ID;
+   
    $params = Params::parse();
    
-   $shiftId = $params->keyExists("shiftId") ? $params->getInt("shiftId") : ShiftInfo::DEFAULT_SHIFT_ID;
+   $currentShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
+   
+   if ($params->keyExists("shiftId"))
+   {
+      $shiftId = $params->getInt("shiftId");
+   }
+   else if ($currentShiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+   {
+      $shiftId = $currentShiftId;
+   }
 
    return ($shiftId);
 }
@@ -64,6 +75,27 @@ HEREDOC;
       
    echo "</div></a>";
 }
+
+function renderShiftOptions()
+{
+   $selectedShiftId = getShiftId();
+
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result = $database->getShifts();
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $shiftId = $row["shiftId"];
+         $shiftName = $row["shiftName"];
+         $selected = ($shiftId == $selectedShiftId) ? "selected" : "";
+         
+         echo "<option value=\"$shiftId\" $selected>$shiftName</option>";
+      }
+   }
+}
 ?>
 
 <html>
@@ -92,15 +124,15 @@ HEREDOC;
 
 <body onload="update()">
 
-<form>
-   <input id="shift-id-input" type="hidden" name="shiftId" value="<?php echo getShiftId()?>">
-</form>
-
 <div class="flex-vertical" style="align-items: flex-start;">
 
    <?php include 'common/header.php';?>
    
    <?php include 'common/menu.php';?>
+   
+   <div class="flex-horizontal historical-data-filter-div" style="width:100%; align-items: center;">
+      <label>Shift: </label><select id="shift-id-input" name="shiftId" onchange="update()"><?php renderShiftOptions();?></select>
+   </div>
    
    <?php renderStationSummaries(getShiftId());?>
      

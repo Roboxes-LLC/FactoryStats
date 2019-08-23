@@ -1,5 +1,9 @@
 @CHARSET "ISO-8859-1";
 
+body {
+   color: white;
+}
+
 .main.paused {
 }
 

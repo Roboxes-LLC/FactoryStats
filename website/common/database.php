@@ -352,7 +352,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
-   public const ALL_SHIFTS = 0;
+   const ALL_SHIFTS = 0;
 
    public function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
    {

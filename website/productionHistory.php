@@ -4,6 +4,7 @@ require_once 'common/breakInfo.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
 require_once 'common/params.php';
+require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 
 Time::init();
@@ -29,7 +30,6 @@ function getStationId()
 
    return ($stationId);
 }
-
 
 function getStartDate()
 {
@@ -385,17 +385,6 @@ function renderStationOptions()
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
    
-   <style>
-      body {
-         color: white;
-      }
-      
-      table, th, td {
-         color: white;
-         border: 1px solid white;
-      }
-   </style>
-   
 </head>
 
 <body>
@@ -410,13 +399,13 @@ function renderStationOptions()
 
       <div class="flex-horizonal historical-data-filter-div">
          <form action="#">
-         <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
-         <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
-         <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
-         <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>
-         <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo (getTable() == Table::HOURLY_COUNTS) ? "checked" : "";?>>
-         <label>Breaks</label><input type="radio" name="display" value="breaks" <?php echo (getTable() == Table::BREAKS) ? "checked" : "";?>>
-         <button type="submit">Filter</button>
+            <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
+            <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
+            <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
+            <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>
+            <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo (getTable() == Table::HOURLY_COUNTS) ? "checked" : "";?>>
+            <label>Breaks</label><input type="radio" name="display" value="breaks" <?php echo (getTable() == Table::BREAKS) ? "checked" : "";?>>
+            <button type="submit">Filter</button>
          </form>
       </div>
    
