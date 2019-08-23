@@ -511,7 +511,7 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($this->getCurrentBreakId($stationId) != 0);
    }
    
-   public function startBreak($stationId, $startDateTime)
+   public function startBreak($stationId, $breakDescriptionId, $startDateTime)
    {
       $success = false;
       
@@ -519,10 +519,10 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO break " .
-         "(stationId, startTime) " .
+         "(stationId, breakDescriptionId, startTime) " .
          "VALUES " .
-         "('$stationId', '" . Time::toMySqlDate($startDateTime) . "');";
-         
+         "('$stationId', '$breakDescriptionId', '" . Time::toMySqlDate($startDateTime) . "');";
+
          $success = $this->query($query);
       }
       
@@ -593,6 +593,54 @@ class FlexscreenDatabase extends MySqlDatabase
       }
       
       return ($breakTime);
+   }
+   
+   // **************************************************************************
+   
+   public function getBreakDescription($breakDescriptionId)
+   {
+      $query = "SELECT * from breakdescription WHERE breakDescriptionId = \"$breakDescriptionId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getBreakDescriptions()
+   {
+      $query = "SELECT * FROM breakdescription;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function newBreakDescription($breakDescription)
+   {
+      $query =
+      "INSERT INTO breakdescription (code, description) " .
+      "VALUES ('$breakDescription->code', '$breakDescription->description');";
+      
+      $this->query($query);
+   }
+   
+   public function updateBreakDescription($breakDescription)
+   {
+      $query =
+      "UPDATE breakdescription " .
+      "SET code = \"$breakDescription->code\", description = \"$breakDescription->description\" " .
+      "WHERE breakDescriptionId = $breakDescription->breakDescriptionId;";
+      
+      $this->query($query);
+   }
+   
+   public function deleteBreakDescription($breakDescriptionId)
+   {
+      $query = "DELETE FROM breakdescription WHERE breakDescriptionId = $breakDescriptionId;";
+      echo $query;
+      $result = $this->query($query);
+      
+      return ($result);
    }
    
    // **************************************************************************

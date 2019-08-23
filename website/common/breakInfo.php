@@ -1,4 +1,5 @@
 <?php
+require_once 'breakDescription.php';
 require_once 'database.php';
 require_once 'time.php';
 
@@ -7,6 +8,7 @@ class BreakInfo
    const UNKNOWN_BREAK_ID = 0;
    
    public $breakId = BreakInfo::UNKNOWN_BREAK_ID;
+   public $breakDescriptionId = BreakDescription::UNKNOWN_DESCRIPTION_ID;
    public $startTime;
    public $endTime;
    
@@ -25,6 +27,7 @@ class BreakInfo
             $breakInfo = new BreakInfo();
             
             $breakInfo->breakId = intval($row['breakId']);
+            $breakInfo->breakDescriptionId = intval($row['breakDescriptionId']);
             $breakInfo->startTime = Time::fromMySqlDate($row['startTime'], "Y-m-d H:i:s");
             if ($row['endTime'] != null)
             {
@@ -69,7 +72,7 @@ class BreakInfo
       return ($isOnBreak);
    }
    
-   public static function startBreak($stationId)
+   public static function startBreak($stationId, $breakDescriptionId)
    {
       $breakInfo = null;
       
@@ -79,7 +82,7 @@ class BreakInfo
          
          if ($database && $database->isConnected())
          {
-            $database->startBreak($stationId, Time::now("Y-m-d H:i:s"));
+            $database->startBreak($stationId, $breakDescriptionId, Time::now("Y-m-d H:i:s"));
             
             $breakInfo = BreakInfo::getCurrentBreak($stationId);
          }
@@ -94,8 +97,6 @@ class BreakInfo
       
       if ($breakInfo)
       {
-         $duration = 0;
-         
          $database = FlexscreenDatabase::getInstance();
          
          if ($database && $database->isConnected())
@@ -115,6 +116,7 @@ class BreakInfo
    }
 }
 
+/*
 Time::init();
 
 if (isset($_GET["breakId"]))
@@ -124,13 +126,16 @@ if (isset($_GET["breakId"]))
  
    if ($breakInfo)
    {
-      echo "breakId: " .    $breakInfo->breakId .    "<br/>";
-      echo "startTime: " .  $breakInfo->startTime .  "<br/>";
-      echo "endTime: " .    $breakInfo->endTime .    "<br/>";
+      echo "breakId: " .            $breakInfo->breakId .            "<br/>";
+      echo "breakDescriptionId: " . $breakInfo->breakDescriptionId . "<br/>";
+      echo "startTime: " .          $breakInfo->startTime .          "<br/>";
+      echo "endTime: " .            $breakInfo->endTime .            "<br/>";
    }
    else
    {
       echo "No break info found.";
    }
 }
+*/
+
 ?>
