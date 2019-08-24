@@ -40,7 +40,7 @@ function getStations()
 //                                   Begin
 
 $router = new Router();
-$router->setLogging(true);
+$router->setLogging(false);
 
 $router->add("registerButton", function($params) {
    if (isset($params["macAddress"]))
