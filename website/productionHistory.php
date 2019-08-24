@@ -254,10 +254,10 @@ HEREDOC;
 <<<HEREDOC
          <tr>
             <td>$stationInfo->name</td>
-               <td>$dateString</td>
-               <td>$hourString</td>
-               <td>$count</td>
-            </tr>
+            <td>$dateString</td>
+            <td>$hourString</td>
+            <td>$count</td>
+         </tr>
 HEREDOC;
       }
    }
@@ -276,6 +276,7 @@ function renderBreaksTable($shiftId)
          <th>Start time</th>
          <th>End time</th>
          <th>Duration</th>
+         <th>Reason</th>
       </tr>
 HEREDOC;
    
@@ -331,6 +332,9 @@ HEREDOC;
             }
          }
          
+         $breakDescription = BreakDescription::load($breakInfo->breakDescriptionId);
+         $reason = $breakDescription ? $breakDescription->description : "";
+         
          echo
 <<<HEREDOC
          <tr>
@@ -339,6 +343,7 @@ HEREDOC;
             <td>$startTimeString</td>
             <td>$endTimeString</td>
             <td>$durationString</td>
+            <td>$reason</td>
          </tr>
 HEREDOC;
       }

@@ -31,6 +31,7 @@ function toggleSubmenu(submenu)
          <div id="menu-item-station-config" class="menu-item"><a href="<?php echo $ROOT?>/stationConfig.php">Workstations</a></div>
          <div id="menu-item-button-config" class="menu-item"><a href="<?php echo $ROOT?>/buttonConfig.php">Hardware Buttons</a></div>
          <div id="menu-item-display-config" class="menu-item"><a href="<?php echo $ROOT?>/displayConfig.php">Displays</a></div>
+         <div id="menu-item-station-config" class="menu-item"><a href="<?php echo $ROOT?>/breakDescriptionConfig.php">Breaks</a></div>
       </div>
    </div>
    <div class="menu-item-spacer"></div>

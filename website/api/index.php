@@ -40,7 +40,7 @@ function getStations()
 //                                   Begin
 
 $router = new Router();
-$router->setLogging(false);
+$router->setLogging(true);
 
 $router->add("registerButton", function($params) {
    if (isset($params["macAddress"]))
@@ -190,8 +190,10 @@ $router->add("break", function($params) {
 
       if ($status == "start")
       {
-         $breakInfo = BreakInfo::startBreak($stationId);
+         $breakDescriptionId = ($params->keyExists("breakDescriptionId")) ? $params->get("breakDescriptionId") : BreakDescription::UNKNOWN_DESCRIPTION_ID;
 
+         $breakInfo = BreakInfo::startBreak($stationId, $breakDescriptionId);
+         
          $result->success = ($breakInfo != null);
 
          if ($result->success)
@@ -209,6 +211,11 @@ $router->add("break", function($params) {
          {
             $result->breakInfo = $breakInfo;
          }
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "Invalid parameters.";
       }
    }
 

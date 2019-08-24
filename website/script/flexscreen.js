@@ -305,9 +305,11 @@ function toggleBreakButton()
    
    var isOnBreak = element.classList.contains("paused");
    
+   var breakDescriptionId = document.getElementById("break-description-id-input").value;
+   
    if (!isOnBreak)
    {
-      startBreak();
+      startBreak(breakDescriptionId);
    }
    else
    {
@@ -315,11 +317,11 @@ function toggleBreakButton()
    }
 }
 
-function startBreak()
+function startBreak(breakDescriptionId)
 {
-   console.log("startBreak");
+   console.log("startBreak (breakDescriptionId = " + breakDescriptionId + ")");
    
-   var requestURL = "api/break/?stationId=" + getStationId() + "&status=start";
+   var requestURL = "api/break/?stationId=" + getStationId() + "&status=start&breakDescriptionId=" + breakDescriptionId;
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -370,14 +372,18 @@ function updateBreak(isOnBreak, breakInfo)
    if (isOnBreak)
    {
       element.classList.add("paused");
-      document.getElementById("break-time-label").style.display = "block"; 
+      document.getElementById("break-time-label").style.display = "block";
+      //document.getElementById("break-description").style.display = "block";
+      //document.getElementById("break-description").innerHTML = breakInfo.breakDescriptionId;
       document.getElementById("elapsed-time-label").style.display = "none"; 
       document.getElementsByClassName("main")[0].classList.add("paused");
    }
    else
    {
       element.classList.remove("paused");
-      document.getElementById("break-time-label").style.display = "none"; 
+      document.getElementById("break-time-label").style.display = "none";
+      //document.getElementById("break-description").style.display = "none";
+      //document.getElementById("break-description").innerHTML = "";
       document.getElementById("elapsed-time-label").style.display = "block"; 
    }
 }

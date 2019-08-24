@@ -521,7 +521,7 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($this->getCurrentBreakId($stationId) != 0);
    }
    
-   public function startBreak($stationId, $startDateTime)
+   public function startBreak($stationId, $breakDescriptionId, $startDateTime)
    {
       $success = false;
       
@@ -529,10 +529,10 @@ class FlexscreenDatabase extends MySqlDatabase
       {
          $query =
          "INSERT INTO break " .
-         "(stationId, startTime) " .
+         "(stationId, breakDescriptionId, startTime) " .
          "VALUES " .
-         "('$stationId', '" . Time::toMySqlDate($startDateTime) . "');";
-         
+         "('$stationId', '$breakDescriptionId', '" . Time::toMySqlDate($startDateTime) . "');";
+
          $success = $this->query($query);
       }
       
@@ -607,9 +607,46 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
-   public function getSettings()
+   public function getBreakDescription($breakDescriptionId)
    {
-      $query = "SELECT * from settings;";
+      $query = "SELECT * from breakdescription WHERE breakDescriptionId = \"$breakDescriptionId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getBreakDescriptions()
+   {
+      $query = "SELECT * FROM breakdescription;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function newBreakDescription($breakDescription)
+   {
+      $query =
+      "INSERT INTO breakdescription (code, description) " .
+      "VALUES ('$breakDescription->code', '$breakDescription->description');";
+      
+      $this->query($query);
+   }
+   
+   public function updateBreakDescription($breakDescription)
+   {
+      $query =
+      "UPDATE breakdescription " .
+      "SET code = \"$breakDescription->code\", description = \"$breakDescription->description\" " .
+      "WHERE breakDescriptionId = $breakDescription->breakDescriptionId;";
+      
+      $this->query($query);
+   }
+   
+   public function deleteBreakDescription($breakDescriptionId)
+   {
+      $query = "DELETE FROM breakdescription WHERE breakDescriptionId = $breakDescriptionId;";
       
       $result = $this->query($query);
       
@@ -618,15 +655,26 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
-   public function getShift($shiftId)
+   public function getSettings()
    {
-      $query = "SELECT * from shift WHERE shiftId = \"$shiftId\";";
-      
+      $query = "SELECT * from settings;";
+
       $result = $this->query($query);
       
       return ($result);
    }
-   
+       
+   // **************************************************************************
+
+   public function getShift($shiftId)
+   {
+      $query = "SELECT * from shift WHERE shiftId = \"$shiftId\";";
+
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+
    public function getShifts()
    {
       $query = "SELECT * from shift ORDER BY startTime ASC;";
@@ -635,7 +683,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       return ($result);
    }
-   
+
    public function newShift($shiftInfo)
    {
       $query =
@@ -644,7 +692,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $this->query($query);
    }
-   
+
    public function updateShift($shiftInfo)
    {
       $query =
@@ -653,7 +701,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $this->query($query);
    }
-   
+
    public function deleteShift($shiftId)
    {
       $query = "DELETE FROM shift WHERE shiftId = $shiftId;";
@@ -664,7 +712,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $this->query($query);
    }
-   
+
    // **************************************************************************
    
    protected function calculateCountTime($stationId)
