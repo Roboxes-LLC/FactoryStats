@@ -1,9 +1,11 @@
 <?php
+
 require_once 'buttonInfo.php';
 require_once 'breakInfo.php';
-require_once 'cycleTimeStatus.php';
 require_once 'buttonInfo.php';
+require_once 'cycleTimeStatus.php';
 require_once 'database.php';
+require_once 'stats.php';
 require_once 'time.php';
 
 class WorkstationStatus
@@ -51,7 +53,7 @@ class WorkstationStatus
          
          $workstationStatus->updateTime = WorkstationStatus::getUpdateTime($stationId, $database);
          
-         $workstationStatus->averageCountTime = WorkstationStatus::getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime, $database);
+         $workstationStatus->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime);
          
          $workstationStatus->hardwareButtonStatus = WorkstationStatus::getHardwareButtonStatus($stationId, $database);
          
@@ -133,22 +135,6 @@ class WorkstationStatus
       $firstEntry = $database->getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime);
       
       return ($firstEntry);
-   }
-   
-   private static function getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime, $database)
-   {
-      $averageUpdateTime = 0;
-      
-      $totalCountTime = $database->getCountTime($stationId, $shiftId, $startDateTime, $endDateTime);
-      
-      $count = $database->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
-      
-      if ($count > 0)
-      {
-         $averageUpdateTime = round($totalCountTime / $count);
-      }
-      
-      return ($averageUpdateTime);
    }
    
    private static function getHardwareButtonStatus($stationId, $database)

@@ -75,27 +75,6 @@ HEREDOC;
       
    echo "</div></a>";
 }
-
-function renderShiftOptions()
-{
-   $selectedShiftId = getShiftId();
-
-   $database = FlexscreenDatabase::getInstance();
-   
-   if ($database && $database->isConnected())
-   {
-      $result = $database->getShifts();
-      
-      while ($result && ($row = $result->fetch_assoc()))
-      {
-         $shiftId = $row["shiftId"];
-         $shiftName = $row["shiftName"];
-         $selected = ($shiftId == $selectedShiftId) ? "selected" : "";
-         
-         echo "<option value=\"$shiftId\" $selected>$shiftName</option>";
-      }
-   }
-}
 ?>
 
 <html>
@@ -114,10 +93,10 @@ function renderShiftOptions()
    <link rel="stylesheet" type="text/css" href="css/workstationSummary.css"/>
    
    <style>
-   .station-summary-div {
-      color: white;
-      border: 1px solid white;
-   }
+      .station-summary-div {
+         color: white;
+         border: 1px solid white;
+      }   
    </style>
    
 </head>
@@ -131,7 +110,7 @@ function renderShiftOptions()
    <?php include 'common/menu.php';?>
    
    <div class="flex-horizontal historical-data-filter-div" style="width:100%; align-items: center;">
-      <label>Shift: </label><select id="shift-id-input" name="shiftId" onchange="update()"><?php renderShiftOptions();?></select>
+      <select id="shift-id-input" name="shiftId" onchange="update()"><?php echo ShiftInfo::getShiftOptions(getShiftId(), false); ?></select>
    </div>
    
    <?php renderStationSummaries(getShiftId());?>

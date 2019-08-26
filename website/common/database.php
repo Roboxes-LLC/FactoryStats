@@ -360,13 +360,13 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
       $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
-      $query = "SELECT * FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
+      $query = "SELECT SUM(count) FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "';";
 
       $result = $this->query($query);
       
-      while ($result && ($row = $result->fetch_assoc()))
+      if ($result && ($row = $result->fetch_assoc()))
       {
-         $screenCount += intval($row["count"]);
+         $screenCount = intval($row['SUM(count)']);
       }
       
       return ($screenCount);
@@ -376,7 +376,7 @@ class FlexscreenDatabase extends MySqlDatabase
    {
        $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
        $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
-       $query = "SELECT stationId, dateTime, count FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
+       $query = "SELECT stationId, shiftId, dateTime, count FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
 
        $result = $this->query($query);
              
@@ -438,23 +438,6 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($updateTime);
    }
    
-   public function getCountTime($stationId, $shiftId, $startDateTime, $endDateTime)
-   {
-      $countTime = 0;
-      
-      $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
-      $query = "SELECT * FROM screencount WHERE stationId = \"$stationId\" $shiftClause AND dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC;";
-
-      $result = $this->query($query);
-      
-      while ($result && ($row = $result->fetch_assoc()))
-      {
-         $countTime += intval($row["countTime"]);
-      }
-      
-      return ($countTime);
-   }
-   
    public function getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $firstEntry = null;
@@ -465,12 +448,9 @@ class FlexscreenDatabase extends MySqlDatabase
 
       $result = $this->query($query);
       
-      while ($result && ($row = $result->fetch_assoc()))
+      if ($result && ($row = $result->fetch_assoc()) && $row["firstEntry"])
       {
-         if ($row["firstEntry"])
-         {
-            $firstEntry = Time::fromMySqlDate($row["firstEntry"], "Y-m-d H:i:s");
-         }
+         $firstEntry = Time::fromMySqlDate($row["firstEntry"], "Y-m-d H:i:s");
       }
       
       return ($firstEntry);
@@ -482,16 +462,13 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query = 
          "SELECT lastEntry FROM screencount " .
-         "WHERE stationId = \"$stationId\" shiftId = \"$shiftId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
+         "WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
 
       $result = $this->query($query);
       
-      while ($result && ($row = $result->fetch_assoc()))
+      if ($result && ($row = $result->fetch_assoc()) && $row["lastEntry"])
       {
-         if ($row["lastEntry"])
-         {
-            $lastEntry = Time::fromMySqlDate($row["lastEntry"], "Y-m-d H:i:s");
-         }
+         $lastEntry = Time::fromMySqlDate($row["lastEntry"], "Y-m-d H:i:s");
       }
       
       return ($lastEntry);

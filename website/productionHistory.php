@@ -31,6 +31,20 @@ function getStationId()
    return ($stationId);
 }
 
+function getShiftId()
+{
+   $shiftId =  ShiftInfo::UNKNOWN_SHIFT_ID;
+   
+   $params = Params::parse();
+   
+   if ($params->keyExists("shiftId"))
+   {
+      $shiftId = $params->get("shiftId");
+   }
+   
+   return ($shiftId);
+}
+
 function getStartDate()
 {
    $startDate = Time::now("Y-m-d");
@@ -108,7 +122,7 @@ function renderTable()
    {
       case Table::HOURLY_COUNTS:
       {
-         renderHourlyCountsTable($shiftId);
+         renderHourlyCountsTable();
          break;
       }
       
@@ -121,19 +135,20 @@ function renderTable()
       case Table::DAILY_COUNTS:
       default:
       {
-         renderDailyCountsTable($shiftId);
+         renderDailyCountsTable();
          break;
       } 
    }
 }
 
-function renderDailyCountsTable($shiftId)
+function renderDailyCountsTable()
 {
    echo 
 <<<HEREDOC
    <table>
       <tr>
          <th>Workstation</th>
+         <th>Shift</th>
          <th>Date</th>
          <th>Screen Count</th>
          <th>First Screen</th>
@@ -143,22 +158,27 @@ function renderDailyCountsTable($shiftId)
 HEREDOC;
 
    $stationId = getStationId();
+   $shiftId = getShiftId();
    $startDate = getStartDate();
    $endDate = getEndDate();
    
    $dailySummaries = DailySummary::getDailySummaries($stationId, $shiftId, $startDate, $endDate);
+     
+   $totalCount = 0;
    
    foreach ($dailySummaries as $dailySummary)
    {
       $stationInfo = StationInfo::load($dailySummary->stationId);
       
+      $shiftInfo = ShiftInfo::load($dailySummary->shiftId);
+      $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
+            
       $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
       $dateString = $dateTime->format("m-d-Y");
       
-      $averageCountTime = floor(($dailySummary->countTime / $dailySummary->count));
-      $hours = floor(($averageCountTime / 3600));
-      $minutes = floor((($averageCountTime % 3600) / 60));
-      $seconds = ($averageCountTime % 60);
+      $hours = floor(($dailySummary->averageCountTime / 3600));
+      $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
+      $seconds = ($dailySummary->averageCountTime % 60);
       
       $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
       
@@ -177,18 +197,18 @@ HEREDOC;
       }
       
       $timeString = "---";
-      if ($dailySummary->countTime > 0)
+      if ($dailySummary->averageCountTime > 0)
       {
          $timeString = "";
          
          if ($hours > 0)
          {
-            $timeString .= $hours . " hours ";
+            $timeString .= $hours . (($hours > 1) ? " hours " : " hour ");
          }
          
          if (($hours > 0) || ($minutes > 0))
          {
-            $timeString .= $minutes . " minutes ";
+            $timeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
          }
          
          if ($hours == 0)
@@ -201,6 +221,7 @@ HEREDOC;
 <<<HEREDOC
          <tr>
             <td>$stationInfo->name</td>
+            <td>$shiftName</td>
             <td>$dateString</td>
             <td>$dailySummary->count</td>
             <td>$firstEntryString</td>
@@ -208,18 +229,34 @@ HEREDOC;
             <td>$timeString</td>
          </tr>
 HEREDOC;
+      
+      $totalCount += $dailySummary->count;
    }
+   
+   echo
+<<<HEREDOC
+         <tr class="total">
+            <th>Total</th>
+            <td></td>
+            <td></td>
+            <td>$totalCount</td>
+            <td></td>
+            <td></td>
+            <td></td>
+         </tr>
+HEREDOC;
    
    echo "</table>";
 }
 
-function renderHourlyCountsTable($shiftId)
+function renderHourlyCountsTable()
 {
    echo
 <<<HEREDOC
    <table>
       <tr>
          <th>Workstation</th>
+         <th>Shift</th>
          <th>Date</th>
          <th>Hour</th>
          <th>Screen Count</th>
@@ -227,21 +264,30 @@ function renderHourlyCountsTable($shiftId)
 HEREDOC;
     
    $stationId = getStationId();
+   $shiftId = getShiftId();
    $startDate = getStartDate();
    $endDate = getEndDate();
     
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
+   
+   $shiftInfo = ShiftInfo::load($shiftId);
+   $shiftName = $shiftInfo ? $shiftInfo->shiftName : "All";
     
    $database = FlexscreenDatabase::getInstance();
     
    if ($database && $database->isConnected())
    {
       $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
+      
+      $totalCount = 0;
         
       while ($result && ($row = $result->fetch_assoc()))
       {
          $stationInfo = StationInfo::load($row["stationId"]);
+         
+         $shiftInfo = ShiftInfo::load($row["shiftId"]);
+         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
             
          $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
                                     new DateTimeZone('America/New_York'));
@@ -254,13 +300,27 @@ HEREDOC;
 <<<HEREDOC
          <tr>
             <td>$stationInfo->name</td>
+            <td>$shiftName</td>
             <td>$dateString</td>
             <td>$hourString</td>
             <td>$count</td>
          </tr>
 HEREDOC;
+         
+         $totalCount += $count;
       }
    }
+   
+   echo
+<<<HEREDOC
+   <tr class="total">
+      <th>Total</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>$totalCount</td>
+   </tr>
+HEREDOC;
     
    echo "</table>";
 }
@@ -374,6 +434,11 @@ function renderStationOptions()
       }
    }
 }
+
+function renderShiftOptions()
+{
+   echo ShiftInfo::getShiftOptions(getShiftId(), true);
+}
 ?>
 
 <html>
@@ -405,6 +470,7 @@ function renderStationOptions()
       <div class="flex-horizonal historical-data-filter-div">
          <form action="#">
             <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
+            <label>Shift: </label><select name="shiftId"><?php renderShiftOptions();?></select>
             <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
             <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
             <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>

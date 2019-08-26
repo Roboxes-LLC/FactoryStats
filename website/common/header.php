@@ -11,7 +11,8 @@ function getUsername()
 ?>
 
 <div class="flex-horizontal header">
-   <div class="flex-horizontal" style="width:33%;"></div>
+   <div class="flex-horizontal" style="width:33%; justify-content:flex-start; margin-left: 20px;">
+   </div>
    
    <div class="flex-horizontal" style="width:33%; justify-content:center;">
       <img src="<?php echo $ROOT?>/images/flexscreen-logo-hompage-2.png" width="350px">

@@ -3,6 +3,7 @@ require_once 'common/breakDescription.php';
 require_once 'common/dailySummary.php';
 require_once 'common/displayInfo.php';
 require_once 'common/params.php';
+require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/time.php';
 
@@ -136,7 +137,6 @@ $isReadOnly = isReadOnly();
 
    <form>
       <input id="station-id-input" type="hidden" name="stationId" value="<?php echo $stationId; ?>">
-      <input id="shift-id-input" type="hidden" name="shiftId" value="<?php echo getShiftId(); ?>">
       <input id="cycle-time-input" type="hidden" name="cycleTime" value="<?php echo $cycleTime; ?>">
    </form>
 
@@ -145,6 +145,10 @@ $isReadOnly = isReadOnly();
       <?php include 'common/header.php';?>
       
       <?php if (!$isReadOnly) {include 'common/menu.php';}?>
+      
+      <div class="flex-horizontal historical-data-filter-div" style="width:100%; align-items: center;">
+         <select id="shift-id-input" name="shiftId" onchange="update()"><?php echo ShiftInfo::getShiftOptions(getShiftId(), false); ?></select>
+      </div>
       
       <div class="main workstation" style="align-items: center; flex-wrap: wrap;">
       

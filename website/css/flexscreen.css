@@ -339,6 +339,21 @@ body {
 .config-button:hover {
    cursor: pointer;
 }
+   
+#shift-id-input {
+   background-color: #14a3db;
+   border: none;
+   color: white;
+   padding: 10px 15px;
+   font-size: 16px;
+   border-radius: 4px;
+   margin: 5px;   
+}
+
+#shift-id-input option {
+   background-color: white;
+   color: #14a3db;
+}
 
 /* 
 Device = Most of the Smartphones Mobiles (Portrait)
@@ -416,4 +431,9 @@ Screen = B/w 768px to 1024px
 	color: white;
    font-size: 18px;
    margin-top: 10px;
+}
+
+tr.total td, tr.total th {
+	color: #14a3db;
+   font-weight: bold; 
 }

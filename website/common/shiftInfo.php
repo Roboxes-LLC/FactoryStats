@@ -77,6 +77,35 @@ class ShiftInfo
       
       return ($shiftId);
    }
+   
+   public static function getShiftOptions($selectedShiftId, $includeAllShifts)
+   {
+      $html = "";
+      
+      $selected = ($selectedShiftId == ShiftInfo::UNKNOWN_SHIFT_ID) ? "selected" : "";
+      if ($includeAllShifts)
+      {
+         $html .= "<option value=\"" . ShiftInfo::UNKNOWN_SHIFT_ID . "\" $selected>All shifts</option>";
+      }
+      
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $result = $database->getShifts();
+         
+         while ($result && ($row = $result->fetch_assoc()))
+         {
+            $shiftId = $row["shiftId"];
+            $shiftName = $row["shiftName"];
+            $selected = ($shiftId == $selectedShiftId) ? "selected" : "";
+            
+            $html .= "<option value=\"$shiftId\" $selected>$shiftName</option>";
+         }
+      }
+      
+      return ($html);
+   }
 }
 
 /*
