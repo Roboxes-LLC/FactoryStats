@@ -51,13 +51,13 @@ class WorkstationStatus
          
          $workstationStatus->firstEntry = WorkstationStatus::getFirstEntry($stationId, $shiftId, $database);
          
-         $workstationStatus->updateTime = WorkstationStatus::getUpdateTime($stationId, $database);
+         $workstationStatus->updateTime = $database->getLastEntry($stationId, $shiftId, $startDateTime, $endDateTime);
          
          $workstationStatus->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime);
          
          $workstationStatus->hardwareButtonStatus = WorkstationStatus::getHardwareButtonStatus($stationId, $database);
          
-         $workstationStatus->cycleTimeStatus = WorkstationStatus::getCycleTimeStatus($stationId);
+         $workstationStatus->cycleTimeStatus = WorkstationStatus::getCycleTimeStatus($stationId, $workstationStatus->updateTime);
          $workstationStatus->cycleTimeStatusLabel = CycleTimeStatus::getClassLabel($workstationStatus->cycleTimeStatus);
          
          $workstationStatus->isOnBreak = $database->isOnBreak($stationId, $shiftId);
@@ -157,11 +157,11 @@ class WorkstationStatus
       return ($hardwareButtonStatus);
    }
    
-   private static function getCycleTimeStatus($stationId)
+   private static function getCycleTimeStatus($stationId, $updateTime)
    {
       $stationInfo = StationInfo::load($stationId);
-      
-      return (CycleTimeStatus::calculateCycleTimeStatus($stationInfo->updateTime, $stationInfo->cycleTime));
+
+      return (CycleTimeStatus::calculateCycleTimeStatus($updateTime, $stationInfo->cycleTime));
    }
 }
 

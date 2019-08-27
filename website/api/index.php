@@ -40,7 +40,7 @@ function getStations()
 //                                   Begin
 
 $router = new Router();
-$router->setLogging(false);
+$router->setLogging(true);
 
 $router->add("registerButton", function($params) {
    if (isset($params["macAddress"]))
@@ -160,7 +160,7 @@ $router->add("update", function($params) {
    {
       if (BreakInfo::getCurrentBreak($stationId, $shiftId))
       {
-         BreakInfo::endBreak($stationId);
+         BreakInfo::endBreak($stationId, $shiftId);
       }
 
       updateCount($stationId, $shiftId, $params->get("count"));

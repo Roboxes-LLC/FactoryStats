@@ -1,7 +1,9 @@
 <?php
+
 require_once 'common/breakDescription.php';
 require_once 'common/dailySummary.php';
 require_once 'common/displayInfo.php';
+require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
@@ -135,7 +137,7 @@ $isReadOnly = isReadOnly();
 
    <div class="flex-vertical" style="align-items: flex-start;">
    
-      <?php include 'common/header.php';?>
+      <?php Header::render(true);?>
       
       <?php if (!$isReadOnly) {include 'common/menu.php';}?>
       

@@ -1,4 +1,5 @@
 <?php
+require_once 'common/header.php';
 ?>
 
 <html>
@@ -21,7 +22,7 @@
 
 <div class="flex-vertical" style="align-items: flex-start; height:100%;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(false);?>
    
    <div class="flex-horizontal main splash" style="flex-wrap: wrap; align-items: center;">
    

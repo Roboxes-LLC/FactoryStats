@@ -3,6 +3,7 @@
 require_once 'common/breakInfo.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
+require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
@@ -17,65 +18,57 @@ class Table
    const BREAKS        = 3;
 }
 
-function getStationId()
+function getFilterStationId()
 {
    $stationId =  "ALL";
    
    $params = Params::parse();
    
-   if ($params->keyExists("stationId"))
+   if ($params->keyExists("filterStationId"))
    {
-       $stationId = $params->get("stationId");
+       $stationId = $params->get("filterStationId");
    }
 
    return ($stationId);
 }
 
-function getShiftId()
+function getFilterShiftId()
 {
-   $shiftId =  ShiftInfo::UNKNOWN_SHIFT_ID;
+   $shiftId = ShiftInfo::getShiftId();
    
    $params = Params::parse();
    
-   if ($params->keyExists("shiftId"))
+   if ($params->keyExists("filterShiftId"))
    {
-      $shiftId = $params->get("shiftId");
+      $shiftId = $params->get("filterShiftId");
    }
    
    return ($shiftId);
 }
 
-function getStartDate()
+function getFilterStartDate()
 {
    $startDate = Time::now("Y-m-d");
    
-   if (($_SERVER["REQUEST_METHOD"] === "GET") &&
-      (isset($_GET["startDate"])))
+   $params = Params::parse();
+   
+   if ($params->keyExists("filterStartDate"))
    {
-      $startDate = $_GET["startDate"];
-   }
-   else if (($_SERVER["REQUEST_METHOD"] === "POST") &&
-            (isset($_PUT["startDate"])))
-   {
-      $startDate = $_PUT["startDate"];
+      $startDate = $params->get("filterStartDate");
    }
    
    return ($startDate);
 }
 
-function getEndDate()
+function getFilterEndDate()
 {
    $endDate = Time::now("Y-m-d");
    
-   if (($_SERVER["REQUEST_METHOD"] === "GET") &&
-       (isset($_GET["endDate"])))
+   $params = Params::parse();
+   
+   if ($params->keyExists("filterEndDate"))
    {
-      $endDate = $_GET["endDate"];
-   }
-   else if (($_SERVER["REQUEST_METHOD"] === "POST") &&
-            (isset($_PUT["endDate"])))
-   {
-      $endDate = $_PUT["endDate"];
+      $startDate = $params->get("filterEndDate");
    }
    
    return ($endDate);
@@ -153,10 +146,10 @@ function renderDailyCountsTable()
       </tr>
 HEREDOC;
 
-   $stationId = getStationId();
-   $shiftId = getShiftId();
-   $startDate = getStartDate();
-   $endDate = getEndDate();
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
    
    $dailySummaries = DailySummary::getDailySummaries($stationId, $shiftId, $startDate, $endDate);
      
@@ -259,10 +252,10 @@ function renderHourlyCountsTable()
       </tr>
 HEREDOC;
     
-   $stationId = getStationId();
-   $shiftId = getShiftId();
-   $startDate = getStartDate();
-   $endDate = getEndDate();
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
     
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
@@ -337,10 +330,10 @@ function renderBreaksTable()
       </tr>
 HEREDOC;
    
-   $stationId = getStationId();
-   $shiftId = getShiftId();
-   $startDate = getStartDate();
-   $endDate = getEndDate();
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
    
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
@@ -416,7 +409,7 @@ HEREDOC;
 
 function renderStationOptions()
 {
-   $selectedStationId = getStationId();
+   $selectedStationId = getFilterStationId();
    
    echo "<option value=\"ALL\">All stations</option>";
 
@@ -439,7 +432,7 @@ function renderStationOptions()
 
 function renderShiftOptions()
 {
-   echo ShiftInfo::getShiftOptions(getShiftId(), true);
+   echo ShiftInfo::getShiftOptions(getFilterShiftId(), true);
 }
 ?>
 
@@ -463,7 +456,7 @@ function renderShiftOptions()
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(false);?>
    
    <?php include 'common/menu.php';?>
    
@@ -471,10 +464,10 @@ function renderShiftOptions()
 
       <div class="flex-horizonal historical-data-filter-div">
          <form action="#">
-            <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
-            <label>Shift: </label><select name="shiftId"><?php renderShiftOptions();?></select>
-            <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
-            <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
+            <label>Station ID: </label><select name="filterStationId"><?php renderStationOptions();?></select>
+            <label>Shift: </label><select name="filterShiftId"><?php renderShiftOptions();?></select>
+            <label>Start date: </label><input type="date" name="filterStartDate" value="<?php echo getFilterStartDate();?>">
+            <label>End date: </label><input type="date" name="filterEndDate" value="<?php echo getFilterEndDate();?>">
             <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>
             <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo (getTable() == Table::HOURLY_COUNTS) ? "checked" : "";?>>
             <label>Breaks</label><input type="radio" name="display" value="breaks" <?php echo (getTable() == Table::BREAKS) ? "checked" : "";?>>

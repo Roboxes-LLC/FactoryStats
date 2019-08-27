@@ -1,6 +1,7 @@
 <?php
 
 require_once 'common/database.php';
+require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 
@@ -166,7 +167,7 @@ switch ($params->get("action"))
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(false);?>
    
    <?php include 'common/menu.php';?>
      

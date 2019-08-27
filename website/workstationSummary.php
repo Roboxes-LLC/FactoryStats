@@ -1,5 +1,7 @@
 <?php
+
 require_once 'common/database.php';
+require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
@@ -87,7 +89,7 @@ HEREDOC;
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(true);?>
    
    <?php include 'common/menu.php';?>
    
