@@ -5,6 +5,14 @@ class Params extends ArrayObject
    {
       $params = new Params(array());
       
+      if (isset($_SESSION))
+      {
+         foreach ($_SESSION as $key => $value)
+         {
+            $params[$key] = filter_var($_SESSION[$key], FILTER_SANITIZE_SPECIAL_CHARS);
+         }
+      }
+      
       if ($_SERVER["REQUEST_METHOD"] === "GET")
       {
          foreach ($_GET as $key => $value)

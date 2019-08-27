@@ -5,25 +5,7 @@ require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/workstationStatus.php';
 
-function getShiftId()
-{
-   $shiftId = ShiftInfo::DEFAULT_SHIFT_ID;
-   
-   $params = Params::parse();
-   
-   $currentShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
-   
-   if ($params->keyExists("shiftId"))
-   {
-      $shiftId = $params->getInt("shiftId");
-   }
-   else if ($currentShiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
-   {
-      $shiftId = $currentShiftId;
-   }
-
-   return ($shiftId);
-}
+session_start();
 
 function renderStationSummaries($shiftId)
 {
@@ -43,7 +25,7 @@ function renderStationSummaries($shiftId)
 
 function renderStationSummary($stationId, $shiftId)
 {
-   $url= "workstation.php?stationId=" . $stationId . "&shiftId=" . $shiftId;
+   $url= "workstation.php?stationId=" . $stationId;
 
    echo "<a href=\"$url\"><div id=\"workstation-summary-$stationId\" class=\"flex-vertical station-summary-div\">";
    
@@ -109,11 +91,7 @@ HEREDOC;
    
    <?php include 'common/menu.php';?>
    
-   <div class="flex-horizontal historical-data-filter-div" style="width:100%; align-items: center;">
-      <select id="shift-id-input" name="shiftId" onchange="update()"><?php echo ShiftInfo::getShiftOptions(getShiftId(), false); ?></select>
-   </div>
-   
-   <?php renderStationSummaries(getShiftId());?>
+   <?php renderStationSummaries(ShiftInfo::getShiftId());?>
      
 </div>
 

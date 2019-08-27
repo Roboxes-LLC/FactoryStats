@@ -9,6 +9,8 @@ require_once 'common/time.php';
 
 Time::init();
 
+session_start();
+
 function getStationId()
 {
    $stationId = "";
@@ -42,15 +44,6 @@ function getStationId()
    }
    
    return ($stationId);
-}
-
-function getShiftId()
-{
-   $params = Params::parse();
-   
-   $shiftId = $params->keyExists("shiftId") ? $params->getInt("shiftId") : ShiftInfo::DEFAULT_SHIFT_ID;
-   
-   return ($shiftId);
 }
 
 function getStationLabel($stationId)
@@ -145,10 +138,6 @@ $isReadOnly = isReadOnly();
       <?php include 'common/header.php';?>
       
       <?php if (!$isReadOnly) {include 'common/menu.php';}?>
-      
-      <div class="flex-horizontal historical-data-filter-div" style="width:100%; align-items: center;">
-         <select id="shift-id-input" name="shiftId" onchange="update()"><?php echo ShiftInfo::getShiftOptions(getShiftId(), false); ?></select>
-      </div>
       
       <div class="main workstation" style="align-items: center; flex-wrap: wrap;">
       

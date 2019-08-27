@@ -61,6 +61,31 @@ function setMenuSelection(menuItem)
    }
 }
 
+function storeInSession(key, value)
+{
+   var requestURL = "api/session/?action=set&key=" + key + "&value=" + value;
+   
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         var json = JSON.parse(this.responseText);
+         
+         if (json.success)
+         {
+            console.log("Stored [" + key + ", " + value + "] in session.");
+         }
+         else
+         {
+            console.log("Failed to store [" + key + ", " + value + "] in session.");
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();
+}
+
 function update()
 {
    var requestURL = "api/status/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&action=status";
@@ -263,7 +288,7 @@ function incrementCount()
 
 function decrementCount()
 {
-   var requestURL = "api/update/?stationId=" + getStationId() + getShiftId() + "&count=-1";
+   var requestURL = "api/update/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&count=-1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -321,7 +346,7 @@ function startBreak(breakDescriptionId)
 {
    console.log("startBreak (breakDescriptionId = " + breakDescriptionId + ")");
    
-   var requestURL = "api/break/?stationId=" + getStationId() + "&status=start&breakDescriptionId=" + breakDescriptionId;
+   var requestURL = "api/break/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&status=start&breakDescriptionId=" + breakDescriptionId;
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -344,7 +369,7 @@ function endBreak(stationId)
 {
    console.log("endBreak");
    
-   var requestURL = "api/break/?stationId=" + getStationId() + "&status=end";
+   var requestURL = "api/break/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&status=end";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()

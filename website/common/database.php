@@ -476,12 +476,12 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
-   public function getCurrentBreakId($stationId)
+   public function getCurrentBreakId($stationId, $shiftId)
    {
       $breakId = 0;
       
       $query =
-      "SELECT breakId FROM break WHERE stationId = $stationId AND endTime IS NULL";
+      "SELECT breakId FROM break WHERE stationId = $stationId AND shiftId = $shiftId AND endTime IS NULL";
       
       $result = $this->query($query);
       
@@ -493,22 +493,22 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($breakId);
    }
    
-   public function isOnBreak($stationId)
+   public function isOnBreak($stationId, $shiftId)
    {
-      return ($this->getCurrentBreakId($stationId) != 0);
+      return ($this->getCurrentBreakId($stationId, $shiftId) != 0);
    }
    
-   public function startBreak($stationId, $breakDescriptionId, $startDateTime)
+   public function startBreak($stationId, $shiftId, $breakDescriptionId, $startDateTime)
    {
       $success = false;
       
-      if (!$this->isOnBreak($stationId))
+      if (!$this->isOnBreak($stationId, $shiftId))
       {
          $query =
          "INSERT INTO break " .
-         "(stationId, breakDescriptionId, startTime) " .
+         "(stationId, shiftId, breakDescriptionId, startTime) " .
          "VALUES " .
-         "('$stationId', '$breakDescriptionId', '" . Time::toMySqlDate($startDateTime) . "');";
+         "('$stationId', '$shiftId', '$breakDescriptionId', '" . Time::toMySqlDate($startDateTime) . "');";
 
          $success = $this->query($query);
       }
@@ -516,11 +516,11 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($success);
    }
    
-   public function endBreak($stationId, $endDateTime)
+   public function endBreak($stationId, $shiftId, $endDateTime)
    {
       $success = false;
       
-      $breakId = $this->getCurrentBreakId($stationId);
+      $breakId = $this->getCurrentBreakId($stationId, $shiftId);
       
       if ($breakId != 0)
       {
@@ -544,21 +544,22 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($result);
    }
    
-   public function getBreaks($stationId, $startDateTime, $endDateTime)
+   public function getBreaks($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-      $query = "SELECT * FROM break WHERE $stationClause startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, startTime ASC;";
+      $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
+      $query = "SELECT * FROM break WHERE $stationClause $shiftClause startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, startTime ASC;";
 
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function getBreakTime($stationId, $startDateTime, $endDateTime)
+   public function getBreakTime($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $breakTime = 0;
       
-      $query = "SELECT * FROM break WHERE stationId = \"$stationId\" AND startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY startTime DESC;";
+      $query = "SELECT * FROM break WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY startTime DESC;";
 
       $result = $this->query($query);
       

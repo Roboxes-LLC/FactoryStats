@@ -1,5 +1,7 @@
 <?php
+
 require_once 'database.php';
+require_once 'params.php';
 require_once 'time.php';
 
 class ShiftInfo
@@ -105,6 +107,26 @@ class ShiftInfo
       }
       
       return ($html);
+   }
+   
+   static function getShiftId()
+   {
+      $shiftId = ShiftInfo::DEFAULT_SHIFT_ID;
+      
+      $params = Params::parse();
+      
+      $currentShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
+      
+      if ($params->keyExists("shiftId"))
+      {
+         $shiftId = $params->getInt("shiftId");
+      }
+      else if ($currentShiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $shiftId = $currentShiftId;
+      }
+      
+      return ($shiftId);
    }
 }
 

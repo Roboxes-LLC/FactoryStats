@@ -60,10 +60,10 @@ class WorkstationStatus
          $workstationStatus->cycleTimeStatus = WorkstationStatus::getCycleTimeStatus($stationId);
          $workstationStatus->cycleTimeStatusLabel = CycleTimeStatus::getClassLabel($workstationStatus->cycleTimeStatus);
          
-         $workstationStatus->isOnBreak = WorkstationStatus::isOnBreak($stationId);
+         $workstationStatus->isOnBreak = $database->isOnBreak($stationId, $shiftId);
          if ($workstationStatus->isOnBreak)
          {
-            $workstationStatus->breakInfo = BreakInfo::getCurrentBreak($stationId);
+            $workstationStatus->breakInfo = BreakInfo::getCurrentBreak($stationId, $shiftId);
          }
       }
       
@@ -162,13 +162,6 @@ class WorkstationStatus
       $stationInfo = StationInfo::load($stationId);
       
       return (CycleTimeStatus::calculateCycleTimeStatus($stationInfo->updateTime, $stationInfo->cycleTime));
-   }
-   
-   private static function isOnBreak($stationId)
-   {
-      $breakInfo = BreakInfo::getCurrentBreak($stationId);
-      
-      return ($breakInfo != null);
    }
 }
 

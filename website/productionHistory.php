@@ -114,10 +114,6 @@ function getTable()
 
 function renderTable()
 {
-   $params = Params::parse();
-   
-   $shiftId = $params->keyExists("shiftId") ? $params->get("shiftId") : ShiftInfo::UNKNOWN_SHIFT_ID;
-   
    switch (getTable())
    {
       case Table::HOURLY_COUNTS:
@@ -128,7 +124,7 @@ function renderTable()
       
       case Table::BREAKS:
       {
-         renderBreaksTable($shiftId);
+         renderBreaksTable();
          break;
       }
       
@@ -325,13 +321,14 @@ HEREDOC;
    echo "</table>";
 }
 
-function renderBreaksTable($shiftId)
+function renderBreaksTable()
 {
    echo
 <<<HEREDOC
    <table>
       <tr>
          <th>Workstation</th>
+         <th>Shift</th>
          <th>Date</th>
          <th>Start time</th>
          <th>End time</th>
@@ -341,6 +338,7 @@ function renderBreaksTable($shiftId)
 HEREDOC;
    
    $stationId = getStationId();
+   $shiftId = getShiftId();
    $startDate = getStartDate();
    $endDate = getEndDate();
    
@@ -351,13 +349,16 @@ HEREDOC;
    
    if ($database && $database->isConnected())
    {
-      $result = $database->getBreaks($stationId, $startTime, $endTime);
+      $result = $database->getBreaks($stationId, $shiftId, $startTime, $endTime);
       
       while ($result && ($row = $result->fetch_assoc()))
       {
          $breakInfo = BreakInfo::load($row["breakId"]);
          
          $stationInfo = StationInfo::load($row["stationId"]);
+         
+         $shiftInfo = ShiftInfo::load($row["shiftId"]);
+         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
          
          $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s"),
             new DateTimeZone('America/New_York'));
@@ -399,6 +400,7 @@ HEREDOC;
 <<<HEREDOC
          <tr>
             <td>$stationInfo->name</td>
+            <td>$shiftName</td>
             <td>$dateString</td>
             <td>$startTimeString</td>
             <td>$endTimeString</td>

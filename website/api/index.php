@@ -158,7 +158,7 @@ $router->add("update", function($params) {
        ($stationId != ShiftInfo::UNKNOWN_SHIFT_ID) &&
        isset($params["count"]))
    {
-      if (BreakInfo::getCurrentBreak($stationId))
+      if (BreakInfo::getCurrentBreak($stationId, $shiftId))
       {
          BreakInfo::endBreak($stationId);
       }
@@ -183,8 +183,10 @@ $router->add("break", function($params) {
    $result = new stdClass();
 
    $stationId = $params->getInt("stationId");
+   $shiftId = $params->getInt("shiftId");
 
-   if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+   if (($stationId != StationInfo::UNKNOWN_STATION_ID) &&
+       ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID))
    {
       $status = $params->get("status");
 
@@ -192,7 +194,7 @@ $router->add("break", function($params) {
       {
          $breakDescriptionId = ($params->keyExists("breakDescriptionId")) ? $params->get("breakDescriptionId") : BreakDescription::UNKNOWN_DESCRIPTION_ID;
 
-         $breakInfo = BreakInfo::startBreak($stationId, $breakDescriptionId);
+         $breakInfo = BreakInfo::startBreak($stationId, $shiftId, $breakDescriptionId);
          
          $result->success = ($breakInfo != null);
 
@@ -203,7 +205,7 @@ $router->add("break", function($params) {
       }
       else if ($status == "end")
       {
-         $breakInfo = BreakInfo::endBreak($stationId);
+         $breakInfo = BreakInfo::endBreak($stationId, $shiftId);
 
          $result->success = ($breakInfo != null);
 
@@ -319,6 +321,39 @@ $router->add("stationInfoSummary", function($params) {
       }
    }
 
+   echo json_encode($result);
+});
+
+$router->add("session", function($params) {
+   $result = new stdClass();
+   
+   $action = $params->get("action");
+   $key = $params->get("key");
+   $value = $params->get("value");
+
+   if ($action && $key && $value)
+   {
+      session_start();
+      
+      if ($action == "set")
+      {
+         $_SESSION[$key] = $value;
+         
+         $result->success = true;
+      }
+      else if ($action == "get")
+      {
+         // TODO
+         $result->success = false;
+         $result->error = "Unsupported action.";
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters.";
+   }
+   
    echo json_encode($result);
 });
 
