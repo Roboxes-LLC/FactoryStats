@@ -267,7 +267,7 @@ function updateHourlyCount(hourlyCount)
 {
    var shiftId = getShiftId();
    
-   setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHours);
+   setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHour);
    
    drawChart(hourlyCount);
 }
