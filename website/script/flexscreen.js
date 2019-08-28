@@ -265,6 +265,10 @@ function updateHardwareButtonIndicator(hardwareButtonStatus)
 
 function updateHourlyCount(hourlyCount)
 {
+   var shiftId = getShiftId();
+   
+   setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHours);
+   
    drawChart(hourlyCount);
 }
 

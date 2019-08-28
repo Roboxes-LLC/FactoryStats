@@ -57,7 +57,7 @@ class WorkstationStatus
          
          $workstationStatus->hardwareButtonStatus = WorkstationStatus::getHardwareButtonStatus($stationId, $database);
          
-         $workstationStatus->cycleTimeStatus = WorkstationStatus::getCycleTimeStatus($stationId, $workstationStatus->updateTime);
+         $workstationStatus->cycleTimeStatus = WorkstationStatus::getCycleTimeStatus($stationId, $shiftId, $workstationStatus->updateTime);
          $workstationStatus->cycleTimeStatusLabel = CycleTimeStatus::getClassLabel($workstationStatus->cycleTimeStatus);
          
          $workstationStatus->isOnBreak = $database->isOnBreak($stationId, $shiftId);
@@ -157,11 +157,11 @@ class WorkstationStatus
       return ($hardwareButtonStatus);
    }
    
-   private static function getCycleTimeStatus($stationId, $updateTime)
+   private static function getCycleTimeStatus($stationId, $shiftId, $updateTime)
    {
       $stationInfo = StationInfo::load($stationId);
 
-      return (CycleTimeStatus::calculateCycleTimeStatus($updateTime, $stationInfo->cycleTime));
+      return (CycleTimeStatus::calculateCycleTimeStatus($shiftId, $updateTime, $stationInfo->cycleTime));
    }
 }
 

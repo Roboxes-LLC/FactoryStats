@@ -31,8 +31,8 @@ function setupChart()
          },
          format: 'ha',
          viewWindow: {
-            min: [5, 30, 0],
-            max: [16, 30, 0]
+            min: [5, 30, 0],  // 5:30am
+            max: [16, 30, 0]  // 4:30pm
           },
           gridlines: {
              color: 'transparent'
@@ -77,4 +77,14 @@ function drawChart(hourlyCounts)
    
       hourlyCountChart.draw(data, chartOptions);
    }
+}
+
+function setChartHours(startHour, endHour)
+{
+   /*
+   chartOptions.hAxis.viewWindow = {
+      min: [startHour, 0, 0], 
+      max: [endHour, 0, 0]
+   };
+   */
 }

@@ -29,13 +29,15 @@ class CycleTimeStatus
       return ($classLabel);
    }
    
-   static function calculateCycleTimeStatus($updateTime, $cycleTime)
+   static function calculateCycleTimeStatus($shiftId, $updateTime, $cycleTime)
    {
       $cycleTimeStatus = CycleTimeStatus::UNKNOWN;
       
-      if (($cycleTime > 0) &&
-          Time::isToday($updateTime) &&
-          Settings::isShiftActive(Time::now("H:i:s")))
+      $activeShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
+      
+      if (($cycleTime > 0) &&            // There is a configured cycle time for the station
+          Time::isToday($updateTime) &&  // The update time is today
+          ($shiftId == $activeShiftId))  // The shift in question is active.
       {
          $updateDateTime = new DateTime($updateTime);
          $now = new DateTime(Time::now("Y-m-d H:i:s"));
