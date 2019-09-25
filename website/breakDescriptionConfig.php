@@ -2,6 +2,7 @@
 
 require_once 'common/breakDescription.php';
 require_once 'common/database.php';
+require_once 'common/header.php';
 require_once 'common/params.php';
 
 function renderTable()
@@ -145,7 +146,7 @@ switch ($params->get("action"))
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(false);?>
    
    <?php include 'common/menu.php';?>
    

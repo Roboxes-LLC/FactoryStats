@@ -61,9 +61,34 @@ function setMenuSelection(menuItem)
    }
 }
 
+function storeInSession(key, value)
+{
+   var requestURL = "api/session/?action=set&key=" + key + "&value=" + value;
+   
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         var json = JSON.parse(this.responseText);
+         
+         if (json.success)
+         {
+            console.log("Stored [" + key + ", " + value + "] in session.");
+         }
+         else
+         {
+            console.log("Failed to store [" + key + ", " + value + "] in session.");
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();
+}
+
 function update()
 {
-   var requestURL = "api/status/?stationId=" + getStationId() + "&action=status";
+   var requestURL = "api/status/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&action=status";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -86,6 +111,8 @@ function update()
          }
          
          updateElapsedTime();
+         
+         updateCycleTimeStatus(json.cycleTimeStatus, json.cycleTimeStatusLabel, json.isOnBreak);
          
          updateAverageCountTime(json.averageCountTime);
          
@@ -115,13 +142,13 @@ function updateCountTime(countTime)
 function updateElapsedTime()
 {
    var timeString = "----";
-   var timeClass = window.isOnBreak ? "time-paused" : "";  // time-early, time-warning, time-late, time-paused
    
    if (window.lastCountTime)
    {
       var now = new Date(Date.now());
       var lastCountTime = new Date(Date.parse(window.lastCountTime));
       
+      // Verify lastCountTime is for this work day.
       if (lastCountTime &&
           ((lastCountTime.getYear() == now.getYear()) &&
            (lastCountTime.getMonth() == now.getMonth()) &&
@@ -146,29 +173,31 @@ function updateElapsedTime()
          {
             timeString = padNumber(minutes) + ":" + padNumber(seconds);
          }
-         
-         // Style the elapsed time display based on its relation to the cycle time.
-         var cycleTime = getCycleTime();  // seconds
-         if (cycleTime > 0)
-         {            
-            var totalSeconds = Math.round(diff / millisInSecond);
-            var warningThreshold = Math.round(cycleTime * 0.8);  // Warning at 80% of cycle time
-            timeClass = window.isOnBreak ? "time-paused" : (totalSeconds > cycleTime) ? "time-late" : (totalSeconds > warningThreshold) ? "time-warning" : "time-early";
-         }
       }
    }
    
    var element = document.getElementById("elapsed-time-div");
    
    element.innerHTML = timeString;
+}
+
+function updateCycleTimeStatus(cycleTimeStatus, cycleTimeStatusLabel, isOnBreak)
+{
+   var element = document.getElementById("elapsed-time-div");
    
-   element.classList.remove("time-paused");
-   element.classList.remove("time-early");
-   element.classList.remove("time-warning");
-   element.classList.remove("time-late");
-   if (timeClass != "")
+   element.classList.remove("under-cycle-time");
+   element.classList.remove("near-cycle-time");
+   element.classList.remove("over-cycle-time");
+   element.classList.remove("paused");
+   
+   if (cycleTimeStatusLabel != "")
    {
-      element.classList.add(timeClass);
+      element.classList.add(cycleTimeStatusLabel);
+   }
+   
+   if (isOnBreak)
+   {
+      element.classList.add("paused");
    }
 }
 
@@ -236,12 +265,16 @@ function updateHardwareButtonIndicator(hardwareButtonStatus)
 
 function updateHourlyCount(hourlyCount)
 {
+   var shiftId = getShiftId();
+   
+   setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHour);
+   
    drawChart(hourlyCount);
 }
 
 function incrementCount()
 {
-   var requestURL = "api/update/?stationId=" + getStationId() + "&count=1";
+   var requestURL = "api/update/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&count=1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -259,7 +292,7 @@ function incrementCount()
 
 function decrementCount()
 {
-   var requestURL = "api/update/?stationId=" + getStationId() + "&count=-1";
+   var requestURL = "api/update/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&count=-1";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -277,16 +310,17 @@ function decrementCount()
 
 function getStationId()
 {
-   var element = document.getElementById("station-id-input");
+   return (document.getElementById("station-id-input").value);
+}
 
-   return (element.value);
+function getShiftId()
+{
+   return (document.getElementById("shift-id-input").value);
 }
 
 function getCycleTime()
 {
-   var element = document.getElementById("cycle-time-input");
-
-   return (element.value);
+   return (document.getElementById("cycle-time-input").value);
 }
 
 function padNumber(number)
@@ -316,7 +350,7 @@ function startBreak(breakDescriptionId)
 {
    console.log("startBreak (breakDescriptionId = " + breakDescriptionId + ")");
    
-   var requestURL = "api/break/?stationId=" + getStationId() + "&status=start&breakDescriptionId=" + breakDescriptionId;
+   var requestURL = "api/break/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&status=start&breakDescriptionId=" + breakDescriptionId;
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -339,7 +373,7 @@ function endBreak(stationId)
 {
    console.log("endBreak");
    
-   var requestURL = "api/break/?stationId=" + getStationId() + "&status=end";
+   var requestURL = "api/break/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&status=end";
    
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()

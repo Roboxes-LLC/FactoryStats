@@ -1,6 +1,6 @@
 function update()
 {
-   var requestURL = "api/workstationSummary/"
+   var requestURL = "api/workstationSummary/?shiftId=" + getShiftId();
       
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -26,6 +26,11 @@ function getWorkstationDiv(stationId)
    return (document.getElementById(elementId));
 }
 
+function getShiftId()
+{
+   return (document.getElementById("shift-id-input").value);
+}
+
 function updateWorkstation(workstationStatus)
 {
    divElement = getWorkstationDiv(workstationStatus.stationId);
@@ -41,6 +46,8 @@ function updateWorkstation(workstationStatus)
       updateUpdateTime(workstationStatus.stationId, workstationStatus.updateTime);
       
       updateAverageCountTime(workstationStatus.stationId, workstationStatus.averageCountTime);
+      
+      updateCycleTimeStatus(workstationStatus.stationId, workstationStatus.cycleTimeStatus, workstationStatus.cycleTimeStatusLabel, workstationStatus.isOnBreak);
    }
 }
 
@@ -147,5 +154,28 @@ function updateAverageCountTime(stationId, averageCountTime)
    
       var element = divElement.getElementsByClassName("average-count-time-div")[0]
       element.innerHTML = timeString;
+   }
+}
+
+function updateCycleTimeStatus(stationId, cycleTimeStatus, cycleTimeStatusLabel, isOnBreak)
+{
+   divElement = getWorkstationDiv(stationId);
+   
+   if (divElement)
+   {
+      divElement.classList.remove("under-cycle-time");
+      divElement.classList.remove("near-cycle-time");
+      divElement.classList.remove("over-cycle-time");
+      divElement.classList.remove("paused");
+      
+      if (cycleTimeStatusLabel != "")
+      {
+         divElement.classList.add(cycleTimeStatusLabel);
+      }
+      
+      if (isOnBreak)
+      {
+         divElement.classList.add("paused");
+      }
    }
 }

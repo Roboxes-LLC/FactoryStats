@@ -1,5 +1,9 @@
 @CHARSET "ISO-8859-1";
 
+body {
+   color: white;
+}
+
 .main.paused {
 }
 
@@ -274,18 +278,19 @@ body {
   }
 }
 
-.time-warning {
+#elapsed-time-div.near-cycle-time {
    color : yellow;
    animation: warning-anim 1s ease-in-out infinite alternate;
 }
 
-.time-late {
+#elapsed-time-div.over-cycle-time {
 	color: #ff0000;
    animation: late-anim 500ms ease-in-out infinite alternate;
 }
 
-.time-paused {
+#elapsed-time-div.paused {
    color: orange;
+   animation: none;
 }
 
 .led-red {
@@ -333,6 +338,21 @@ body {
 
 .config-button:hover {
    cursor: pointer;
+}
+   
+#shift-id-input {
+   background-color: #14a3db;
+   border: none;
+   color: white;
+   padding: 10px 15px;
+   font-size: 16px;
+   border-radius: 4px;
+   margin: 5px;   
+}
+
+#shift-id-input option {
+   background-color: white;
+   color: #14a3db;
 }
 
 /* 
@@ -411,4 +431,9 @@ Screen = B/w 768px to 1024px
 	color: white;
    font-size: 18px;
    margin-top: 10px;
+}
+
+tr.total td, tr.total th {
+	color: #14a3db;
+   font-weight: bold; 
 }
