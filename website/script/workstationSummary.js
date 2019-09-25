@@ -7,7 +7,6 @@ function update()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         console.log(this.responseText);
          var json = JSON.parse(this.responseText);
 
          for (var i = 0; i < json.workstationSummary.length; i++)
