@@ -81,11 +81,7 @@ function drawChart(hourlyCounts)
 
 function setChartHours(startHour, endHour)
 {
-console.log(startHour + ", " + endHour);
-   if (endHour < startHour)
-   {
-      endHour = 24;
-   }
+   endHour = (endHour > startHour) ? endHour : 23;
 
    chartOptions.hAxis.viewWindow = {
       min: [startHour, 0, 0], 
