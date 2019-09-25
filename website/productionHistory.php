@@ -3,7 +3,9 @@
 require_once 'common/breakInfo.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
+require_once 'common/header.php';
 require_once 'common/params.php';
+require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 
 Time::init();
@@ -16,52 +18,57 @@ class Table
    const BREAKS        = 3;
 }
 
-function getStationId()
+function getFilterStationId()
 {
    $stationId =  "ALL";
    
    $params = Params::parse();
    
-   if ($params->keyExists("stationId"))
+   if ($params->keyExists("filterStationId"))
    {
-       $stationId = $params->get("stationId");
+       $stationId = $params->get("filterStationId");
    }
 
    return ($stationId);
 }
 
+function getFilterShiftId()
+{
+   $shiftId = ShiftInfo::getShiftId();
+   
+   $params = Params::parse();
+   
+   if ($params->keyExists("filterShiftId"))
+   {
+      $shiftId = $params->get("filterShiftId");
+   }
+   
+   return ($shiftId);
+}
 
-function getStartDate()
+function getFilterStartDate()
 {
    $startDate = Time::now("Y-m-d");
    
-   if (($_SERVER["REQUEST_METHOD"] === "GET") &&
-      (isset($_GET["startDate"])))
+   $params = Params::parse();
+   
+   if ($params->keyExists("filterStartDate"))
    {
-      $startDate = $_GET["startDate"];
-   }
-   else if (($_SERVER["REQUEST_METHOD"] === "POST") &&
-            (isset($_PUT["startDate"])))
-   {
-      $startDate = $_PUT["startDate"];
+      $startDate = $params->get("filterStartDate");
    }
    
    return ($startDate);
 }
 
-function getEndDate()
+function getFilterEndDate()
 {
    $endDate = Time::now("Y-m-d");
    
-   if (($_SERVER["REQUEST_METHOD"] === "GET") &&
-       (isset($_GET["endDate"])))
+   $params = Params::parse();
+   
+   if ($params->keyExists("filterEndDate"))
    {
-      $endDate = $_GET["endDate"];
-   }
-   else if (($_SERVER["REQUEST_METHOD"] === "POST") &&
-            (isset($_PUT["endDate"])))
-   {
-      $endDate = $_PUT["endDate"];
+      $startDate = $params->get("filterEndDate");
    }
    
    return ($endDate);
@@ -100,8 +107,6 @@ function getTable()
 
 function renderTable()
 {
-   $params = Params::parse();
-   
    switch (getTable())
    {
       case Table::HOURLY_COUNTS:
@@ -132,6 +137,7 @@ function renderDailyCountsTable()
    <table>
       <tr>
          <th>Workstation</th>
+         <th>Shift</th>
          <th>Date</th>
          <th>Screen Count</th>
          <th>First Screen</th>
@@ -140,23 +146,28 @@ function renderDailyCountsTable()
       </tr>
 HEREDOC;
 
-   $stationId = getStationId();
-   $startDate = getStartDate();
-   $endDate = getEndDate();
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
    
-   $dailySummaries = DailySummary::getDailySummaries($stationId, $startDate, $endDate);
+   $dailySummaries = DailySummary::getDailySummaries($stationId, $shiftId, $startDate, $endDate);
+     
+   $totalCount = 0;
    
    foreach ($dailySummaries as $dailySummary)
    {
       $stationInfo = StationInfo::load($dailySummary->stationId);
       
+      $shiftInfo = ShiftInfo::load($dailySummary->shiftId);
+      $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
+            
       $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
       $dateString = $dateTime->format("m-d-Y");
       
-      $averageCountTime = round(($dailySummary->countTime / $dailySummary->count), 0);
-      $hours = round(($averageCountTime / 3600), 0);
-      $minutes = round((($averageCountTime % 3600) / 60), 0);
-      $seconds = ($averageCountTime % 60);
+      $hours = floor(($dailySummary->averageCountTime / 3600));
+      $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
+      $seconds = ($dailySummary->averageCountTime % 60);
       
       $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
       
@@ -175,18 +186,18 @@ HEREDOC;
       }
       
       $timeString = "---";
-      if ($dailySummary->countTime > 0)
+      if ($dailySummary->averageCountTime > 0)
       {
          $timeString = "";
          
          if ($hours > 0)
          {
-            $timeString .= $hours . " hours ";
+            $timeString .= $hours . (($hours > 1) ? " hours " : " hour ");
          }
          
          if (($hours > 0) || ($minutes > 0))
          {
-            $timeString .= $minutes . " minutes ";
+            $timeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
          }
          
          if ($hours == 0)
@@ -199,6 +210,7 @@ HEREDOC;
 <<<HEREDOC
          <tr>
             <td>$stationInfo->name</td>
+            <td>$shiftName</td>
             <td>$dateString</td>
             <td>$dailySummary->count</td>
             <td>$firstEntryString</td>
@@ -206,61 +218,100 @@ HEREDOC;
             <td>$timeString</td>
          </tr>
 HEREDOC;
+      
+      $totalCount += $dailySummary->count;
    }
+   
+   echo
+<<<HEREDOC
+         <tr class="total">
+            <th>Total</th>
+            <td></td>
+            <td></td>
+            <td>$totalCount</td>
+            <td></td>
+            <td></td>
+            <td></td>
+         </tr>
+HEREDOC;
    
    echo "</table>";
 }
 
 function renderHourlyCountsTable()
 {
-    echo
-    <<<HEREDOC
+   echo
+<<<HEREDOC
    <table>
       <tr>
          <th>Workstation</th>
+         <th>Shift</th>
          <th>Date</th>
          <th>Hour</th>
          <th>Screen Count</th>
       </tr>
 HEREDOC;
     
-    $stationId = getStationId();
-    $startDate = getStartDate();
-    $endDate = getEndDate();
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
     
-    $startTime = Time::startOfDay($startDate);
-    $endTime = Time::endOfDay($endDate);
+   $startTime = Time::startOfDay($startDate);
+   $endTime = Time::endOfDay($endDate);
+   
+   $shiftInfo = ShiftInfo::load($shiftId);
+   $shiftName = $shiftInfo ? $shiftInfo->shiftName : "All";
     
-    $database = FlexscreenDatabase::getInstance();
+   $database = FlexscreenDatabase::getInstance();
     
-    if ($database && $database->isConnected())
-    {
-        $result = $database->getHourlyCounts($stationId, $startTime, $endTime);
+   if ($database && $database->isConnected())
+   {
+      $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
+      
+      $totalCount = 0;
         
-        while ($result && ($row = $result->fetch_assoc()))
-        {
-           $stationInfo = StationInfo::load($row["stationId"]);
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $stationInfo = StationInfo::load($row["stationId"]);
+         
+         $shiftInfo = ShiftInfo::load($row["shiftId"]);
+         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
             
-           $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
+         $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
                                     new DateTimeZone('America/New_York'));
-           $dateString = $dateTime->format("m-d-Y");
-           $hourString = $dateTime->format("h A");
+         $dateString = $dateTime->format("m-d-Y");
+         $hourString = $dateTime->format("h A");
            
-           $count = intval($row["count"]);
+         $count = intval($row["count"]);
             
-           echo
+         echo
 <<<HEREDOC
-           <tr>
-              <td>$stationInfo->name</td>
-              <td>$dateString</td>
-              <td>$hourString</td>
-              <td>$count</td>
-           </tr>
+         <tr>
+            <td>$stationInfo->name</td>
+            <td>$shiftName</td>
+            <td>$dateString</td>
+            <td>$hourString</td>
+            <td>$count</td>
+         </tr>
 HEREDOC;
-        }
-    }
+         
+         $totalCount += $count;
+      }
+   }
+   
+   echo
+<<<HEREDOC
+   <tr class="total">
+      <th>Total</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>$totalCount</td>
+   </tr>
+HEREDOC;
     
-    echo "</table>";
+   echo "</table>";
 }
 
 function renderBreaksTable()
@@ -270,6 +321,7 @@ function renderBreaksTable()
    <table>
       <tr>
          <th>Workstation</th>
+         <th>Shift</th>
          <th>Date</th>
          <th>Start time</th>
          <th>End time</th>
@@ -278,9 +330,10 @@ function renderBreaksTable()
       </tr>
 HEREDOC;
    
-   $stationId = getStationId();
-   $startDate = getStartDate();
-   $endDate = getEndDate();
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
    
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
@@ -289,13 +342,16 @@ HEREDOC;
    
    if ($database && $database->isConnected())
    {
-      $result = $database->getBreaks($stationId, $startTime, $endTime);
+      $result = $database->getBreaks($stationId, $shiftId, $startTime, $endTime);
       
       while ($result && ($row = $result->fetch_assoc()))
       {
          $breakInfo = BreakInfo::load($row["breakId"]);
          
          $stationInfo = StationInfo::load($row["stationId"]);
+         
+         $shiftInfo = ShiftInfo::load($row["shiftId"]);
+         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
          
          $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s"),
             new DateTimeZone('America/New_York'));
@@ -335,14 +391,15 @@ HEREDOC;
          
          echo
 <<<HEREDOC
-           <tr>
-              <td>$stationInfo->name</td>
-              <td>$dateString</td>
-              <td>$startTimeString</td>
-              <td>$endTimeString</td>
-              <td>$durationString</td>
-              <td>$reason</td>
-           </tr>
+         <tr>
+            <td>$stationInfo->name</td>
+            <td>$shiftName</td>
+            <td>$dateString</td>
+            <td>$startTimeString</td>
+            <td>$endTimeString</td>
+            <td>$durationString</td>
+            <td>$reason</td>
+         </tr>
 HEREDOC;
       }
    }
@@ -352,7 +409,7 @@ HEREDOC;
 
 function renderStationOptions()
 {
-   $selectedStationId = getStationId();
+   $selectedStationId = getFilterStationId();
    
    echo "<option value=\"ALL\">All stations</option>";
 
@@ -372,6 +429,11 @@ function renderStationOptions()
       }
    }
 }
+
+function renderShiftOptions()
+{
+   echo ShiftInfo::getShiftOptions(getFilterShiftId(), true);
+}
 ?>
 
 <html>
@@ -388,24 +450,13 @@ function renderStationOptions()
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
    
-   <style>
-      body {
-         color: white;
-      }
-      
-      table, th, td {
-         color: white;
-         border: 1px solid white;
-      }
-   </style>
-   
 </head>
 
 <body>
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(false);?>
    
    <?php include 'common/menu.php';?>
    
@@ -413,13 +464,14 @@ function renderStationOptions()
 
       <div class="flex-horizonal historical-data-filter-div">
          <form action="#">
-         <label>Station ID: </label><select name="stationId"><?php renderStationOptions();?></select>
-         <label>Start date: </label><input type="date" name="startDate" value="<?php echo getStartDate();?>">
-         <label>End date: </label><input type="date" name="endDate" value="<?php echo getEndDate();?>">
-         <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>
-         <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo (getTable() == Table::HOURLY_COUNTS) ? "checked" : "";?>>
-         <label>Breaks</label><input type="radio" name="display" value="breaks" <?php echo (getTable() == Table::BREAKS) ? "checked" : "";?>>
-         <button type="submit">Filter</button>
+            <label>Station ID: </label><select name="filterStationId"><?php renderStationOptions();?></select>
+            <label>Shift: </label><select name="filterShiftId"><?php renderShiftOptions();?></select>
+            <label>Start date: </label><input type="date" name="filterStartDate" value="<?php echo getFilterStartDate();?>">
+            <label>End date: </label><input type="date" name="filterEndDate" value="<?php echo getFilterEndDate();?>">
+            <label>Daily stats</label><input type="radio" name="display" value="daily" <?php echo (getTable() == Table::DAILY_COUNTS) ? "checked" : "";?>>
+            <label>Hourly stats</label><input type="radio" name="display" value="hourly" <?php echo (getTable() == Table::HOURLY_COUNTS) ? "checked" : "";?>>
+            <label>Breaks</label><input type="radio" name="display" value="breaks" <?php echo (getTable() == Table::BREAKS) ? "checked" : "";?>>
+            <button type="submit">Filter</button>
          </form>
       </div>
    

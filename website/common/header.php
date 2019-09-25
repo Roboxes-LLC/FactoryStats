@@ -1,25 +1,57 @@
 <?php 
+
 require_once 'root.php';
+require_once 'shiftInfo.php';
 
-global $ROOT;
-
-function getUsername()
+class Header
 {
-   return ("User1");
+   public static function getHtml($includeShiftIdInput)
+   {
+      global $ROOT;
+      
+      $shiftIdInput = "";
+      if ($includeShiftIdInput)
+      {
+         $shiftOptions = ShiftInfo::getShiftOptions(ShiftInfo::getShiftId(), false);
+         $shiftIdInput = 
+<<<HEREDOC
+         <select id="shift-id-input" name="shiftId" onchange="storeInSession('shiftId', this.value); update();">$shiftOptions</select>
+HEREDOC;
+      }
+      
+      $username = Header::getUsername();
+      
+      $html = 
+<<<HEREDOC
+      <div class="flex-horizontal header">
+         <div class="flex-horizontal" style="width:33%; justify-content:flex-start; margin-left: 20px;">
+            $shiftIdInput
+         </div>
+
+         <div class="flex-horizontal" style="width:33%; justify-content:center;">
+            <img src="$ROOT/images/flexscreen-logo-hompage-2.png" width="350px">
+         </div>
+
+         <div class="flex-horizontal" style="width:33%; justify-content:flex-end; margin-right: 20px;">
+               <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
+               <div class="nav-username">$username &nbsp | &nbsp</div>
+               <a class="nav-link" href="$ROOT/index.php">Logout</a>
+         </div>
+      </div>
+HEREDOC;
+      
+      return ($html);
+   }
+   
+   public static function render($includeShiftIdInput)
+   {
+      echo (Header::getHtml($includeShiftIdInput));
+   }
+
+   static private function getUsername()
+   {
+      return ("User1");
+   }
 }
 
 ?>
-
-<div class="flex-horizontal header">
-   <div class="flex-horizontal" style="width:33%;"></div>
-   
-   <div class="flex-horizontal" style="width:33%; justify-content:center;">
-      <img src="<?php echo $ROOT?>/images/flexscreen-logo-hompage-2.png" width="350px">
-   </div>
-   
-   <div class="flex-horizontal" style="width:33%; justify-content:flex-end; margin-right: 20px;">
-         <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
-         <div class="nav-username"><?php echo getUsername()?> &nbsp | &nbsp</div>
-         <a class="nav-link" href="<?php echo $ROOT?>/index.php">Logout</a>
-   </div>
-</div>

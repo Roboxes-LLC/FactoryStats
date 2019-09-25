@@ -1,6 +1,8 @@
 <?php
 require_once 'breakDescription.php';
 require_once 'database.php';
+require_once 'shiftInfo.php';
+require_once 'stationInfo.php';
 require_once 'time.php';
 
 class BreakInfo
@@ -8,6 +10,8 @@ class BreakInfo
    const UNKNOWN_BREAK_ID = 0;
    
    public $breakId = BreakInfo::UNKNOWN_BREAK_ID;
+   public $stationId = StationInfo::UNKNOWN_STATION_ID;
+   public $shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
    public $breakDescriptionId = BreakDescription::UNKNOWN_DESCRIPTION_ID;
    public $startTime;
    public $endTime;
@@ -27,6 +31,8 @@ class BreakInfo
             $breakInfo = new BreakInfo();
             
             $breakInfo->breakId = intval($row['breakId']);
+            $breakInfo->stationId = intval($row['stationId']);
+            $breakInfo->shiftId = intval($row['shiftId']);
             $breakInfo->breakDescriptionId = intval($row['breakDescriptionId']);
             $breakInfo->startTime = Time::fromMySqlDate($row['startTime'], "Y-m-d H:i:s");
             if ($row['endTime'] != null)
@@ -39,7 +45,7 @@ class BreakInfo
       return ($breakInfo);
    }
    
-   public static function getCurrentBreak($stationId)
+   public static function getCurrentBreak($stationId, $shiftId)
    {
       $breakInfo = null;
       
@@ -47,7 +53,7 @@ class BreakInfo
       
       if ($database && $database->isConnected())
       {
-         $breakId = $database->getCurrentBreakId($stationId);
+         $breakId = $database->getCurrentBreakId($stationId, $shiftId);
 
          if ($breakId != BreakInfo::UNKNOWN_BREAK_ID)
          {
@@ -58,7 +64,7 @@ class BreakInfo
       return ($breakInfo);
    }
    
-   public static function isOnBreak($stationId)
+   public static function isOnBreak($stationId, $shiftId)
    {
       $isOnBreak = false;
       
@@ -66,34 +72,34 @@ class BreakInfo
       
       if ($database && $database->isConnected())
       {
-         $isOnBreak = $database->isOnBreak($stationId);
+         $isOnBreak = $database->isOnBreak($stationId, $shiftId);
       }
       
       return ($isOnBreak);
    }
    
-   public static function startBreak($stationId, $breakDescriptionId)
+   public static function startBreak($stationId, $shiftId, $breakDescriptionId)
    {
       $breakInfo = null;
       
-      if (BreakInfo::isOnBreak($stationId) == false)
+      if (BreakInfo::isOnBreak($stationId, $shiftId) == false)
       {
          $database = FlexscreenDatabase::getInstance();
          
          if ($database && $database->isConnected())
          {
-            $database->startBreak($stationId, $breakDescriptionId, Time::now("Y-m-d H:i:s"));
+            $database->startBreak($stationId, $shiftId, $breakDescriptionId, Time::now("Y-m-d H:i:s"));
             
-            $breakInfo = BreakInfo::getCurrentBreak($stationId);
+            $breakInfo = BreakInfo::getCurrentBreak($stationId, $shiftId);
          }
       }
       
       return ($breakInfo);
    }
    
-   public static function endBreak($stationId)
+   public static function endBreak($stationId, $shiftId)
    {
-      $breakInfo = BreakInfo::getCurrentBreak($stationId);
+      $breakInfo = BreakInfo::getCurrentBreak($stationId, $shiftId);
       
       if ($breakInfo)
       {
@@ -101,7 +107,7 @@ class BreakInfo
          
          if ($database && $database->isConnected())
          {
-            $database->endBreak($stationId, Time::now("Y-m-d H:i:s"));
+            $database->endBreak($stationId, $shiftId, Time::now("Y-m-d H:i:s"));
             
             $breakInfo = BreakInfo::load($breakInfo->breakId);
          }
@@ -126,6 +132,9 @@ if (isset($_GET["breakId"]))
  
    if ($breakInfo)
    {
+      echo "breakId: " .            $breakInfo->breakId .            "<br/>";
+      echo "stationId: " .          $breakInfo->stationId .          "<br/>";
+      echo "shiftId: " .            $breakInfo->shiftId .            "<br/>";
       echo "breakId: " .            $breakInfo->breakId .            "<br/>";
       echo "breakDescriptionId: " . $breakInfo->breakDescriptionId . "<br/>";
       echo "startTime: " .          $breakInfo->startTime .          "<br/>";

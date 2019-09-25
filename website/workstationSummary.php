@@ -1,9 +1,15 @@
 <?php
+
 require_once 'common/database.php';
+require_once 'common/header.php';
+require_once 'common/params.php';
+require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/workstationStatus.php';
 
-function renderStationSummaries()
+session_start();
+
+function renderStationSummaries($shiftId)
 {
    echo "<div class=\"flex-horizontal main summary\">";
    
@@ -13,13 +19,13 @@ function renderStationSummaries()
    {
       $stationId = $row["stationId"];
       
-      renderStationSummary($stationId);
+      renderStationSummary($stationId, $shiftId);
    }
    
    echo "</div>";
 }
 
-function renderStationSummary($stationId)
+function renderStationSummary($stationId, $shiftId)
 {
    $url= "workstation.php?stationId=" . $stationId;
 
@@ -27,7 +33,7 @@ function renderStationSummary($stationId)
    
    $stationInfo = StationInfo::load($stationId);
    
-   $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId);
+   $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
    
    if ($stationInfo && $workstationStatus)
    {
@@ -71,10 +77,10 @@ HEREDOC;
    <link rel="stylesheet" type="text/css" href="css/workstationSummary.css"/>
    
    <style>
-   .station-summary-div {
-      color: white;
-      border: 1px solid white;
-   }
+      .station-summary-div {
+         color: white;
+         border: 1px solid white;
+      }   
    </style>
    
 </head>
@@ -83,11 +89,11 @@ HEREDOC;
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php include 'common/header.php';?>
+   <?php Header::render(true);?>
    
    <?php include 'common/menu.php';?>
    
-   <?php renderStationSummaries();?>
+   <?php renderStationSummaries(ShiftInfo::getShiftId());?>
      
 </div>
 
