@@ -8,4 +8,4 @@ xset -dpms
 MAC_ADDRESS=$(./getMac.sh)
 
 # Launch Chromium browser in kiosk mode.
-/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk https://www.roboxes.com/flexscreen/index.php?macAddress=$MAC_ADDRESS &
+/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://www.roboxes.com/flexscreen/display.php?macAddress=$MAC_ADDRESS &
