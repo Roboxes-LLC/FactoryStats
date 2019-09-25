@@ -7,7 +7,7 @@ require_once 'common/stationInfo.php';
 
 function renderTable()
 {
-   echo 
+   echo
 <<<HEREDOC
    <table>
       <tr>
@@ -21,33 +21,33 @@ function renderTable()
          <th></th>
       </tr>
 HEREDOC;
-   
+
    $database = FlexscreenDatabase::getInstance();
-   
+
    if ($database && $database->isConnected())
    {
       $result = $database->getDisplays();
-      
+
       while ($result && $row = $result->fetch_assoc())
       {
          $displayInfo = DisplayInfo::load($row["displayId"]);
-         
-         $stationName = "";
+
+         $stationName = "Workstation Summary";
          if ($displayInfo->stationId != StationInfo::UNKNOWN_STATION_ID)
          {
             $stationInfo = StationInfo::load($displayInfo->stationId);
-            
+
             if ($stationInfo)
             {
                $stationName = $stationInfo->name;
             }
          }
-         
+
          $isOnline = $displayInfo->isOnline();
          $status = $isOnline ? "Online" : "Offline";
          $ledClass = $isOnline ? "led-green" : "led-red";
-         
-         echo 
+
+         echo
 <<<HEREDOC
          <tr>
             <td>$displayInfo->displayId</td>
@@ -62,33 +62,33 @@ HEREDOC;
 HEREDOC;
       }
    }
-   
+
    echo "</table>";
 }
 
 function getOptions()
 {
-   $options = "";
-   
+   $options = "<option value=\"0\">Workstation Summary</option>";
+
    $database = FlexscreenDatabase::getInstance();
-   
+
    if ($database && $database->isConnected())
    {
       $result = $database->getStations();
-      
+
       while ($result && $row = $result->fetch_assoc())
       {
          $options .= "<option value=\"{$row["stationId"]}\">{$row["name"]}</option>";
       }
    }
-   
+
    return ($options);
 }
 
 function deleteDisplay($displayId)
 {
    $database = FlexscreenDatabase::getInstance();
-   
+
    if ($database && $database->isConnected())
    {
       $database->deleteDisplay($displayId);
@@ -99,9 +99,9 @@ function updateDisplay($displayId, $stationId)
 {
    $diplayInfo = DisplayInfo::load($displayId);
    $diplayInfo->stationId = $stationId;
-   
+
    $database = FlexscreenDatabase::getInstance();
-   
+
    if ($database && $database->isConnected())
    {
       $database->updateDisplay($diplayInfo);
@@ -120,13 +120,13 @@ switch ($params->get("action"))
          deleteDisplay($params->get("displayId"));
          break;
       }
-      
+
    case "update":
       {
          updateDisplay($params->get("displayId"), $params->get("stationId"));
          break;
       }
-      
+
    default:
       {
          break;
@@ -140,16 +140,16 @@ switch ($params->get("action"))
 <head>
 
    <meta name="viewport" content="width=device-width, initial-scale=1">
-   
+
    <title>Display Config</title>
-   
+
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-   
+
    <link rel="stylesheet" type="text/css" href="css/flex.css"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
    <link rel="stylesheet" type="text/css" href="css/modal.css"/>
-   
+
 </head>
 
 <body>
@@ -164,11 +164,11 @@ switch ($params->get("action"))
    <?php include 'common/header.php';?>
    
    <?php include 'common/menu.php';?>
-   
+
    <div class="flex-horizontal main">
       <?php renderTable();?>
    </div>
-     
+
 </div>
 
 <!--  Modal dialogs -->
@@ -222,7 +222,7 @@ switch ($params->get("action"))
    {
       var input = document.getElementById('action-input');
       input.value = action;
-   }   
+   }
 </script>
 
 </body>
