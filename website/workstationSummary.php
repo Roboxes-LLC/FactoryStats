@@ -91,13 +91,14 @@ HEREDOC;
 
    <?php Header::render(true);?>
    
-   <?php include 'common/menu.php';?>
+   <?php if (!isKioskMode()) {include 'common/menu.php';}?>
    
    <?php renderStationSummaries(ShiftInfo::getShiftId());?>
      
 </div>
 
 <script src="script/flexscreen.js"></script>
+<?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"></script>";}?>
 <script src="script/workstationSummary.js"></script>
 <script>
    // Set menu selection.

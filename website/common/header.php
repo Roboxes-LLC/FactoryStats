@@ -1,5 +1,6 @@
 <?php 
 
+require_once 'kiosk.php';
 require_once 'root.php';
 require_once 'shiftInfo.php';
 
@@ -33,9 +34,20 @@ HEREDOC;
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:flex-end; margin-right: 20px;">
-               <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
-               <div class="nav-username">$username &nbsp | &nbsp</div>
-               <a class="nav-link" href="$ROOT/index.php">Logout</a>
+HEREDOC;
+      
+      if (!isKioskMode())
+      {
+         $html .=
+<<<HEREDOC
+            <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
+            <div class="nav-username">$username &nbsp | &nbsp</div>
+            <a class="nav-link" href="$ROOT/index.php">Logout</a>
+HEREDOC;
+      }
+         
+      $html .= 
+<<<HEREDOC
          </div>
       </div>
 HEREDOC;

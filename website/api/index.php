@@ -357,5 +357,16 @@ $router->add("session", function($params) {
    echo json_encode($result);
 });
 
+$router->add("shift", function($params) {
+   $result = new stdClass();
+   
+   $shiftId = ShiftInfo::getShift(Time::now("H:i:s"));
+   
+   $result->shiftId = $shiftId;
+   $result->success = true;
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>

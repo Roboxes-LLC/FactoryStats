@@ -42,12 +42,12 @@ function getStationId()
 $stationId = getStationId();
 
 // Default to workstation summary.
-$url = "$ROOT/workstationSummary.php";
+$url = "$ROOT/workstationSummary.php?kiosk=true";
 
 // Defer to any specified station ID.
 if ($stationId != StationInfo::UNKNOWN_STATION_ID)
 {
-   $url = "$ROOT/workstation.php?stationId=$stationId";
+   $url = "$ROOT/workstation.php?stationId=$stationId&kiosk=true";
 }
 
 // Redirect.
