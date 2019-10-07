@@ -200,13 +200,6 @@ switch ($params->get("action"))
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
-   setTimeout(function(){
-      if (!isModalVisible())
-      {
-         window.location.reload(1);
-      }
-   }, 5000);
-
    function setDisplayId(displayId)
    {
       var input = document.getElementById('display-id-input');

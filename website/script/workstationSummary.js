@@ -7,12 +7,20 @@ function update()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         var json = JSON.parse(this.responseText);
-
-         for (var i = 0; i < json.workstationSummary.length; i++)
+         try
          {
-            updateWorkstation(json.workstationSummary[i]);
+            var json = JSON.parse(this.responseText);
+
+            for (var i = 0; i < json.workstationSummary.length; i++)
+            {
+               updateWorkstation(json.workstationSummary[i]);
+            }
          }
+         catch (expection)
+         {
+            console.log("JSON syntax error");
+            console.log(this.responseText);
+         }         
       }
    };
    xhttp.open("GET", requestURL, true);

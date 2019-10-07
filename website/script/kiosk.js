@@ -17,9 +17,20 @@ function updateShift()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         var json = JSON.parse(this.responseText);
-         
-         setShift(parseInt(json.shiftId));
+         try
+         {
+            var json = JSON.parse(this.responseText);
+            
+            var shiftId = parseInt(json.shiftId);
+            shiftId = (shiftId == 0) ? 1 : shiftId;            
+            
+            setShift(parseInt(shiftId));
+         }
+         catch (expection)
+         {
+            console.log("JSON syntax error");
+            console.log(this.responseText);
+         }
       }
    };
    xhttp.open("GET", requestURL, true);
