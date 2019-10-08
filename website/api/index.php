@@ -368,5 +368,39 @@ $router->add("shift", function($params) {
    echo json_encode($result);
 });
 
+$router->add("displayStatus", function($params) {
+   $result = new stdClass();
+   
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result->success = true;
+      $result->displayStatuses = array();
+      
+      $dbaseResult = $database->getDisplays();
+      
+      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      {
+         $displayInfo = DisplayInfo::load(intval($row["displayId"]));
+         
+         $displayStatus = new stdClass();
+         $displayStatus->displayId = $displayInfo->displayId;
+         $displayStatus->isOnline = $displayInfo->isOnline();
+         $displayStatus->label = $displayStatus->isOnline ? "Online" : "Offline";
+         $displayStatus->ledClass = $displayStatus->isOnline ? "led-green" : "led-red";
+
+         $result->displayStatuses[] = $displayStatus;
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "No database connection";
+   }
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>
