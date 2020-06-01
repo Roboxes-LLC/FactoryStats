@@ -68,7 +68,7 @@ function getFilterEndDate()
    
    if ($params->keyExists("filterEndDate"))
    {
-      $startDate = $params->get("filterEndDate");
+      $endDate = $params->get("filterEndDate");
    }
    
    return ($endDate);
