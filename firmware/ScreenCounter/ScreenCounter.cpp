@@ -1,9 +1,10 @@
-#include "Messaging.hpp"
-#include "Properties.hpp"
+#include "Board/WifiBoard.hpp"
+#include "Logger/Logger.hpp"
+#include "Messaging/Messaging.hpp"
+#include "Properties/Properties.hpp"
 #include "ScreenCounter.hpp"
+#include "Robox.hpp"
 #include "StatusLed.hpp"
-#include "ToastBot.hpp"
-#include "WifiBoard.hpp"
 
 static const String COUNT_BUTTON = "countButton";
 static const String UNDO_BUTTON = "undoButton";
@@ -28,13 +29,13 @@ void ScreenCounter::setup()
    Messaging::subscribe(this, "buttonUp");
    Messaging::subscribe(this, "buttonLongPress");
 
-   Properties& properties = ToastBot::getProperties();
+   Properties& properties = Robox::getProperties();
    serverUrl = properties.getString("server");
 
    // TODO: Have StatusLed react to broadcast "wifiConnected" message.
    if (WifiBoard::getBoard()->isConnected() == true)
    {
-      StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+      StatusLed* led = (StatusLed*)Robox::getComponent("led");
       if (led)
       {
          led->onWifiConnected();
@@ -86,7 +87,7 @@ void ScreenCounter::timeout(
 {
    if (timer->getId().indexOf("factoryReset") != -1)
    {
-      ToastBot::factoryReset();
+      Robox::factoryReset();
    }
    else if (timer->getId().indexOf("doubleClick") != -1)
    {
@@ -125,7 +126,7 @@ void ScreenCounter::onButtonUp(
       // TODO: Send in reponse to HTTP 200 response.
       if (WifiBoard::getBoard()->isConnected() == true)
       {
-         StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+         StatusLed* led = (StatusLed*)Robox::getComponent("led");
          if (led)
          {
             if (count > 0)
@@ -154,7 +155,7 @@ void ScreenCounter::onLongPress(
 
    if (buttonId == UNDO_BUTTON)
    {
-      StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+      StatusLed* led = (StatusLed*)Robox::getComponent("led");
       if (led)
       {
          led->onFactoryReset();

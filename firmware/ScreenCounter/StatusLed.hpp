@@ -1,6 +1,6 @@
 #include "Component/Led.hpp"
-#include "ComponentFactory.hpp"
-#include "Timer.hpp"
+#include "Messaging/ComponentFactory.hpp"
+#include "Timer/Timer.hpp"
 
 class StatusLed : public Led, TimerListener
 {

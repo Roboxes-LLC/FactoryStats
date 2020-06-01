@@ -1,6 +1,6 @@
 #include "ButtonRegistrar.hpp"
-#include "ToastBot.hpp"
-#include "WifiBoard.hpp"
+#include "Robox.hpp"
+#include "Board/WifiBoard.hpp"
 
 ButtonRegistrar::ButtonRegistrar(
    const String& id,
@@ -20,7 +20,7 @@ void ButtonRegistrar::setup()
 {
    Registrar::setup();
       
-   Properties& properties = ToastBot::getProperties();
+   Properties& properties = Robox::getProperties();
 
    serverUrl = properties.getString("server");
 }

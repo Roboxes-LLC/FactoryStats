@@ -1,12 +1,14 @@
-#include <ToastBot.h>
+#include <RFC.h>
+//#include <Robox.h>
 
-#include "ButtonRegistrar.hpp"
-#include "ConfigPage.hpp"
-#include "PartCounter.hpp"
-#include "ScreenCounter.hpp"
-#include "WebServer.hpp"
+//#include "ButtonRegistrar.hpp"
+//#include "ConfigPage.hpp"
+//#include "PartCounter.hpp"
+//#include "Robox.hpp"
+//#include "ScreenCounter.hpp"
+//#include "WebServer/WebpageServer.hpp"
 
-WebServer webServer(80);
+//WebpageServer webServer(80);
 
 // *****************************************************************************
 //                                  Arduino
@@ -14,22 +16,24 @@ WebServer webServer(80);
 
 void setup()
 {
-   ToastBot::setup();
+  Serial.begin(9600);
+  Serial.println("Setup");
+   //Robox::setup();
 
 //#define PPTP
 #ifdef PPTP
-   ToastBot::addComponent(new ScreenCounter("counter"));
+   //Robox::addComponent(new ScreenCounter("counter"));
 #else   
-   ToastBot::addComponent(new PartCounter("counter", 2000));
+   //Robox::addComponent(new PartCounter("counter", 2000));
 #endif
 
-   webServer.setup();
-   webServer.addPage(new ConfigPage());
+   //webServer.setup();
+   //webServer.addPage(new ConfigPage());
 }
 
 void loop()
 {
-   ToastBot::loop();
+   //Robox::loop();
 
-   webServer.loop();
+   //webServer.loop();
 }
