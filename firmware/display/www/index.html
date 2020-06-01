@@ -1,0 +1,89 @@
+<html>
+
+<head>
+
+<style>
+   html {
+      height: 100%;
+   }
+   
+   body {
+      min-height: 100%;
+      background: black;
+      color: white;
+      font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+   }   
+      
+   .main {
+      width:100%;
+      height:100%;
+   }  
+   
+   .config-button {
+      background-color: #14a3db;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 4px;
+      margin: 5px; 
+   }
+   
+   .config-button:hover {
+      cursor: pointer;
+   }
+   
+   .flex-horizontal {
+      display: flex;
+      flex-direction: row;     /* horizontal orientation */
+      align-items: center;      /* center vertically */
+      justify-content: center; /* center horizontally */
+   }
+      
+   .flex-vertical {
+      display: flex;
+      flex-direction: column;     /* horizontal orientation */
+      align-items: center;         /* center vertically */
+      justify-content: center;    /* center horizontally */
+   }    
+}
+</style>
+
+</head>
+
+<body>
+
+   <div class="flex-horizontal header">
+      <div class="flex-horizontal" style="width: 33%; justify-content: center;">
+         <img src="./images/flexscreen-logo-hompage-2.png" width="350px">
+      </div>
+   </div>
+   
+   <div class="main flex-vertical">
+   
+      <form>
+      <div class="flex-vertical">
+         <div class="flex-horizontal">
+            <div class="flex-vertical" style="margin-right:20px;">
+               <label>SSID </label>
+               <br/>
+               <label>Password </label>
+            </div>
+            <div class="flex-vertical">
+               <input type="text" name="ssid" value="%SSID">
+               <br/>
+               <input type="password" name="password" value="%PASSWORD">
+            </div>
+         </div>
+         <br/>
+         <button class="config-button" type="submit">Save</button>
+      </div>
+      </form>
+   
+   </main>
+   
+</body>
+
+</html>

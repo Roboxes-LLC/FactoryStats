@@ -44,6 +44,7 @@ HEREDOC;
             }
          }
 
+         $id = "display-" . $displayInfo->displayId;
          $isOnline = $displayInfo->isOnline();
          $status = $isOnline ? "Online" : "Offline";
          $ledClass = $isOnline ? "led-green" : "led-red";
@@ -56,7 +57,7 @@ HEREDOC;
             <td>$displayInfo->ipAddress</td>
             <td>$stationName</td>
             <td>$displayInfo->lastContact</td>
-            <td>$status <div class="$ledClass"></div></td>
+            <td id="$id"><div>$status</div><div class="$ledClass"></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); setStationId($displayInfo->stationId); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
@@ -197,15 +198,9 @@ switch ($params->get("action"))
 
 <script src="script/flexscreen.js"></script>
 <script src="script/modal.js"></script>
+<script src="script/displayConfig.js"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
-
-   setTimeout(function(){
-      if (!isModalVisible())
-      {
-         window.location.reload(1);
-      }
-   }, 5000);
 
    function setDisplayId(displayId)
    {
@@ -224,6 +219,9 @@ switch ($params->get("action"))
       var input = document.getElementById('action-input');
       input.value = action;
    }
+
+   // Start a 10 second timer to update the display status LEDs.
+   setInterval(function(){updateDisplayStatus();}, 10000);
 </script>
 
 </body>

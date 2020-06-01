@@ -77,11 +77,6 @@ function getCycleTime($stationId)
    return ($cycleTime);
 }
 
-function isReadOnly()
-{
-   return (isset($_GET["displayId"]) || isset($_GET["macAddress"]));
-}
-
 function getCountButtons()
 {
    echo
@@ -136,8 +131,6 @@ $stationLabel = getStationLabel($stationId);
 
 $cycleTime = getCycleTime($stationId);
 
-$isReadOnly = isReadOnly();
-
 ?>
 
 <html>
@@ -169,7 +162,7 @@ $isReadOnly = isReadOnly();
    
       <?php Header::render(true);?>
       
-      <?php if (!$isReadOnly) {include 'common/menu.php';}?>
+      <?php if (!isKioskMode()) {include 'common/menu.php';}?>
       
       <div class="main workstation" style="align-items: center; flex-wrap: wrap;">
       
@@ -181,7 +174,7 @@ $isReadOnly = isReadOnly();
             </div>
             <div class="flex-horizontal">
                <div class="large-stat"><?php echo $stationLabel; ?></div>
-               <?php if (!$isReadOnly) {getBreakButton();}?>
+               <?php if (!isKioskMode()) {getBreakButton();}?>
             </div>
             
             <br>
@@ -202,7 +195,7 @@ $isReadOnly = isReadOnly();
          
             <div class="flex-horizontal">
             
-               <?php if (!$isReadOnly) {getCountButtons();}?>
+               <?php if (!isKioskMode()) {getCountButtons();}?>
                
                <div class="flex-vertical" style="margin-left: 50px;">
                   <div class="stat-label">Today's screen count</div>
@@ -239,6 +232,7 @@ $isReadOnly = isReadOnly();
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
    <script src="chart/chart.js"></script>
    <script src="script/flexscreen.js"></script>
+   <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"></script>";}?>
    <script src="script/modal.js"></script>
    <script>
       // Start a timer to update the count/hourly count div.

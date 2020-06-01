@@ -48,15 +48,18 @@ function setMenuSelection(menuItem)
    {
       var element = document.getElementById(menuItemElements[tempMenuItem]);
       
-      if (menuItem == tempMenuItem)
+      if (element)  // Menu is not present in kiosk mode.
       {
-         // Set.
-         element.classList.add("selected");
-      }
-      else
-      {
-         // Clear.
-         element.classList.remove("selected");
+         if (menuItem == tempMenuItem)
+         {
+            // Set.
+            element.classList.add("selected");
+         }
+         else
+         {
+            // Clear.
+            element.classList.remove("selected");
+         }
       }
    }
 }
@@ -398,22 +401,25 @@ function updateBreak(isOnBreak, breakInfo)
 
    var element = document.getElementById("break-button");
    
-   if (isOnBreak)
+   if (element != null)  // Not present in kiosk mode.
    {
-      element.classList.add("paused");
-      document.getElementById("break-time-label").style.display = "block";
-      //document.getElementById("break-description").style.display = "block";
-      //document.getElementById("break-description").innerHTML = breakInfo.breakDescriptionId;
-      document.getElementById("elapsed-time-label").style.display = "none"; 
-      document.getElementsByClassName("main")[0].classList.add("paused");
-   }
-   else
-   {
-      element.classList.remove("paused");
-      document.getElementById("break-time-label").style.display = "none";
-      //document.getElementById("break-description").style.display = "none";
-      //document.getElementById("break-description").innerHTML = "";
-      document.getElementById("elapsed-time-label").style.display = "block"; 
+      if (isOnBreak)
+      {
+         element.classList.add("paused");
+         document.getElementById("break-time-label").style.display = "block";
+         //document.getElementById("break-description").style.display = "block";
+         //document.getElementById("break-description").innerHTML = breakInfo.breakDescriptionId;
+         document.getElementById("elapsed-time-label").style.display = "none"; 
+         document.getElementsByClassName("main")[0].classList.add("paused");
+      }
+      else
+      {
+         element.classList.remove("paused");
+         document.getElementById("break-time-label").style.display = "none";
+         //document.getElementById("break-description").style.display = "none";
+         //document.getElementById("break-description").innerHTML = "";
+         document.getElementById("elapsed-time-label").style.display = "block"; 
+      }
    }
 }
 

@@ -41,6 +41,11 @@ class Params extends ArrayObject
       return (isset($this[$key]) ? $this[$key] : "");
    }
    
+   public function getBool($key)
+   {
+      return (isset($this[$key]) && filter_var($this[$key], FILTER_VALIDATE_BOOLEAN));
+   }
+   
    public function getInt($key)
    {
       return (intval($this->get($key)));
