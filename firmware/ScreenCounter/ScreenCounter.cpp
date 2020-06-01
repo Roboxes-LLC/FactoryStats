@@ -1,8 +1,9 @@
+#include "ScreenCounter.hpp"
+
 #include "Board/WifiBoard.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Messaging.hpp"
 #include "Properties/Properties.hpp"
-#include "ScreenCounter.hpp"
 #include "Robox.hpp"
 #include "StatusLed.hpp"
 

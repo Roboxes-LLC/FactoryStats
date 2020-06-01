@@ -1,7 +1,8 @@
+#include "PartCounter.hpp"
+
 #include "Board/WifiBoard.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Messaging.hpp"
-#include "PartCounter.hpp"
 #include "Properties/Properties.hpp"
 #include "Robox.hpp"
 #include "StatusLed.hpp"

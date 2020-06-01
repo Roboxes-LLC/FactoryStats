@@ -1,3 +1,5 @@
+#include <Robox.h>
+
 #include "ButtonRegistrar.hpp"
 #include "Robox.hpp"
 #include "Board/WifiBoard.hpp"

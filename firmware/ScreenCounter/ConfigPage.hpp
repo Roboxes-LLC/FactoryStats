@@ -1,5 +1,7 @@
 #pragma once
 
+#include <RFC.h>
+
 #include "Timer/TimerListener.hpp"
 #include "WebServer/Webpage.hpp"
 

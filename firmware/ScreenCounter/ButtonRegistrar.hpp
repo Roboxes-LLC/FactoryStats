@@ -1,3 +1,5 @@
+#include <RFC.h>
+
 #include "Component/Registrar.hpp"
 #include "Messaging/ComponentFactory.hpp"
 

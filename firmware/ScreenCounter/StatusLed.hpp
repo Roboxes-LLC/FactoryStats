@@ -1,3 +1,5 @@
+#include <RFC.h>
+
 #include "Component/Led.hpp"
 #include "Messaging/ComponentFactory.hpp"
 #include "Timer/Timer.hpp"

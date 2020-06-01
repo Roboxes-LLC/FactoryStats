@@ -1,3 +1,5 @@
+#include <RFC.h>
+
 #include "Messaging/Component.hpp"
 #include "Timer/TimerListener.hpp"
 

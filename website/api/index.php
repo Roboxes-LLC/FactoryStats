@@ -39,36 +39,50 @@ function getStations()
 // *****************************************************************************
 //                                   Begin
 
+Time::init();
+
 $router = new Router();
 $router->setLogging(false);
 
 $router->add("registerButton", function($params) {
+   $result = new stdClass();
+   
    if (isset($params["macAddress"]))
    {
-      $queryResult = $database->getButtonByMacAddress($params->get("macAddress"));
-
-      if ($queryResult && ($row = $queryResult->fetch_assoc()))
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
       {
-         $buttonInfo = ButtonInfo::load($row["buttonId"]);
-
-         if ($buttonInfo)
+         $queryResult = $database->getButtonByMacAddress($params->get("macAddress"));
+   
+         if ($queryResult && ($row = $queryResult->fetch_assoc()))
          {
+            $buttonInfo = ButtonInfo::load($row["buttonId"]);
+   
+            if ($buttonInfo)
+            {
+               $buttonInfo->macAddress = $params->get("macAddress");
+               $buttonInfo->ipAddress = $params->get("ipAddress");
+               $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
+   
+               FlexscreenDatabase::getInstance()->updateButton($buttonInfo);
+            }
+         }
+         else
+         {
+            $buttonInfo = new ButtonInfo();
+   
             $buttonInfo->macAddress = $params->get("macAddress");
             $buttonInfo->ipAddress = $params->get("ipAddress");
             $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
-
-            FlexscreenDatabase::getInstance()->updateButton($buttonInfo);
+   
+            FlexscreenDatabase::getInstance()->newButton($buttonInfo);
          }
       }
       else
       {
-         $buttonInfo = new ButtonInfo();
-
-         $buttonInfo->macAddress = $params->get("macAddress");
-         $buttonInfo->ipAddress = $params->get("ipAddress");
-         $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
-
-         FlexscreenDatabase::getInstance()->newButton($buttonInfo);
+         $result->success = false;
+         $result->error = "No database connection";
       }
    }
 });
