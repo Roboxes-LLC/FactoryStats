@@ -1,5 +1,7 @@
-#include "Component.hpp"
-#include "TimerListener.hpp"
+#include <RFC.h>
+
+#include "Messaging/Component.hpp"
+#include "Timer/TimerListener.hpp"
 
 class ScreenCounter : public Component, TimerListener
 {

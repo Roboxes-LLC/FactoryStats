@@ -1,12 +1,10 @@
-#include <FS.h>
-
 #include "ConfigPage.hpp"
-#include "Board.hpp"
-#include "CommonDefs.hpp"
-#include "Logger.hpp"
-#include "Properties.hpp"
-#include "Timer.hpp"
-#include "ToastBot.hpp"
+#include "Board/Board.hpp"
+#include "Common/CommonDefs.hpp"
+#include "Logger/Logger.hpp"
+#include "Properties/Properties.hpp"
+#include "Robox.hpp"
+#include "Timer/Timer.hpp"
 
 static const int RESET_DELAY = 3000;  // 3 seconds
 
@@ -34,7 +32,7 @@ bool ConfigPage::handle(
 
    if (canHandle(requestMethod, requestUri))
    {
-       Properties& properties = ToastBot::getProperties();
+       Properties& properties = Robox::getProperties();
 
        String action = arguments.getString("action");
     
@@ -61,7 +59,7 @@ bool ConfigPage::handle(
 void ConfigPage::replaceContent(
    String& content)
 {
-   Properties& properties = ToastBot::getProperties();
+   Properties& properties = Robox::getProperties();
   
    content.replace("%ssid", properties.getString("wifi.ssid"));
    content.replace("%password", properties.getString("wifi.password"));
@@ -72,7 +70,7 @@ void ConfigPage::replaceContent(
 void ConfigPage::onConfigUpdate(
    const Dictionary& arguments)
 {
-   Properties& properties = ToastBot::getProperties();
+   Properties& properties = Robox::getProperties();
      
    properties.set("wifi.ssid", arguments.getString("ssid"));
    properties.set("wifi.password", arguments.getString("password"));

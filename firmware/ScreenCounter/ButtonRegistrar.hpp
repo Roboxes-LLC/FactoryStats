@@ -1,5 +1,7 @@
+#include <RFC.h>
+
 #include "Component/Registrar.hpp"
-#include "ComponentFactory.hpp"
+#include "Messaging/ComponentFactory.hpp"
 
 class ButtonRegistrar : public Registrar
 {

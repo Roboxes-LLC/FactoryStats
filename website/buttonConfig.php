@@ -112,6 +112,8 @@ function updateButton($buttonId, $stationId)
 // *****************************************************************************
 //                              Action handling
 
+Time::init();
+
 $params = Params::parse();
 
 switch ($params->get("action"))

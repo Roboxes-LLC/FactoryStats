@@ -1,9 +1,11 @@
-#include "Messaging.hpp"
 #include "PartCounter.hpp"
-#include "Properties.hpp"
+
+#include "Board/WifiBoard.hpp"
+#include "Logger/Logger.hpp"
+#include "Messaging/Messaging.hpp"
+#include "Properties/Properties.hpp"
+#include "Robox.hpp"
 #include "StatusLed.hpp"
-#include "ToastBot.hpp"
-#include "WifiBoard.hpp"
 
 static const String COUNT_BUTTON = "countButton";
 
@@ -29,13 +31,13 @@ void PartCounter::setup()
       
    Messaging::subscribe(this, "buttonUp");
 
-   Properties& properties = ToastBot::getProperties();
+   Properties& properties = Robox::getProperties();
    serverUrl = properties.getString("server");
 
    // TODO: Have StatusLed react to broadcast "wifiConnected" message.
    if (WifiBoard::getBoard()->isConnected() == true)
    {
-      StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+      StatusLed* led = (StatusLed*)Robox::getComponent("led");
       if (led)
       {
          led->onWifiConnected();
@@ -84,7 +86,7 @@ void PartCounter::onButtonUp(
    
    batchCount++;
 
-   StatusLed* led = (StatusLed*)ToastBot::getComponent("led");
+   StatusLed* led = (StatusLed*)Robox::getComponent("led");
    if (led)
    {
       led->onCounterIncremented();

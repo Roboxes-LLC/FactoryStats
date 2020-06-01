@@ -1,7 +1,9 @@
 #pragma once
 
-#include "TimerListener.hpp"
-#include "Webpage.hpp"
+#include <RFC.h>
+
+#include "Timer/TimerListener.hpp"
+#include "WebServer/Webpage.hpp"
 
 class ConfigPage : public Webpage, TimerListener
 {

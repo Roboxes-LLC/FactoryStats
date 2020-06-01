@@ -1,12 +1,13 @@
-#include <ToastBot.h>
+#include <Robox.h>
 
 #include "ButtonRegistrar.hpp"
 #include "ConfigPage.hpp"
 #include "PartCounter.hpp"
+#include "Robox.hpp"
 #include "ScreenCounter.hpp"
-#include "WebServer.hpp"
+#include "WebServer/WebpageServer.hpp"
 
-WebServer webServer(80);
+WebpageServer webServer(80);
 
 // *****************************************************************************
 //                                  Arduino
@@ -14,13 +15,13 @@ WebServer webServer(80);
 
 void setup()
 {
-   ToastBot::setup();
+   Robox::setup();
 
-//#define PPTP
+#define PPTP
 #ifdef PPTP
-   ToastBot::addComponent(new ScreenCounter("counter"));
+   Robox::addComponent(new ScreenCounter("counter"));
 #else   
-   ToastBot::addComponent(new PartCounter("counter", 2000));
+   Robox::addComponent(new PartCounter("counter", 2000));
 #endif
 
    webServer.setup();
@@ -29,7 +30,7 @@ void setup()
 
 void loop()
 {
-   ToastBot::loop();
+   Robox::loop();
 
    webServer.loop();
 }
