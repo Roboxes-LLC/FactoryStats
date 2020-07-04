@@ -16,7 +16,7 @@ function update()
                updateWorkstation(json.workstationSummary[i]);
             }
          }
-         catch (expection)
+         catch (exception)
          {
             console.log("JSON syntax error");
             console.log(this.responseText);

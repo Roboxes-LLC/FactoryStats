@@ -10,6 +10,8 @@ require_once 'common/stationInfo.php';
 
 Time::init();
 
+session_start();
+
 class Table
 {
    const UNKNOWN       = 0;

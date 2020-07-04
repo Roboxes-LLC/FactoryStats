@@ -7,6 +7,8 @@ require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/workstationStatus.php';
 
+Time::init();
+
 session_start();
 
 function renderStationSummaries($shiftId)

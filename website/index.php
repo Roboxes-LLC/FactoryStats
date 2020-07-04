@@ -1,5 +1,9 @@
 <?php
 require_once 'common/header.php';
+
+Time::init();
+
+session_start();
 ?>
 
 <html>

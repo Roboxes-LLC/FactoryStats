@@ -6,6 +6,10 @@ require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 
+Time::init();
+
+session_start();
+
 function renderTable()
 {
    echo
