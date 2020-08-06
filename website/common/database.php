@@ -720,6 +720,17 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getCustomer($customerId)
+   {
+      $query = "SELECT * from customer WHERE customerId = \"$customerId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
    private static $databaseInstance = null;
 }
 

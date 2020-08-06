@@ -31,3 +31,6 @@ $RECYCLE.BIN/
 #C++
 *.mk
 makefile
+
+# Ignored folders
+databaseBackup/

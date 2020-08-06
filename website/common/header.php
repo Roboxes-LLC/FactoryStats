@@ -1,5 +1,6 @@
 <?php 
 
+require_once 'customerInfo.php';
 require_once 'kiosk.php';
 require_once 'root.php';
 require_once 'shiftInfo.php';
@@ -22,6 +23,8 @@ HEREDOC;
       
       $username = Header::getUsername();
       
+      $imagesFolder = CustomerInfo::getImagesFolder();
+      
       $html = 
 <<<HEREDOC
       <div class="flex-horizontal header">
@@ -30,7 +33,7 @@ HEREDOC;
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:center;">
-            <img src="$ROOT/images/flexscreen-logo-hompage-2.png" width="350px">
+            <img src="$imagesFolder/flexscreen-logo.png" width="350px">
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:flex-end; margin-right: 20px;">
