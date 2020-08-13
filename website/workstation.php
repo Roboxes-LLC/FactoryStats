@@ -14,6 +14,13 @@ Time::init();
 
 session_start();
 
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::WORKSTATION)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 function getStationId()
 {
    $stationId = "";

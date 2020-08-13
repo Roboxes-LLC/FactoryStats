@@ -5,6 +5,17 @@ require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 
+Time::init();
+
+session_start();
+
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::STATION_CONFIG)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 function renderTable()
 {
    echo 

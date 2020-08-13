@@ -21,9 +21,11 @@ class CustomerInfo
    public $phone;
    public $timeZone;
    
+   public $disableAuthentication;
+   
    public static function getSubdomain()
    {
-      static $subdomain = null;
+      static $subdomain = "flexscreentest";  // Default to test domain
       
       if ($subdomain == null)
       {      
@@ -63,6 +65,26 @@ class CustomerInfo
       return ("$ROOT/$subdomain/css");
    }
    
+   public static function getCustomerInfo()
+   {
+      $customerInfo = null;
+      
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $result = getCustomerFromSubdomain(CustomerInfo::getSubdomain());
+         
+         if ($result && ($row = $result->fetch_assoc()))  // Assume only one match.
+         {
+            $customerInfo = new CustomerInfo();
+            $customerInfo->initializeFromDatabaseRow($row);
+         }
+      }
+      
+      return  ($customerInfo);
+   }
+   
    public static function load($customerId)
    {
       $customerInfo = null;
@@ -77,17 +99,7 @@ class CustomerInfo
          {
             $customerInfo = new CustomerInfo();
             
-            $customerInfo->customerId = intval($row['customerId']);
-            $customerInfo->name = $row['name'];
-            $customerInfo->subdomain = $row['subdomain'];
-            $customerInfo->emailAddress = $row['emailAddress'];
-            $customerInfo->addressLine1 = $row['addressLine1'];
-            $customerInfo->addressLine2 = $row['addressLine2'];
-            $customerInfo->city = $row['city'];
-            $customerInfo->state = intval($row['state']);
-            $customerInfo->zipcode = intval($row['zipcode']);
-            $customerInfo->phone = $row['phone'];
-            $customerInfo->timeZone = $row['timeZone'];
+            $customerInfo->initializeFromDatabaseRow($row);
          }
       }
       
@@ -97,6 +109,26 @@ class CustomerInfo
    static function getTimeZoneString($timeZoneId)
    {
       
+   }
+   
+   private function initializeFromDatabaseRow($row)
+   {
+      if ($row)
+      {         
+         $customerInfo->customerId = intval($row['customerId']);
+         $customerInfo->name = $row['name'];
+         $customerInfo->subdomain = $row['subdomain'];
+         $customerInfo->emailAddress = $row['emailAddress'];
+         $customerInfo->addressLine1 = $row['addressLine1'];
+         $customerInfo->addressLine2 = $row['addressLine2'];
+         $customerInfo->city = $row['city'];
+         $customerInfo->state = intval($row['state']);
+         $customerInfo->zipcode = intval($row['zipcode']);
+         $customerInfo->phone = $row['phone'];
+         $customerInfo->timeZone = $row['timeZone'];
+         
+         $customerInfo->disableAuthentication = $row['disableAuthentication'];
+      }
    }
 }
 
@@ -119,6 +151,7 @@ if (isset($_GET["customerId"]))
       echo "zipcode: " .      $customerInfo->zipcode .      "<br/>";
       echo "phone: " .        $customerInfo->phone .        "<br/>";
       echo "timeZone: " .     $customerInfo->timeZone .     "<br/>";
+      echo "disableAuthentication: " . $customerInfo->disableAuthentication ? "true" : "false" . "<br>";
    }
    else
    {

@@ -6,6 +6,10 @@ class StationInfo
 {
    const UNKNOWN_STATION_ID = 0;
    
+   const MIN_STATION_ID = 1;   
+   
+   const MAX_STATION_ID = 64;   
+   
    public $stationId = StationInfo::UNKNOWN_STATION_ID;
    public $name;
    public $label;

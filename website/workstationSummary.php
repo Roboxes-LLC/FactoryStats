@@ -11,6 +11,13 @@ Time::init();
 
 session_start();
 
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::WORKSTATION_SUMMARY)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 function renderStationSummaries($shiftId)
 {
    echo "<div class=\"flex-horizontal main summary\">";

@@ -10,6 +10,13 @@ Time::init();
 
 session_start();
 
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::DISPLAY_CONFIG)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 function renderTable()
 {
    echo

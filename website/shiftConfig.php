@@ -9,6 +9,13 @@ Time::init();
 
 session_start();
 
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::CUSTOMER_CONFIG)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 function renderTable()
 {
    echo 
@@ -85,7 +92,7 @@ function deleteShift($shiftId)
 function updateShift($shiftId, $shiftName, $startTime, $endTime)
 {
    $shiftInfo = ShiftInfo::load($shiftId);
-   $shiftInfo->shiftname = $shiftName;
+   $shiftInfo->shiftName = $shiftName;
    $shiftInfo->startTime = $startTime;
    $shiftInfo->endTime = $endTime;
    

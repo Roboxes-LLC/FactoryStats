@@ -12,6 +12,13 @@ Time::init();
 
 session_start();
 
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::PRODUCTION_HISTORY)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 class Table
 {
    const UNKNOWN       = 0;

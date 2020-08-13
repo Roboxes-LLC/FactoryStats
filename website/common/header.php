@@ -1,5 +1,6 @@
 <?php 
 
+require_once 'authentication.php';
 require_once 'customerInfo.php';
 require_once 'kiosk.php';
 require_once 'root.php';
@@ -21,8 +22,6 @@ class Header
 HEREDOC;
       }
       
-      $username = Header::getUsername();
-      
       $imagesFolder = CustomerInfo::getImagesFolder();
       
       $html = 
@@ -39,13 +38,15 @@ HEREDOC;
          <div class="flex-horizontal" style="width:33%; justify-content:flex-end; margin-right: 20px;">
 HEREDOC;
       
-      if (!isKioskMode())
+      if (!isKioskMode() && Authentication::isAuthenticated())
       {
+         $username = Authentication::getAuthenticatedUser()->username;
+         
          $html .=
 <<<HEREDOC
             <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
             <div class="nav-username">$username &nbsp | &nbsp</div>
-            <a class="nav-link" href="$ROOT/index.php">Logout</a>
+            <a class="nav-link" href="$ROOT/index.php?action=logout">Logout</a>
 HEREDOC;
       }
          
@@ -61,11 +62,6 @@ HEREDOC;
    public static function render($includeShiftIdInput)
    {
       echo (Header::getHtml($includeShiftIdInput));
-   }
-
-   static private function getUsername()
-   {
-      return ("User1");
    }
 }
 

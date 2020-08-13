@@ -117,6 +117,115 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getUser($employeeNumber)
+   {
+      $query = "SELECT * FROM user WHERE employeeNumber = \"$employeeNumber\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUserByName($username)
+   {
+      $query = "SELECT * FROM user WHERE username = \"$username\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUsers()
+   {
+      $query = "SELECT * FROM user ORDER BY firstName ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUsersByRole($role)
+   {
+      $roleClause = "";
+      if ($role != Role::UNKNOWN)
+      {
+         $roleClause = "WHERE roles = $role";
+      }
+      
+      $query = "SELECT * FROM user $roleClause ORDER BY firstName ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUsersByRoles($roles)
+   {
+      $result = null;
+      
+      if (sizeof($roles) > 0)
+      {
+         $rolesClause = "roles in (";
+         
+         $count = 0;
+         foreach ($roles as $role)
+         {
+            $rolesClause .= "'$role'";
+            
+            $count++;
+            
+            if ($count < sizeof($roles))
+            {
+               $rolesClause .= ", ";
+            }
+         }
+         
+         $rolesClause .= ")";
+         
+         $query = "SELECT * FROM user WHERE $rolesClause ORDER BY firstName ASC;";
+         
+         $result = $this->query($query);
+      }
+      
+      return ($result);
+   }
+   
+   public function newUser($userInfo)
+   {
+      $query =
+      "INSERT INTO user " .
+      "(employeeNumber, username, password, roles, permissions, firstName, lastName, email, authToken, assignedStations) " .
+      "VALUES " .
+      "('$userInfo->employeeNumber', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->permissions', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->email', '$userInfo->authToken', '$userInfo->assignedStations');";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function updateUser($userInfo)
+   {
+      $query =
+      "UPDATE user " .
+      "SET username = '$userInfo->username', password = '$userInfo->password', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations " .
+      "WHERE employeeNumber = '$userInfo->employeeNumber';";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function deleteUser($employeeNumber)
+   {
+      $query = "DELETE FROM user WHERE employeeNumber = '$employeeNumber';";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
    public function getDisplay($displayId)
    {
       $query = "SELECT * from display WHERE displayId = \"$displayId\";";
@@ -723,6 +832,15 @@ class FlexscreenDatabase extends MySqlDatabase
    public function getCustomer($customerId)
    {
       $query = "SELECT * from customer WHERE customerId = \"$customerId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getCustomerFromSubdomain($subdomain)
+   {
+      $query = "SELECT * from customer WHERE subdomain = \"$subdomain\";";
       
       $result = $this->query($query);
       
