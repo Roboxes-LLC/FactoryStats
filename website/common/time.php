@@ -64,6 +64,14 @@ class Time
       return ($startDateTime->format("Y-m-d 00:00:00"));
    }
    
+   static public function midDay($dateTime)
+   {
+       $midDateTime = new DateTime($dateTime);
+       $midDateTime->setTimezone(new DateTimeZone('America/New_York'));
+       
+       return ($midDateTime->format("Y-m-d 12:00:00"));
+   }
+   
    static public function endOfDay($dateTime)
    {
       $endDateTime = new DateTime($dateTime);

@@ -128,6 +128,11 @@ class ShiftInfo
       
       return ($shiftId);
    }
+   
+   public function shiftSpansDays()
+   {
+      return ($this->startTime >= $this->endTime);
+   }
 }
 
 /*

@@ -214,7 +214,7 @@ HEREDOC;
             <td>$stationInfo->name</td>
             <td>$shiftName</td>
             <td>$dateString</td>
-            <td>$dailySummary->count</td>
+            <td>$countString</td>
             <td>$firstEntryString</td>
             <td>$lastEntryString</td>
             <td>$timeString</td>
@@ -258,10 +258,7 @@ HEREDOC;
    $shiftId = getFilterShiftId();
    $startDate = getFilterStartDate();
    $endDate = getFilterEndDate();
-    
-   $startTime = Time::startOfDay($startDate);
-   $endTime = Time::endOfDay($endDate);
-   
+       
    $shiftInfo = ShiftInfo::load($shiftId);
    $shiftName = $shiftInfo ? $shiftInfo->shiftName : "All";
     
@@ -269,36 +266,73 @@ HEREDOC;
     
    if ($database && $database->isConnected())
    {
-      $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
-      
-      $totalCount = 0;
-        
-      while ($result && ($row = $result->fetch_assoc()))
+      // Compile all selected shifts.
+      $shifts = array();
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
       {
-         $stationInfo = StationInfo::load($row["stationId"]);
-         
-         $shiftInfo = ShiftInfo::load($row["shiftId"]);
-         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
+          $shifts[] = $shiftId;
+      }
+      else
+      {
+          $result = $database->getShifts();
+          
+          while ($result && ($row = $result->fetch_assoc()))
+          {
+              $shifts[] = $row["shiftId"];
+          }
+      }
+      
+      foreach ($shifts as $shiftId)
+      {
+         $shiftInfo = ShiftInfo::load($shiftId);
+         if ($shiftInfo)
+         {
+            $startTime = null;
+            $endTime = null;
             
-         $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], "Y-m-d H:i:s"), 
-                                    new DateTimeZone('America/New_York'));
-         $dateString = $dateTime->format("m-d-Y");
-         $hourString = $dateTime->format("h A");
-           
-         $count = intval($row["count"]);
+            // If the specified shift is configured to span two days (ex. 11pm to 1am) then gather
+            // data from the middle of the first day to the middle of the last day.
+            if ($shiftInfo->shiftSpansDays())
+            {
+                $startTime = Time::midDay($startDate);
+                $endTime = Time::midDay(Time::incrementDay($endDate));  // TODO: This will pick up 12pm entries.
+            }
+            else 
+            {
+               $startTime = Time::startOfDay($startDate);
+               $endTime = Time::endOfDay($endDate);
+            }
             
-         echo
+            $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
+            
+            $totalCount = 0;
+            
+            while ($result && ($row = $result->fetch_assoc()))
+            {
+               $stationInfo = StationInfo::load($row["stationId"]);
+                
+               $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], 
+                                        "Y-m-d H:i:s"),
+                                        new DateTimeZone('America/New_York'));
+               $dateString = $dateTime->format("m-d-Y");
+               $hourString = $dateTime->format("h A");
+                
+               $count = intval($row["count"]);
+                
+               echo
 <<<HEREDOC
-         <tr>
-            <td>$stationInfo->name</td>
-            <td>$shiftName</td>
-            <td>$dateString</td>
-            <td>$hourString</td>
-            <td>$count</td>
-         </tr>
+              <tr>
+                 <td>$stationInfo->name</td>
+                 <td>$shiftInfo->shiftName</td>
+                 <td>$dateString</td>
+                 <td>$hourString</td>
+                 <td>$count</td>
+              </tr>
 HEREDOC;
-         
-         $totalCount += $count;
+                
+              $totalCount += $count;
+           }            
+         }
       }
    }
    

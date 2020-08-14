@@ -23,17 +23,35 @@ class DailySummary
       if ($database && $database->isConnected() && $database->stationExists($stationId))
       {
          $dailySummary = new DailySummary();
-
-         $startOfDay = Time::startOfDay($date);
-         $endOfDay = Time::endOfDay($date);
-
+          
          $dailySummary->stationId = $stationId;
          $dailySummary->shiftId = $shiftId;
          $dailySummary->date = $date;
-         $dailySummary->count = $database->getCount($stationId, $shiftId, $startOfDay, $endOfDay);
-         $dailySummary->firstEntry = $database->getFirstEntry($stationId, $shiftId, $startOfDay, $endOfDay);
-         $dailySummary->lastEntry = $database->getLastEntry($stationId, $shiftId, $startOfDay, $endOfDay);
-         $dailySummary->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startOfDay, $endOfDay);
+         
+         $shiftInfo = ShiftInfo::load($shiftId);
+         if ($shiftInfo)
+         {          
+            $startOfDay = null;
+            $endOfDay = null;
+
+            // If the specified shift is configured to span two days (ex. 11pm to 1am) then gather
+            // data from the middle of one day to the next.
+            if ($shiftInfo->shiftSpansDays())
+            {
+               $startOfDay = Time::midDay($date);
+               $endOfDay = Time::midDay(Time::incrementDay($date));  // TODO: This will pick up 12pm entries.
+            }
+            else
+            {
+               $startOfDay = Time::startOfDay($date);
+               $endOfDay = Time::endOfDay($date);                
+            }
+                
+            $dailySummary->count = $database->getCount($stationId, $shiftId, $startOfDay, $endOfDay);
+            $dailySummary->firstEntry = $database->getFirstEntry($stationId, $shiftId, $startOfDay, $endOfDay);
+            $dailySummary->lastEntry = $database->getLastEntry($stationId, $shiftId, $startOfDay, $endOfDay);
+            $dailySummary->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startOfDay, $endOfDay);                
+         }
       }
 
       return ($dailySummary);
