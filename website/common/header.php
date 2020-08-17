@@ -13,11 +13,27 @@ class Header
       $shiftIdInput = "";
       if ($includeShiftIdInput)
       {
-         $shiftOptions = ShiftInfo::getShiftOptions(ShiftInfo::getShiftId(), false);
+         // Retrive the currently selected shift id.
+         $shiftId = ShiftInfo::getShiftId();
+          
+         $shiftOptions = ShiftInfo::getShiftOptions($shiftId, false);
          $shiftIdInput = 
 <<<HEREDOC
          <select id="shift-id-input" name="shiftId" onchange="storeInSession('shiftId', this.value); update();">$shiftOptions</select>
 HEREDOC;
+         
+         $shiftInfo = ShiftInfo::load($shiftId);
+         if ($shiftInfo && $shiftInfo->shiftSpansDays())
+         {
+            $shiftIdInput .=
+<<<HEREDOC
+         &nbsp;
+         <!--select id="am-pm-selection-input" name="amPmSelection" onchange="storeInSession('amPmSelection', this.value); update();">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+         </select-->
+HEREDOC;
+         }
       }
       
       $username = Header::getUsername();
