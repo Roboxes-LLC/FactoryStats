@@ -20,6 +20,18 @@ class Table
    const BREAKS        = 3;
 }
 
+function getParams()
+{
+   static $params = null;
+   
+   if (!$params)
+   {
+      $params = Params::parse();
+   }
+   
+   return ($params);
+}
+
 function getFilterStationId()
 {
    $stationId =  "ALL";
@@ -106,6 +118,219 @@ function getTable()
    
    return ($table);
 }
+
+// *****************************************************************************
+//                                 Data gathering
+
+function getDailyCountData()
+{
+    $data = array();
+   
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
+   
+   $dailySummaries = DailySummary::getDailySummaries($stationId, $shiftId, $startDate, $endDate);
+   
+   foreach ($dailySummaries as $dailySummary)
+   {
+      $stationInfo = StationInfo::load($dailySummary->stationId);
+       
+      $shiftInfo = ShiftInfo::load($dailySummary->shiftId);
+      $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
+       
+      $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
+      $dateString = $dateTime->format("m-d-Y");
+       
+      $hours = floor(($dailySummary->averageCountTime / 3600));
+      $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
+      $seconds = ($dailySummary->averageCountTime % 60);
+       
+      $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
+       
+      $firstEntryString = "---";
+      if ($dailySummary->firstEntry)
+      {
+         $dateTime = new DateTime($dailySummary->firstEntry, new DateTimeZone('America/New_York'));
+         $firstEntryString = $dateTime->format("h:i A");
+      }
+       
+      $lastEntryString = "---";
+      if ($dailySummary->lastEntry)
+      {
+         $dateTime = new DateTime($dailySummary->lastEntry, new DateTimeZone('America/New_York'));
+         $lastEntryString = $dateTime->format("h:i A");
+      }
+       
+      $timeString = "---";
+      if ($dailySummary->averageCountTime > 0)
+      {
+         $timeString = "";
+           
+         if ($hours > 0)
+         {
+             $timeString .= $hours . (($hours > 1) ? " hours " : " hour ");
+         }
+           
+         if (($hours > 0) || ($minutes > 0))
+         {
+             $timeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
+         }
+           
+         if ($hours == 0)
+         {
+             $timeString .= $seconds . " seconds";
+         }
+      }
+      
+      $row = array();
+      $row["stationName"] = $stationInfo->name;
+      $row["shiftName"] = $shiftName;
+      $row["date"] = $dateString;
+      $row["count"] = $countString;
+      $row["firstEntry"] = $firstEntryString;
+      $row["lastEntry"] = $lastEntryString;
+      $row["time"] = $timeString;
+      
+      $data[] = $row;
+   }
+   
+   return ($data);
+}
+
+function getHourlyCountData()
+{
+   $data = array();
+    
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
+    
+   $startTime = Time::startOfDay($startDate);
+   $endTime = Time::endOfDay($endDate);
+    
+   $shiftInfo = ShiftInfo::load($shiftId);
+   $shiftName = $shiftInfo ? $shiftInfo->shiftName : "All";
+    
+   $database = FlexscreenDatabase::getInstance();
+    
+   if ($database && $database->isConnected())
+   {
+       $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
+        
+       while ($result && ($row = $result->fetch_assoc()))
+       {
+          $stationInfo = StationInfo::load($row["stationId"]);
+            
+          $shiftInfo = ShiftInfo::load($row["shiftId"]);
+          $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
+           
+          $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], 
+                                   "Y-m-d H:i:s"),
+                                   new DateTimeZone('America/New_York'));
+          $dateString = $dateTime->format("m-d-Y");
+          $hourString = $dateTime->format("h A");
+            
+          $count = intval($row["count"]);
+          
+          $row = array();
+          $row["stationName"] = $stationInfo->name;
+          $row["shiftName"] = $shiftName;
+          $row["date"] = $dateString;
+          $row["hour"] = $hourString;
+          $row["count"] = $count;
+          
+          $data[] = $row;
+       }
+   }
+    
+   return ($data);
+}
+
+function getBreakData()
+{
+   $data = array();
+   
+   $stationId = getFilterStationId();
+   $shiftId = getFilterShiftId();
+   $startDate = getFilterStartDate();
+   $endDate = getFilterEndDate();
+   
+   $startTime = Time::startOfDay($startDate);
+   $endTime = Time::endOfDay($endDate);
+   
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result = $database->getBreaks($stationId, $shiftId, $startTime, $endTime);
+       
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $breakInfo = BreakInfo::load($row["breakId"]);
+           
+         $stationInfo = StationInfo::load($row["stationId"]);
+           
+         $shiftInfo = ShiftInfo::load($row["shiftId"]);
+         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
+           
+         $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], 
+                                       "Y-m-d H:i:s"),
+                                       new DateTimeZone('America/New_York'));
+         $dateString = $startDateTime->format("m-d-Y");
+         $startTimeString = $startDateTime->format("h:i A");
+           
+         $endTimeString = "---";
+         $durationString = "---";
+         if ($row["endTime"] != null)
+         {
+            $endDateTime = new DateTime(Time::fromMySqlDate($row["endTime"], 
+                                        "Y-m-d H:i:s"),
+                                        new DateTimeZone('America/New_York'));
+            $endTimeString = $endDateTime->format("h:i A");
+               
+            $interval = $startDateTime->diff($endDateTime);
+               
+            if ($interval->d >= 1)
+            {
+               $durationString = $interval->d . " days";
+            }
+            else if ($interval->h >= 1)
+            {
+               $durationString = $interval->h . " hr " . $interval->i . " min";
+            }
+            else if ($interval->i >= 1)
+            {
+               $durationString = $interval->i . " min";
+            }
+            else
+            {
+               $durationString = "< 1 min";
+            }
+         }
+           
+         $breakDescription = BreakDescription::load($breakInfo->breakDescriptionId);
+         $reason = $breakDescription ? $breakDescription->description : "";
+         
+         $row = array();
+         $row["stationName"] = $stationInfo->name;
+         $row["shiftName"] = $shiftName;
+         $row["date"] = $dateString;
+         $row["startTime"] = $startTimeString;
+         $row["endtime"] = $endTimeString;
+         $row["duration"] = $durationString;
+         $row["reason"] = $reason;
+         
+         $data[] = $row;
+      }
+   }
+    
+   return ($data);
+}
+
+// *****************************************************************************
 
 function renderTable()
 {
@@ -479,6 +704,85 @@ function renderShiftOptions()
 {
    echo ShiftInfo::getShiftOptions(getFilterShiftId(), true);
 }
+
+function downloadCsv($header, $data, $filename)
+{
+   $file = fopen('/temp.csv', 'w');
+   if ($file)
+   {
+      header("Content-Type: text/csv");
+      header("Content-Disposition: attachment; filename=\"$filename\"");
+      header("Pragma: no-cache");
+      header("Expires: 0");
+      
+      if ($header)
+      {
+         fputcsv($file, $header);
+      }
+        
+      foreach ($data as $row)
+      {
+         fputcsv($file, $row);
+      }
+        
+      ob_clean();
+      flush();
+        
+      readfile("/temp.csv");
+   }
+}
+
+// *****************************************************************************
+//                                 Begin
+
+$params = getParams();
+
+if ($params->keyExists("action") &&
+    ($params->get("action") == "download"))
+{
+   $data = null;
+   $header = null;
+   $filename = "";
+   
+   switch (getTable())
+   {
+      case Table::DAILY_COUNTS:
+      {
+         $header = array("Workstation", "Shift", "Date", "Screen Count", "First Screen", "Last Screen", "Average Time Between Screens");
+         $data = getDailyCountData();
+         $filename = "dailyCounts.csv";
+         break;
+      }
+      
+      case Table::HOURLY_COUNTS:
+      {
+         $header = array("Workstation", "Shift", "Date", "Hour", "Count");
+         $data = getHourlyCountData();
+         $filename = "hourlyCounts.csv";
+         break;
+      }
+      
+      case Table::BREAKS:
+      {
+         $header = array("Workstation", "Shift", "Date", "Start time", "End time", "Duration", "Reason");
+         $data = getBreakData();
+         $filename = "breaks.csv";
+         break;
+      }
+      
+      default:
+      {
+          break;
+      }
+   }
+   
+   if ($data)
+   {
+       downloadCsv($header, $data, $filename);
+   }
+   
+   die;
+}
 ?>
 
 <html>
@@ -508,7 +812,8 @@ function renderShiftOptions()
    <div class="main vertical">
 
       <div class="flex-horizonal historical-data-filter-div">
-         <form action="#">
+         <form id="filter-form" action="#">
+            <input id="action-input" type="hidden" name="action" value="">
             <label>Station ID: </label><select name="filterStationId"><?php renderStationOptions();?></select>
             <label>Shift: </label><select name="filterShiftId"><?php renderShiftOptions();?></select>
             <label>Start date: </label><input type="date" name="filterStartDate" value="<?php echo getFilterStartDate();?>">
@@ -530,7 +835,7 @@ function renderShiftOptions()
 </div>
 
 <script src="script/flexscreen.js"></script>
-<script src="script/historicalData.js"></script>
+<script src="script/productionHistory.js"></script>
 <script>
    setMenuSelection(MenuItem.PRODUCTION_HISTORY);
 </script>
