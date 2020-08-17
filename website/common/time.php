@@ -98,6 +98,15 @@ class Time
       return ($incrementedDateTime->format("Y-m-d H:i:s"));
    }
    
+   static public function decrementDay($dateTime)
+   {
+       $decrementedDateTime = new DateTime($dateTime);
+       
+       $decrementedDateTime->sub(new DateInterval("P1D"));  // period, 1 day
+       
+       return ($decrementedDateTime->format("Y-m-d H:i:s"));
+   }
+   
    static public function differenceSeconds($startTime, $endTime)
    {
       $startDateTime = new DateTime($startTime);
