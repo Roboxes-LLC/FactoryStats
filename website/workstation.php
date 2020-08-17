@@ -116,7 +116,7 @@ function getShiftHours()
          $endHour = intval($dateTime->format("H"));
 
          $shiftHours .= 
- <<<HEREDOC
+<<<HEREDOC
          {$row["shiftId"]}: {startHour: $startHour, endHour: $endHour}, 
 HEREDOC;
       }
