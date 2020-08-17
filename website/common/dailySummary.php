@@ -30,27 +30,14 @@ class DailySummary
          
          $shiftInfo = ShiftInfo::load($shiftId);
          if ($shiftInfo)
-         {          
-            $startOfDay = null;
-            $endOfDay = null;
-
-            // If the specified shift is configured to span two days (ex. 11pm to 1am) then gather
-            // data from the middle of one day to the next.
-            if ($shiftInfo->shiftSpansDays())
-            {
-               $startOfDay = Time::midDay($date);
-               $endOfDay = Time::midDay(Time::incrementDay($date));  // TODO: This will pick up 12pm entries.
-            }
-            else
-            {
-               $startOfDay = Time::startOfDay($date);
-               $endOfDay = Time::endOfDay($date);                
-            }
+         {
+            // Get start and end times based on the shift.
+            $evaluationTimes = $shiftInfo->getEvaluationTimes($date, $date);
                 
-            $dailySummary->count = $database->getCount($stationId, $shiftId, $startOfDay, $endOfDay);
-            $dailySummary->firstEntry = $database->getFirstEntry($stationId, $shiftId, $startOfDay, $endOfDay);
-            $dailySummary->lastEntry = $database->getLastEntry($stationId, $shiftId, $startOfDay, $endOfDay);
-            $dailySummary->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startOfDay, $endOfDay);                
+            $dailySummary->count = $database->getCount($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+            $dailySummary->firstEntry = $database->getFirstEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+            $dailySummary->lastEntry = $database->getLastEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+            $dailySummary->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);                
          }
       }
 
