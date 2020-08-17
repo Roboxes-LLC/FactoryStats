@@ -51,16 +51,16 @@ function getStationId()
 
 function getStationLabel($stationId)
 {
-   $label = "";
+    $label = "";
    
    $stationInfo = StationInfo::load($stationId);
    
    if ($stationInfo)
    {
-      $name = $stationInfo->getLabel();
+       $label = $stationInfo->getLabel();
    }
    
-   return ($name);
+   return ($label);
 }
 
 function getCycleTime($stationId)
@@ -199,7 +199,7 @@ $cycleTime = getCycleTime($stationId);
                
                <div class="flex-vertical" style="margin-left: 50px;">
                   <div class="stat-label">Today's screen count</div>
-                  <div id="count-div" class="large-stat"></div>
+                  <div id="count-div" class="urgent-stat large-stat"></div>
                </div>
                
             </div>
