@@ -258,9 +258,6 @@ HEREDOC;
    $shiftId = getFilterShiftId();
    $startDate = getFilterStartDate();
    $endDate = getFilterEndDate();
-       
-   $shiftInfo = ShiftInfo::load($shiftId);
-   $shiftName = $shiftInfo ? $shiftInfo->shiftName : "All";
     
    $database = FlexscreenDatabase::getInstance();
     
@@ -287,23 +284,10 @@ HEREDOC;
          $shiftInfo = ShiftInfo::load($shiftId);
          if ($shiftInfo)
          {
-            $startTime = null;
-            $endTime = null;
-            
-            // If the specified shift is configured to span two days (ex. 11pm to 1am) then gather
-            // data from the middle of the first day to the middle of the last day.
-            if ($shiftInfo->shiftSpansDays())
-            {
-                $startTime = Time::midDay($startDate);
-                $endTime = Time::midDay(Time::incrementDay($endDate));  // TODO: This will pick up 12pm entries.
-            }
-            else 
-            {
-               $startTime = Time::startOfDay($startDate);
-               $endTime = Time::endOfDay($endDate);
-            }
-            
-            $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
+            // Get start and end times based on the shift.
+            $evaluationTimes = $shiftInfo->getEvaluationTimes($startDate, $endDate);
+             
+            $result = $database->getHourlyCounts($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
             
             $totalCount = 0;
             
@@ -378,65 +362,90 @@ HEREDOC;
    
    if ($database && $database->isConnected())
    {
-      $result = $database->getBreaks($stationId, $shiftId, $startTime, $endTime);
-      
-      while ($result && ($row = $result->fetch_assoc()))
+      // Compile all selected shifts.
+      $shifts = array();
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
       {
-         $breakInfo = BreakInfo::load($row["breakId"]);
-         
-         $stationInfo = StationInfo::load($row["stationId"]);
-         
-         $shiftInfo = ShiftInfo::load($row["shiftId"]);
-         $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
-         
-         $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s"),
-            new DateTimeZone('America/New_York'));
-         $dateString = $startDateTime->format("m-d-Y");
-         $startTimeString = $startDateTime->format("h:i A");
-         
-         $endTimeString = "---";
-         $durationString = "---";
-         if ($row["endTime"] != null)
+          $shifts[] = $shiftId;
+      }
+      else
+      {
+          $result = $database->getShifts();
+           
+          while ($result && ($row = $result->fetch_assoc()))
+          {
+              $shifts[] = $row["shiftId"];
+          }
+      }
+       
+      foreach ($shifts as $shiftId)
+      {
+         $shiftInfo = ShiftInfo::load($shiftId);
+         if ($shiftInfo)
          {
-            $endDateTime = new DateTime(Time::fromMySqlDate($row["endTime"], "Y-m-d H:i:s"),
-               new DateTimeZone('America/New_York'));
-            $endTimeString = $endDateTime->format("h:i A");
-            
-            $interval = $startDateTime->diff($endDateTime);
-            
-            if ($interval->d >= 1)
+            // Get start and end times based on the shift.
+            $evaluationTimes = $shiftInfo->getEvaluationTimes($startDate, $endDate);
+       
+            $result = $database->getBreaks($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+      
+            while ($result && ($row = $result->fetch_assoc()))
             {
-               $durationString = $interval->d . " days";
-            }
-            else if ($interval->h >= 1)
-            {
-               $durationString = $interval->h . " hr " . $interval->i . " min";
-            }
-            else if ($interval->i >= 1)
-            {
-               $durationString = $interval->i . " min";
-            }
-            else
-            {
-               $durationString = "< 1 min";
+               $breakInfo = BreakInfo::load($row["breakId"]);
+                 
+               $stationInfo = StationInfo::load($row["stationId"]);
+                 
+               $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], 
+                                             "Y-m-d H:i:s"),
+                                             new DateTimeZone('America/New_York'));
+               $dateString = $startDateTime->format("m-d-Y");
+               $startTimeString = $startDateTime->format("h:i A");
+                 
+               $endTimeString = "---";
+               $durationString = "---";
+               if ($row["endTime"] != null)
+               {
+                  $endDateTime = new DateTime(Time::fromMySqlDate($row["endTime"], 
+                                              "Y-m-d H:i:s"),
+                                              new DateTimeZone('America/New_York'));
+                  $endTimeString = $endDateTime->format("h:i A");
+                    
+                  $interval = $startDateTime->diff($endDateTime);
+                    
+                  if ($interval->d >= 1)
+                  {
+                     $durationString = $interval->d . " days";
+                  }
+                  else if ($interval->h >= 1)
+                  {
+                     $durationString = $interval->h . " hr " . $interval->i . " min";
+                  }
+                  else if ($interval->i >= 1)
+                  {
+                     $durationString = $interval->i . " min";
+                  }
+                  else
+                  {
+                     $durationString = "< 1 min";
+                  }
+               }
+                 
+               $breakDescription = BreakDescription::load($breakInfo->breakDescriptionId);
+               $reason = $breakDescription ? $breakDescription->description : "";
+         
+               echo
+<<<HEREDOC
+               <tr>
+                  <td>$stationInfo->name</td>
+                  <td>$shiftInfo->shiftName</td>
+                  <td>$dateString</td>
+                  <td>$startTimeString</td>
+                  <td>$endTimeString</td>
+                  <td>$durationString</td>
+                  <td>$reason</td>
+               </tr>
+HEREDOC;
             }
          }
-         
-         $breakDescription = BreakDescription::load($breakInfo->breakDescriptionId);
-         $reason = $breakDescription ? $breakDescription->description : "";
-         
-         echo
-<<<HEREDOC
-         <tr>
-            <td>$stationInfo->name</td>
-            <td>$shiftName</td>
-            <td>$dateString</td>
-            <td>$startTimeString</td>
-            <td>$endTimeString</td>
-            <td>$durationString</td>
-            <td>$reason</td>
-         </tr>
-HEREDOC;
       }
    }
    

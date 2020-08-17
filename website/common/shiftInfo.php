@@ -133,6 +133,29 @@ class ShiftInfo
    {
       return ($this->startTime >= $this->endTime);
    }
+   
+   // This function returns an object containing the start/end times that can be used for database searches on the specified shift, over the specified date range.
+   // For most shifts, this will be 12:00:00 am on the start date, and 11:59:59 pm on the end date.
+   // However, for shifts that span two days this will be 12:00:00 pm on the start date, and 12:00:00 pm on the day *after* the end date.
+   public function getEvaluationTimes($startDate, $endDate)
+   {
+      $evaluationTimes = new stdClass();
+       
+      if ($this->shiftSpansDays())
+      {
+         // If the specified shift is configured to span two days (ex. 11pm to 1am) then gather
+         // data from the middle of the first day to the middle of the last day.
+         $evaluationTimes->startDateTime = Time::midDay($startDate);
+         $evaluationTimes->endDateTime = Time::midDay(Time::incrementDay($endDate));  // TODO: This will pick up 12pm entries.
+      }
+      else
+      {
+         $evaluationTimes->startDateTime = Time::startOfDay($startDate);
+         $evaluationTimes->endDateTime = Time::endOfDay($endDate);
+      }
+       
+      return ($evaluationTimes);
+   }
 }
 
 /*

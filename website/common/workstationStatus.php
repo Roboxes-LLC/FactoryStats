@@ -25,19 +25,31 @@ class WorkstationStatus
    
    public static function getWorkstationStatus($stationId, $shiftId)
    {
-      $dailySummary = null;
+      $workstationStatus = null;
       
       $database = FlexscreenDatabase::getInstance();
+      
+      $shiftInfo = ShiftInfo::load($shiftId);
 
       if ($database && 
           $database->isConnected() && 
-          $database->stationExists($stationId))
+          $database->stationExists($stationId) &&
+          $shiftInfo)
       {
          $workstationStatus = new WorkstationStatus();
          
-         $now = Time::now("Y-m-d H:i:s");
-         $startDateTime= Time::startOfDay($now);
-         $endDateTime= Time::endOfDay($now);
+         $dateTime = Time::now("Y-m-d H:i:s");
+         
+         // If we're viewing a shift that spans days, we may actually want to compile the stats from the previous day, 
+         // depending on the when this is being viewed.
+         if ($shiftInfo->shiftSpansDays() &&
+             ($dateTime < Time::midDay($dateTime)))
+         {
+             $dateTime = Time::decrementDay($dateTime);
+         }
+         
+         // Get start and end times based on the shift.
+         $evaluationTimes = $shiftInfo->getEvaluationTimes($dateTime, $dateTime);
          
          $workstationStatus->stationId = $stationId;
          
@@ -45,15 +57,15 @@ class WorkstationStatus
          
          $workstationStatus->label = WorkStationStatus::getWorkstationLabel($stationId, $database);
          
-         $workstationStatus->count = WorkstationStatus::getCount($stationId, $shiftId, $startDateTime, $endDateTime, $database);
+         $workstationStatus->count = WorkstationStatus::getCount($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime, $database);
          
-         $workstationStatus->hourlyCount = WorkstationStatus::getHourlyCount($stationId, $shiftId, $startDateTime, $endDateTime, $database);
+         $workstationStatus->hourlyCount = WorkstationStatus::getHourlyCount($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime, $database);
          
-         $workstationStatus->firstEntry = WorkstationStatus::getFirstEntry($stationId, $shiftId, $database);
+         $workstationStatus->firstEntry = $database->getFirstEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
          
-         $workstationStatus->updateTime = $database->getLastEntry($stationId, $shiftId, $startDateTime, $endDateTime);
+         $workstationStatus->updateTime = $database->getLastEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
          
-         $workstationStatus->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startDateTime, $endDateTime);
+         $workstationStatus->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
          
          $workstationStatus->hardwareButtonStatus = WorkstationStatus::getHardwareButtonStatus($stationId, $database);
          
@@ -124,17 +136,6 @@ class WorkstationStatus
       $updateTime = $database->getUpdateTime($stationId);
 
       return ($updateTime);
-   }
-   
-   private static function getFirstEntry($stationId, $shiftId, $database)
-   {
-      $now = Time::now("Y-m-d H:i:s");
-      $startDateTime = Time::startOfDay($now);
-      $endDateTime = Time::endOfDay($now);
-      
-      $firstEntry = $database->getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime);
-      
-      return ($firstEntry);
    }
    
    private static function getHardwareButtonStatus($stationId, $database)
