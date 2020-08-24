@@ -17,23 +17,11 @@ class Header
          $shiftId = ShiftInfo::getShiftId();
           
          $shiftOptions = ShiftInfo::getShiftOptions($shiftId, false);
+         
          $shiftIdInput = 
 <<<HEREDOC
-         <select id="shift-id-input" name="shiftId" onchange="storeInSession('shiftId', this.value); update();">$shiftOptions</select>
+         <select id="shift-id-input" name="shiftId" onchange="onShiftSelectionUpdate(); storeInSession('shiftId', this.value); update();">$shiftOptions</select>
 HEREDOC;
-         
-         $shiftInfo = ShiftInfo::load($shiftId);
-         if ($shiftInfo && $shiftInfo->shiftSpansDays())
-         {
-            $shiftIdInput .=
-<<<HEREDOC
-         &nbsp;
-         <!--select id="am-pm-selection-input" name="amPmSelection" onchange="storeInSession('amPmSelection', this.value); update();">
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-         </select-->
-HEREDOC;
-         }
       }
       
       $username = Header::getUsername();
@@ -43,6 +31,10 @@ HEREDOC;
       <div class="flex-horizontal header">
          <div class="flex-horizontal" style="width:33%; justify-content:flex-start; margin-left: 20px;">
             $shiftIdInput
+            &nbsp;
+            <!-- TODO: Include a visual indicator of the current shift -->
+            <!--i id="am-indicator" class="material-icons" style="color: yellow; font-size: 35px;">wb_sunny</i>
+            <i id="pm-indicator" class="material-icons" style="color: #ffffff; font-size: 35px;">brightness_3</i-->
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:center;">

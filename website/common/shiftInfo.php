@@ -99,10 +99,12 @@ class ShiftInfo
          while ($result && ($row = $result->fetch_assoc()))
          {
             $shiftId = $row["shiftId"];
+            $shiftInfo = ShiftInfo::load($shiftId);
             $shiftName = $row["shiftName"];
             $selected = ($shiftId == $selectedShiftId) ? "selected" : "";
+            $shiftSpansDays = $shiftInfo->shiftSpansDays() ? "1" : "0";
             
-            $html .= "<option value=\"$shiftId\" $selected>$shiftName</option>";
+            $html .= "<option value=\"$shiftId\" shiftSpansDays=\"$shiftSpansDays\" $selected>$shiftName</option>";
          }
       }
       

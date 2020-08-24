@@ -275,6 +275,10 @@ $router->add("status", function($params) {
 
       if ($workstationStatus)
       {
+         // Including the current shift allows the client to validate that user actions are intended for
+         // the correct shift.
+         $workstationStatus->currentShiftId = ShiftInfo::getShift(Time::now(Time::now("Y-m-d H:i:s")));
+         
          $result = $workstationStatus;
       }
       else

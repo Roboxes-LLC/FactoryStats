@@ -81,8 +81,8 @@ function getCountButtons()
 {
    echo
 <<<HEREDOC
-   <div class="btn btn-blob" onclick="incrementCount();">+</div>
-   <div class="btn btn-small btn-blob" onclick="decrementCount();" style="position: relative; left:15px; top: 80px;">-</div>
+   <div class="btn btn-blob" onclick="if (shouldValidateShift()) {validatingAction = ValidatingAction.INCREMENT_COUNT; updateShiftValidationText(); showModal('shift-validation-modal');} else {incrementCount();}">+</div>
+   <div class="btn btn-small btn-blob" onclick="if (shouldValidateShift()) {validatingAction = ValidatingAction.DECREMENT_COUNT; updateShiftValidationText(); showModal('shift-validation-modal');} else {decrementCount();}" style="position: relative; left:15px; top: 80px;">-</div>
 HEREDOC;
 }
    
@@ -109,15 +109,19 @@ function getShiftHours()
       
       while ($result && ($row = $result->fetch_assoc()))
       {
+         $shiftName = $row["shiftName"];
+         
          $dateTime = new DateTime($row["startTime"]);
          $startHour = intval($dateTime->format("H"));
+         $startTime = $dateTime->format("g:i A");
          
          $dateTime = new DateTime($row["endTime"]);
          $endHour = intval($dateTime->format("H"));
+         $endTime = $dateTime->format("g:i A");
 
          $shiftHours .= 
 <<<HEREDOC
-         {$row["shiftId"]}: {startHour: $startHour, endHour: $endHour}, 
+         {$row["shiftId"]}: {shiftName: "$shiftName", startTime: "$startTime", startHour: $startHour, endTime: "$endTime", endHour: $endHour}, 
 HEREDOC;
       }
    }
@@ -229,6 +233,24 @@ $cycleTime = getCycleTime($stationId);
       </div>
    </div>
    
+   <div id="shift-validation-modal" class="modal">
+      <div class="flex-vertical modal-content" style="width:300px;">
+         <div id="close" class="close">&times;</div>
+         <div class="flex-vertical">
+            <div style="color:orange"><b>Shift Warning</b></div>
+            <br>
+            <div id="shift-validation-template" style="display:none">It looks like your updating values for <b>%shiftName</b> which runs from %shiftStart to %shiftEnd. Is this correct?</div>            
+            <div id="shift-validation-text"></div>
+            <br>
+            <div class="flex-horizontal">
+               <input id="silence-shift-validation-input" type="checkbox" id="accept">&nbsp;&nbsp;Don't ask me again.
+            </div>
+            <br>
+            <div class="flex-horizontal"><button class="config-button" onclick="onShiftValidated(); hideModal('shift-validation-modal');">Yes</button>&nbsp;&nbsp;<button class="config-button" onclick="hideModal('shift-validation-modal');">Cancel</button></div>
+         </div>
+      </div>
+   </div>
+   
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
    <script src="chart/chart.js"></script>
    <script src="script/flexscreen.js"></script>
@@ -242,7 +264,7 @@ $cycleTime = getCycleTime($stationId);
       setInterval(function(){updateElapsedTime();}, 50);
 
       // Store shift hours for updating the x-axis of the hourly chart.
-      var shiftHours = {
+      shiftHours = {
          <?php echo getShiftHours(); ?>
       };
    </script>

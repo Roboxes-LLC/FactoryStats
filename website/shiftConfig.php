@@ -85,7 +85,7 @@ function deleteShift($shiftId)
 function updateShift($shiftId, $shiftName, $startTime, $endTime)
 {
    $shiftInfo = ShiftInfo::load($shiftId);
-   $shiftInfo->shiftname = $shiftName;
+   $shiftInfo->shiftName = $shiftName;
    $shiftInfo->startTime = $startTime;
    $shiftInfo->endTime = $endTime;
    

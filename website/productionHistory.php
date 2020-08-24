@@ -776,10 +776,7 @@ if ($params->keyExists("action") &&
       }
    }
    
-   if ($data)
-   {
-       downloadCsv($header, $data, $filename);
-   }
+   downloadCsv($header, $data, $filename);
    
    die;
 }
