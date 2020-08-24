@@ -15,10 +15,14 @@ class Header
       $shiftIdInput = "";
       if ($includeShiftIdInput)
       {
-         $shiftOptions = ShiftInfo::getShiftOptions(ShiftInfo::getShiftId(), false);
+         // Retrive the currently selected shift id.
+         $shiftId = ShiftInfo::getShiftId();
+          
+         $shiftOptions = ShiftInfo::getShiftOptions($shiftId, false);
+         
          $shiftIdInput = 
 <<<HEREDOC
-         <select id="shift-id-input" name="shiftId" onchange="storeInSession('shiftId', this.value); update();">$shiftOptions</select>
+         <select id="shift-id-input" name="shiftId" onchange="onShiftSelectionUpdate(); storeInSession('shiftId', this.value); update();">$shiftOptions</select>
 HEREDOC;
       }
       
@@ -29,6 +33,10 @@ HEREDOC;
       <div class="flex-horizontal header">
          <div class="flex-horizontal" style="width:33%; justify-content:flex-start; margin-left: 20px;">
             $shiftIdInput
+            &nbsp;
+            <!-- TODO: Include a visual indicator of the current shift -->
+            <!--i id="am-indicator" class="material-icons" style="color: yellow; font-size: 35px;">wb_sunny</i>
+            <i id="pm-indicator" class="material-icons" style="color: #ffffff; font-size: 35px;">brightness_3</i-->
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:center;">

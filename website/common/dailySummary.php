@@ -23,17 +23,22 @@ class DailySummary
       if ($database && $database->isConnected() && $database->stationExists($stationId))
       {
          $dailySummary = new DailySummary();
-
-         $startOfDay = Time::startOfDay($date);
-         $endOfDay = Time::endOfDay($date);
-
+          
          $dailySummary->stationId = $stationId;
          $dailySummary->shiftId = $shiftId;
          $dailySummary->date = $date;
-         $dailySummary->count = $database->getCount($stationId, $shiftId, $startOfDay, $endOfDay);
-         $dailySummary->firstEntry = $database->getFirstEntry($stationId, $shiftId, $startOfDay, $endOfDay);
-         $dailySummary->lastEntry = $database->getLastEntry($stationId, $shiftId, $startOfDay, $endOfDay);
-         $dailySummary->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $startOfDay, $endOfDay);
+         
+         $shiftInfo = ShiftInfo::load($shiftId);
+         if ($shiftInfo)
+         {
+            // Get start and end times based on the shift.
+            $evaluationTimes = $shiftInfo->getEvaluationTimes($date, $date);
+                
+            $dailySummary->count = $database->getCount($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+            $dailySummary->firstEntry = $database->getFirstEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+            $dailySummary->lastEntry = $database->getLastEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+            $dailySummary->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);                
+         }
       }
 
       return ($dailySummary);

@@ -36,6 +36,19 @@ var MenuItem = {
    LAST : 3
 };
 
+// Store the shift info.
+var shiftHours = null;
+
+// Keep track of the current shift, as it is updated by the server.
+var currentShiftId = 0;
+
+var ValidatingAction = {
+  INCREMENT_COUNT: 0,
+  DECREMENT_COUNT: 1,
+};
+
+var validatingAction = 0;
+
 function setMenuSelection(menuItem)
 {
    var menuItemElements = [
@@ -124,6 +137,8 @@ function update()
          updateBreak(json.isOnBreak, json.breakInfo);
          
          updateFirstEntry(json.firstEntry);
+         
+         currentShiftId = parseInt(json.currentShiftId);
       }
    };
    xhttp.open("GET", requestURL, true);
@@ -277,20 +292,23 @@ function updateHourlyCount(hourlyCount)
 
 function incrementCount()
 {
-   var requestURL = "api/update/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&count=1";
-   
-   var xhttp = new XMLHttpRequest();
-   xhttp.onreadystatechange = function()
+   //if (validateShift() == true)
    {
-      if (this.readyState == 4 && this.status == 200)
+      var requestURL = "api/update/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&count=1";
+      
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function()
       {
-         var json = JSON.parse(this.responseText);
-
-         update();
-      }
-   };
-   xhttp.open("GET", requestURL, true);
-   xhttp.send(); 
+         if (this.readyState == 4 && this.status == 200)
+         {
+            var json = JSON.parse(this.responseText);
+   
+            update();
+         }
+      };
+      xhttp.open("GET", requestURL, true);
+      xhttp.send(); 
+   }
 }
 
 function decrementCount()
@@ -318,7 +336,47 @@ function getStationId()
 
 function getShiftId()
 {
-   return (document.getElementById("shift-id-input").value);
+   return (parseInt(document.getElementById("shift-id-input").value));
+}
+
+function shouldValidateShift()
+{
+   var silenceShiftValidation = document.getElementById("silence-shift-validation-input").checked;
+   
+   return ((silenceShiftValidation == false) && 
+           (getShiftId() != currentShiftId));
+}
+      
+function updateShiftValidationText()
+{
+   var textElement = document.getElementById("shift-validation-text");
+   var templateElement = document.getElementById("shift-validation-template");
+   var text = templateElement.innerHTML;         
+   
+   var shiftId = getShiftId();
+   
+   text = text.replace("%shiftName", shiftHours[shiftId].shiftName);
+   text = text.replace("%shiftStart", shiftHours[shiftId].startTime);
+   text = text.replace("%shiftEnd", shiftHours[shiftId].endTime);
+   
+   textElement.innerHTML = text;
+}
+
+function onShiftSelectionUpdate()
+{
+   document.getElementById("silence-shift-validation-input").checked = false;
+}
+
+function onShiftValidated()
+{
+   if (validatingAction == ValidatingAction.INCREMENT_COUNT)
+   {
+      incrementCount();
+   }
+   else if (validatingAction == ValidatingAction.DECREMENT_COUNT)
+   {
+      decrementCount();
+   }
 }
 
 function getCycleTime()

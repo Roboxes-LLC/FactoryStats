@@ -795,7 +795,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $this->query($query);
       
-      $query = "DELETE FROM screencount WHERE shiftId = $hiftId;";
+      $query = "DELETE FROM screencount WHERE shiftId = $shiftId;";
       
       $this->query($query);
    }

@@ -9,7 +9,7 @@ class Params extends ArrayObject
       {
          foreach ($_SESSION as $key => $value)
          {
-            $params[$key] = filter_var($_SESSION[$key], FILTER_SANITIZE_SPECIAL_CHARS);
+            $params[$key] = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
          }
       }
       

@@ -8,6 +8,8 @@ Time::init();
 
 session_start();
 
+global $ROOT;
+
 function getStationId()
 {
    $stationId = "";
