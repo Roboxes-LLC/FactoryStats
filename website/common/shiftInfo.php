@@ -48,31 +48,53 @@ class ShiftInfo
       if ($database && $database->isConnected())
       {
          $result = $database->getShifts();
-         
+
+         // Get the current time.
+         // Note: Zero out date for easier comparison.         
          $now = new DateTime(Time::now("Y-m-d H:i:s"));
+         $now->setDate(0, 0, 0);
          
          while ($result && ($row = $result->fetch_assoc()))
          {
-            // Calculate today's shift start time.
-            $startDateTime = new DateTime($row["startTime"]);
-            $startDateTime->setDate($now->format("Y"), $now->format("m"), $now->format("d"));
+            $shiftInfo = ShiftInfo::load($row["shiftId"]);
             
-            // Calculate today's shift end time.
-            // Note: Extra logic for if the shift extends into the next day.
-            $endDateTime = new DateTime($row["endTime"]);
-            $day = intval($now->format("d"));
-            $startHour = intval($startDateTime->format("H"));
-            $endHour = intval($endDateTime->format("H"));
-            if ($endHour <= $startHour)
+            if ($shiftInfo)
             {
-               $day++;
-            }
-            $endDateTime->setDate($now->format("Y"), $now->format("m"), $day);
-
-            if (Time::between($now->format("Y-m-d H:i:s"), $startDateTime->format("Y-m-d H:i:s"), $endDateTime->format("Y-m-d H:i:s")))
-            {
-               $shiftId = intval($row["shiftId"]);
-               break;
+               // Get shift start/end times.
+               // Note: Zero out date for easier comparison.
+               $startDateTime = new DateTime($shiftInfo->startTime);
+               $startDateTime->setDate(0, 0, 0);
+               $endDateTime = new DateTime($shiftInfo->endTime);
+               $endDateTime->setDate(0, 0, 0);
+               
+               if ($shiftInfo->shiftSpansDays())
+               {
+                  // Extra logic for shifts that span days.
+                  $startOfDay = new DateTime(Time::now("Y-m-d H:i:s"));
+                  $startOfDay->setDate(0, 0, 0);
+                  $startOfDay->setTime(0, 0, 0, 0);  
+                  $endOfDay = new DateTime(Time::now("Y-m-d H:i:s"));
+                  $endOfDay->setDate(0, 0, 0);
+                  $endOfDay->setTime(23, 59, 59, 0);
+                  
+                  if ((($now >= $startDateTime) &&
+                       ($now <= $endOfDay)) ||
+                      (($now >= $startOfDay) &&
+                       ($now <= $endDateTime)))                    
+                  {
+                     $shiftId = $shiftInfo->shiftId;
+                     break;
+                  }
+               }
+               else
+               {
+                  if (($now >= $startDateTime) &&
+                      ($now <= $startDateTime))
+                  {
+                     $shiftId = $shiftInfo->shiftId;
+                     break;
+                  }
+               }
             }
          }
       }

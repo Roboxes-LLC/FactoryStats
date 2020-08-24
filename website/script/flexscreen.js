@@ -344,7 +344,6 @@ function shouldValidateShift()
    var silenceShiftValidation = document.getElementById("silence-shift-validation-input").checked;
    
    return ((silenceShiftValidation == false) && 
-           (currentShiftId != 0) && 
            (getShiftId() != currentShiftId));
 }
       

@@ -707,7 +707,7 @@ function renderShiftOptions()
 
 function downloadCsv($header, $data, $filename)
 {
-   $file = fopen('/temp.csv', 'w');
+   $file = fopen('./temp.csv', 'w');
    if ($file)
    {
       header("Content-Type: text/csv");
@@ -728,7 +728,7 @@ function downloadCsv($header, $data, $filename)
       ob_clean();
       flush();
         
-      readfile("/temp.csv");
+      readfile("./temp.csv");
    }
 }
 
