@@ -64,6 +64,14 @@ class Time
       return ($startDateTime->format("Y-m-d 00:00:00"));
    }
    
+   static public function midDay($dateTime)
+   {
+       $midDateTime = new DateTime($dateTime);
+       $midDateTime->setTimezone(new DateTimeZone('America/New_York'));
+       
+       return ($midDateTime->format("Y-m-d 12:00:00"));
+   }
+   
    static public function endOfDay($dateTime)
    {
       $endDateTime = new DateTime($dateTime);
@@ -88,6 +96,15 @@ class Time
       $incrementedDateTime->add(new DateInterval("P1D"));  // period, 1 day
       
       return ($incrementedDateTime->format("Y-m-d H:i:s"));
+   }
+   
+   static public function decrementDay($dateTime)
+   {
+       $decrementedDateTime = new DateTime($dateTime);
+       
+       $decrementedDateTime->sub(new DateInterval("P1D"));  // period, 1 day
+       
+       return ($decrementedDateTime->format("Y-m-d H:i:s"));
    }
    
    static public function differenceSeconds($startTime, $endTime)

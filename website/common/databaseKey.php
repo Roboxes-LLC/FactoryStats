@@ -3,6 +3,6 @@
 $SERVER = "localhost";
 $USER = "root";
 $PASSWORD = "";
-$DATABASE = "flexscreen";
+$DATABASE = "flexscreentest";
 
 ?>
