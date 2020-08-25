@@ -117,7 +117,16 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
-   public function getUser($employeeNumber)
+   public function getUser($userId)
+   {
+      $query = "SELECT * FROM user WHERE userId = \"$userId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUserByEmployeeNumberName($employeeNumber)
    {
       $query = "SELECT * FROM user WHERE employeeNumber = \"$employeeNumber\";";
       
@@ -197,7 +206,7 @@ class FlexscreenDatabase extends MySqlDatabase
       "(employeeNumber, username, password, roles, permissions, firstName, lastName, email, authToken, assignedStations) " .
       "VALUES " .
       "('$userInfo->employeeNumber', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->permissions', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->email', '$userInfo->authToken', '$userInfo->assignedStations');";
-      
+
       $result = $this->query($query);
       
       return ($result);
@@ -207,17 +216,17 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $query =
       "UPDATE user " .
-      "SET username = '$userInfo->username', password = '$userInfo->password', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations " .
-      "WHERE employeeNumber = '$userInfo->employeeNumber';";
-      
+      "SET employeeNumber = '$userInfo->employeeNumber', username = '$userInfo->username', password = '$userInfo->password', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations' " .
+      "WHERE userId = '$userInfo->userId';";
+
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function deleteUser($employeeNumber)
+   public function deleteUser($userId)
    {
-      $query = "DELETE FROM user WHERE employeeNumber = '$employeeNumber';";
+      $query = "DELETE FROM user WHERE userId = '$userId';";
       
       $result = $this->query($query);
       

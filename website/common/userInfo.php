@@ -6,12 +6,15 @@ require_once 'roles.php';
 
 class UserInfo
 {
+   const UNKNOWN_USER_ID = 0;
+   
    const UNKNOWN_EMPLOYEE_NUMBER = 0;
    
    const ADMIN_EMPLOYEE_NUMBER = 1;
    
    const NO_ASSIGNED_STATIONS = 0;
    
+   public $userId;
    public $employeeNumber;
    public $username;
    public $password;
@@ -25,6 +28,7 @@ class UserInfo
    
    public function __construct()
    {
+      $this->userId = UserInfo::UNKNOWN_USER_ID;
       $this->employeeNumber = UserInfo::UNKNOWN_EMPLOYEE_NUMBER;
       $this->username = null;
       $this->password = null;
@@ -36,7 +40,7 @@ class UserInfo
       $this->assignedStations = UserInfo::NO_ASSIGNED_STATIONS;
    }
    
-   public static function load($employeeNumber)
+   public static function load($userId)
    {
       $userInfo = null;
       
@@ -44,7 +48,7 @@ class UserInfo
       
       if ($database && $database->isConnected())
       {
-         $result = $database->getUser($employeeNumber);
+         $result = $database->getUser($userId);
          
          if ($result && ($row = $result->fetch_assoc()))
          {
@@ -182,6 +186,7 @@ class UserInfo
    
    private function initialize($row)
    {
+      $this->userId = intval($row['userId']);
       $this->employeeNumber = intval($row['employeeNumber']);
       $this->username = $row['username'];
       $this->password = $row['password'];
@@ -191,16 +196,17 @@ class UserInfo
       $this->lastName = $row['lastName'];
       $this->email = $row['email'];
       $this->authToken = $row['authToken'];
+      $this->assignedStations = $row["assignedStations"];
    }
 }
 
 /*
 $userInfo = null;
 
-if (isset($_GET["employeeNumber"]))
+if (isset($_GET["userId"]))
 {
-   $employeeNumber = $_GET["employeeNumber"];
-   $userInfo = UserInfo::load($employeeNumber);
+   $userId = $_GET["userId"];
+   $userInfo = UserInfo::load($userId);
 }
 else if (isset($_GET["username"]))
 {
@@ -210,15 +216,17 @@ else if (isset($_GET["username"]))
     
 if ($userInfo)
 {
-   echo "employeeNumber: " . $userInfo->employeeNumber . "<br/>";
-   echo "username: " .       $userInfo->username .       "<br/>";
-   echo "password: " .       $userInfo->password .       "<br/>";
-   echo "roles: " .          $userInfo->roles .          "<br/>";
-   echo "permissions: " .    $userInfo->permissions .    "<br/>";
-   echo "firstName: " .      $userInfo->firstName .      "<br/>";
-   echo "lastName: " .       $userInfo->lastName .       "<br/>";
-   echo "email: " .          $userInfo->email .          "<br/>";
-   echo "authToken: " .      $userInfo->authToken .      "<br/>";
+   echo "userId: " .           $userInfo->userId .           "<br/>";
+   echo "employeeNumber: " .   $userInfo->employeeNumber .   "<br/>";
+   echo "username: " .         $userInfo->username .         "<br/>";
+   echo "password: " .         $userInfo->password .         "<br/>";
+   echo "roles: " .            $userInfo->roles .            "<br/>";
+   echo "permissions: " .      $userInfo->permissions .      "<br/>";
+   echo "firstName: " .        $userInfo->firstName .        "<br/>";
+   echo "lastName: " .         $userInfo->lastName .         "<br/>";
+   echo "email: " .            $userInfo->email .            "<br/>";
+   echo "authToken: " .        $userInfo->authToken .        "<br/>";
+   echo "assignedStations: " . $userInfo->assignedStations . "<br/>";
    
    echo "fullName: " . $userInfo->getFullName() . "<br/>";
 }

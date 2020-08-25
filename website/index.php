@@ -3,6 +3,7 @@
 require_once 'common/authentication.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
+require_once 'common/version.php';
 
 function getParams()
 {
@@ -107,8 +108,8 @@ if (Authentication::isAuthenticated())
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
    
 </head>
 
@@ -139,7 +140,7 @@ if (Authentication::isAuthenticated())
    
 </div>
 
-<script src="script/flexscreen.js"></script>
+<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
 <script>
 </script>
 

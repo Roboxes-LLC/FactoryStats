@@ -9,6 +9,7 @@ require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/time.php';
+require_once 'common/version.php';
 
 Time::init();
 
@@ -155,10 +156,10 @@ $cycleTime = getCycleTime($stationId);
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="css/button.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/modal.css"/>
+   <link rel="stylesheet" type="text/css" href="css/button.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    
 </head>
 
@@ -259,10 +260,10 @@ $cycleTime = getCycleTime($stationId);
    </div>
    
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-   <script src="chart/chart.js"></script>
-   <script src="script/flexscreen.js"></script>
-   <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"></script>";}?>
-   <script src="script/modal.js"></script>
+   <script src="chart/chart.js<?php echo versionQuery();?>"></script>
+   <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+   <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"" . versionQuery() . "></script>";}?>
+   <script src="script/modal.js<?php echo versionQuery();?>"></script>
    <script>
       // Start a timer to update the count/hourly count div.
       setInterval(function(){update();}, 3000);

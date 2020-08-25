@@ -16,8 +16,8 @@ class Permission
    const UPDATE_COUNT        = 10;
    const LAST                = 11;
    
-   const NO_PERMISSIONS = 0x00000000;
-   const ALL_PERMISSIONS = 0xFFFFFFFF;
+   const NO_PERMISSIONS = 0x0000;
+   const ALL_PERMISSIONS = 0xFFFF;
    
    public $permissionId;
    

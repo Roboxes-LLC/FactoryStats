@@ -24,9 +24,9 @@ class Authentication
    {
       $authenticatedUser = null;
       
-      if (isset($_SESSION["authenticatedUser"]) && ($_SESSION["authenticatedUser"] == true))
+      if (Authentication::isAuthenticated())
       {
-         $authenticatedUser = UserInfo::loadByName($_SESSION["authenticatedUser"]);
+         $authenticatedUser = UserInfo::load(intval($_SESSION["authenticatedUserId"]));
       }
       
       return ($authenticatedUser);
@@ -52,7 +52,15 @@ class Authentication
       
       if ($params->keyExists("username") && $params->keyExists("password"))
       {
-         $result = Authentication::authenticateUser($params->get("username"), $params->get("password"));
+         // TODO: Temporary measure, until customer is ready for full authentication.
+         if ($params->get("username") == "")
+         {
+            $result = Authentication::authenticateUser("operator", "1234");            
+         }
+         else
+         {
+            $result = Authentication::authenticateUser($params->get("username"), $params->get("password"));            
+         }
       }
       else if ($params->keyExists("authToken"))
       {
@@ -82,7 +90,7 @@ class Authentication
          
          // Record authentication status and user name.
          $_SESSION['authenticated'] = true;
-         $_SESSION['authenticatedUser'] = $username;
+         $_SESSION['authenticatedUserId'] = $user->userId;
          $_SESSION["permissions"] = $user->permissions;
       }
       
@@ -104,7 +112,7 @@ class Authentication
             
             // Record authentication status and user name.
             $_SESSION['authenticated'] = true;
-            $_SESSION['authenticatedUser'] = $user->username;
+            $_SESSION['authenticatedUserId'] = $user->userId;
             $_SESSION["permissions"] = $user->permissions;
          }
       }
@@ -115,7 +123,7 @@ class Authentication
    static public function deauthenticate()
    {
       $_SESSION['authenticated'] = false;
-      unset($_SESSION['authenticatedUser']);
+      unset($_SESSION['authenticatedUserId']);
    }
    
    static public function checkPermissions($permissionId)

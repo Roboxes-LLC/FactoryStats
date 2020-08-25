@@ -4,6 +4,7 @@ require_once 'common/database.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/userInfo.php';
+require_once 'common/version.php';
 
 Time::init();
 
@@ -40,7 +41,7 @@ HEREDOC;
       
       while ($result && $row = $result->fetch_assoc())
       {
-         $userInfo = UserInfo::load(intval($row["employeeNumber"]));
+         $userInfo = UserInfo::load(intval($row["userId"]));
          
          $name = $userInfo->getFullName();
          
@@ -59,8 +60,8 @@ HEREDOC;
             <td>$userInfo->username</td>
             <td>$roleName</td>
             <td>$userInfo->email</td>
-            <td><button class="config-button" onclick="setUserInfo('$userInfo->employeeNumber', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email'); showModal('config-modal');">Configure</button></div></td>
-            <td><button class="config-button" onclick="setEmployeeNumber($userInfo->employeeNumber); showModal('confirm-delete-modal');">Delete</button></div></td>
+            <td><button class="config-button" onclick="setUserInfo($userInfo->userId, $userInfo->employeeNumber, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
       }
@@ -75,6 +76,8 @@ function getRoleOptions()
 
    $roles = Role::getRoles();
    
+   $options .= "<option style=\"display:none\">";
+   
    foreach ($roles as $role)
    {
       $options .= "<option value=\"$role->roleId\">$role->roleName</option>";
@@ -83,25 +86,62 @@ function getRoleOptions()
    return ($options);
 }
 
-function deleteUser($employeeNumber)
+function addUser($employeeNumber, $firstName, $lastName, $username, $password, $role, $email)
 {
+   $userInfo = new UserInfo();
+   
+   $roleDetails = Role::getRole($role);
+   
+   $userInfo->employeeNumber = $employeeNumber;
+   $userInfo->firstName = $firstName;
+   $userInfo->lastName = $lastName;
+   $userInfo->username = $username;
+   $userInfo->password = $password;   
+   $userInfo->roles = $role;
+   if ($roleDetails)
+   {
+      $userInfo->permissions = $roleDetails->defaultPermissions;
+   }
+   $userInfo->email = $email;
+   
    $database = FlexscreenDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
-      $database->deleteUser($employeeNumber);
+      $database->newUser($userInfo);
    }
 }
 
-function updateUser($employeeNumber)
+function deleteUser($userId)
 {
-   $userInfo = UserInfo::load($employeeNumber);
-   
    $database = FlexscreenDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
-      $database->updateUser($userInfo);
+      $database->deleteUser($userId);
+   }
+}
+
+function updateUser($userId, $employeeNumber, $firstName, $lastName, $username, $password, $role, $email)
+{
+   $userInfo = UserInfo::load($userId);
+   
+   if ($userInfo)
+   {
+      $userInfo->employeeNumber = $employeeNumber;
+      $userInfo->firstName = $firstName;
+      $userInfo->lastName = $lastName;
+      $userInfo->username = $username;
+      $userInfo->password = $password;      
+      $userInfo->roles = $role;
+      $userInfo->email = $email;
+      
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $database->updateUser($userInfo);
+      }
    }
 }
 
@@ -116,18 +156,37 @@ switch ($params->get("action"))
 {
    case "delete":
    {
-      deleteUser($params->get("employeeNumber"));
+      deleteUser($params->get("userId"));
       break;      
    }
    
    case "update":
    {
-      updateUser($params->get("employeeNumber"),
-                 $params->get("firstName"),
-                 $params->get("lastName"),
-                 $params->get("username"),
-                 intval($params->get("role")),
-                 $params->get("email"));
+      if ($params->getInt("userId") == UserInfo::UNKNOWN_USER_ID)
+      {
+         addUser(
+            $params->get("employeeNumber"),
+            $params->get("firstName"),
+            $params->get("lastName"),
+            $params->get("updatedUsername"),
+            $params->get("updatedPassword"),
+            $params->getInt("role"),
+            $params->get("email"),
+            $params->get("authToken"));
+      }
+      else
+      {
+         updateUser(
+            $params->get("userId"),
+            $params->get("employeeNumber"),
+            $params->get("firstName"),
+            $params->get("lastName"),
+            $params->get("updatedUsername"),
+            $params->get("updatedPassword"),
+            $params->getInt("role"),
+            $params->get("email"),
+            $params->get("authToken"));
+      }
       break;
    }
    
@@ -145,14 +204,14 @@ switch ($params->get("action"))
 
    <meta name="viewport" content="width=device-width, initial-scale=1">
    
-   <title>Hardware Button Status</title>
+   <title>User Config</title>
    
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/modal.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    
 </head>
 
@@ -160,7 +219,8 @@ switch ($params->get("action"))
 
 <form id="config-form" method="post">
    <input id="action-input" type="hidden" name="action">
-   <input id="button-id-input" type="hidden" name="buttonId">
+   <input id="user-id-input" type="hidden" name="userId">
+   <input id="auth-token-input" type="hidden" name="authToken">   
 </form>
 
 <div class="flex-vertical" style="align-items: flex-start;">
@@ -171,7 +231,7 @@ switch ($params->get("action"))
    
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
-         <button class="config-button" onclick="setUserInfo('', '', '', '', '0', ''); showModal('config-modal'); showModal('config-modal');">New User</button>
+         <button class="config-button" onclick="setUserInfo('', '', '', '', '', '', '', ''); showModal('config-modal');">New User</button>
          <br>
          <?php renderTable();?>
       </div>
@@ -191,7 +251,9 @@ switch ($params->get("action"))
       <label>Last Name</label>
       <input id="last-name-input" type="text" form="config-form" name="lastName" value="">
       <label>Username</label>
-      <input id="username-input" type="text" form="config-form" name="username" value="">
+      <input id="username-input" type="text" form="config-form" name="updatedUsername" value="">
+      <label>Password</label>
+      <input id="password-input" type="password" form="config-form" name="updatedPassword" value="">      
       <label>Role</label>
       <select id="role-input" form="config-form" name="role">
          <?php echo getRoleOptions();?>
@@ -212,17 +274,11 @@ switch ($params->get("action"))
    </div>
 </div>
 
-<script src="script/flexscreen.js"></script>
-<script src="script/modal.js"></script>
-<script src="script/userConfig.js"></script>
+<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+<script src="script/modal.js<?php echo versionQuery();?>"></script>
+<script src="script/userConfig.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
-
-   function setEmployeeNumber(employeeNumber)
-   {
-      var input = document.getElementById('employee-number-input');
-      input.setAttribute('value', employeeNumber);
-   }
 </script>
 
 </body>

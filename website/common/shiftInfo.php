@@ -89,7 +89,7 @@ class ShiftInfo
                else
                {
                   if (($now >= $startDateTime) &&
-                      ($now <= $startDateTime))
+                      ($now <= $endDateTime))
                   {
                      $shiftId = $shiftInfo->shiftId;
                      break;

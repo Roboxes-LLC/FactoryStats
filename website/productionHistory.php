@@ -7,6 +7,7 @@ require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
+require_once 'common/version.php';
 
 Time::init();
 
@@ -800,8 +801,8 @@ if ($params->keyExists("action") &&
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
    
 </head>
 
@@ -838,8 +839,8 @@ if ($params->keyExists("action") &&
      
 </div>
 
-<script src="script/flexscreen.js"></script>
-<script src="script/productionHistory.js"></script>
+<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+<script src="script/productionHistory.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.PRODUCTION_HISTORY);
 </script>

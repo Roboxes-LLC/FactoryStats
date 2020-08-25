@@ -139,6 +139,8 @@ function update()
          updateFirstEntry(json.firstEntry);
          
          currentShiftId = parseInt(json.currentShiftId);
+         
+         console.log("Current shift: " + currentShiftId);
       }
    };
    xhttp.open("GET", requestURL, true);
