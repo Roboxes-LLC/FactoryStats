@@ -25,7 +25,7 @@ class CustomerInfo
    
    public static function getSubdomain()
    {
-      static $subdomain = "flexscreentest";  // Default to test domain
+      static $subdomain = null;
       
       if ($subdomain == null)
       {      
@@ -34,6 +34,10 @@ class CustomerInfo
          if (count($tokens) >= 3)
          {
             $subdomain = $tokens[0];
+         }
+         else
+         {
+            $subdomain = "flexscreentest";  // Default to test domain
          }
       }
       
