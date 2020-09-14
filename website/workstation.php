@@ -182,7 +182,7 @@ $cycleTime = getCycleTime($stationId);
          
             <div class="flex-horizontal" style="justify-content: flex-start;">
                <div class="stat-label">Station</div>
-               <div id="hardware-button-led" class="flex-horizontal"></div>
+               <!--div id="hardware-button-led" class="flex-horizontal"></div-->
             </div>
             <div class="flex-horizontal">
                <div class="large-stat"><?php echo $stationLabel; ?></div>

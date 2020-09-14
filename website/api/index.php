@@ -44,39 +44,63 @@ Time::init();
 $router = new Router();
 $router->setLogging(false);
 
-$router->add("registerButton", function($params) {
+$router->add("button", function($params) {
    $result = new stdClass();
    
-   if (isset($params["macAddress"]))
+   if (isset($params["uid"]))
    {
+      $uid = $params["uid"];
+      
       $database = FlexscreenDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
-         $queryResult = $database->getButtonByMacAddress($params->get("macAddress"));
-   
+         $queryResult = $database->getButtonByUid($uid);
+         
+         $buttonInfo = null;
+         
          if ($queryResult && ($row = $queryResult->fetch_assoc()))
          {
+            // Load an existing button.
             $buttonInfo = ButtonInfo::load($row["buttonId"]);
-   
-            if ($buttonInfo)
-            {
-               $buttonInfo->macAddress = $params->get("macAddress");
-               $buttonInfo->ipAddress = $params->get("ipAddress");
-               $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
-   
-               FlexscreenDatabase::getInstance()->updateButton($buttonInfo);
-            }
          }
          else
          {
+            // Register a new button.
             $buttonInfo = new ButtonInfo();
-   
-            $buttonInfo->macAddress = $params->get("macAddress");
-            $buttonInfo->ipAddress = $params->get("ipAddress");
+            
+            $buttonInfo->uid = $uid;
+            
+            $database->newButton($buttonInfo);
+         }
+         
+         if ($buttonInfo)
+         {            
+            // Set IP address, if provided.
+            if (isset($params["ipAddress"]))
+            {
+               $buttonInfo->ipAddress = $params["ipAddress"];
+            }
+            
+            // Update last contact.
             $buttonInfo->lastContact = Time::now("Y-m-d H:i:s");
-   
-            FlexscreenDatabase::getInstance()->newButton($buttonInfo);
+            
+            // Update button config in the database.
+            $database->updateButton($buttonInfo);
+            
+            // Handle button presses.
+            if (isset($params["press"]))
+            {
+               $buttonInfo->handleButtonPress(intval($params["press"]));
+            }
+            
+            $result->buttonInfo = $buttonInfo;
+            $result->success = true;
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "Failed to handle button";
          }
       }
       else
@@ -85,6 +109,50 @@ $router->add("registerButton", function($params) {
          $result->error = "No database connection";
       }
    }
+});
+
+$router->add("buttonStatus", function($params) {
+   $result = new stdClass();
+   
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result->success = true;
+      $result->buttonStatuses = array();
+      
+      $dbaseResult = $database->getButtons();
+      
+      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      {
+         $buttonInfo = ButtonInfo::load(intval($row["buttonId"]));
+         
+         if ($buttonInfo)
+         {
+            $status = $buttonInfo->getButtonStatus();
+            $dateTime = new DateTime($buttonInfo->lastContact, new DateTimeZone('America/New_York'));
+            $formattedDateTime = $dateTime->format("m/d/Y h:i A");
+            
+            $buttonStatus = new stdClass();
+
+            $buttonStatus->buttonId = $buttonInfo->buttonId;
+            $buttonStatus->lastContact = $formattedDateTime;
+            $buttonStatus->buttonStatus = $status;
+            $buttonStatus->buttonStatusLabel = ButtonStatus::getLabel($status);
+            $buttonStatus->buttonStatusClass = ButtonStatus::getClass($status);        
+            $buttonStatus->recentlyPressed = $buttonInfo->recentlyPressed();         
+
+            $result->buttonStatuses[] = $buttonStatus;
+         }
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "No database connection";
+   }
+   
+   echo json_encode($result);
 });
 
 $router->add("registerDisplay", function($params) {

@@ -316,7 +316,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getButtons()
    {
-      $query = "SELECT * from button ORDER BY macAddress DESC;";
+      $query = "SELECT * from button ORDER BY uid ASC;";
       
       $result = $this->query($query);
       
@@ -332,18 +332,18 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($result);
    }
    
-   public function getButtonByMacAddress($macAddress)
+   public function getButtonByUid($uid)
    {
-      $query = "SELECT * from button WHERE macAddress = \"$macAddress\";";
+      $query = "SELECT * from button WHERE uid = \"$uid\";";
 
       $result = $this->query($query);
      
       return ($result);
    }
    
-   public function buttonExists($macAddress)
+   public function buttonExists($uid)
    {
-      $query = "SELECT buttonId from button WHERE macAddress = \"$macAddress\";";
+      $query = "SELECT buttonId from button WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
@@ -354,9 +354,15 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
       
+      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+      
+      $enabled = ($buttonInfo->enabled ? "true" : "false");
+      
       $query =
-      "INSERT INTO button (macAddress, ipAddress, lastContact) " .
-      "VALUES ('$buttonInfo->macAddress', '$buttonInfo->ipAddress', '$lastContact');";
+      "INSERT INTO button (uid, ipAddress, name, stationId, clickAction, doubleClickAction, holdAction, lastContact, enabled) " .
+      "VALUES ('$buttonInfo->uid', '$buttonInfo->ipAddress', '$buttonInfo->name', '$buttonInfo->stationId', '$clickAction', '$doubleClickAction', '$holdAction', '$lastContact', $enabled);";
 
       $this->query($query);
    }
@@ -365,9 +371,15 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
       
+      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+      
+      $enabled = ($buttonInfo->enabled ? "true" : "false");
+      
       $query =
       "UPDATE button " .
-      "SET macAddress = \"$buttonInfo->macAddress\", ipAddress = \"$buttonInfo->ipAddress\", stationId = \"$buttonInfo->stationId\", lastContact = \"$lastContact\" " .
+      "SET uid = \"$buttonInfo->uid\", ipAddress = \"$buttonInfo->ipAddress\", name = \"$buttonInfo->name\", stationId = \"$buttonInfo->stationId\", clickAction = \"$clickAction\", doubleClickAction = \"$doubleClickAction\", holdAction = \"$holdAction\", lastContact = \"$lastContact\", enabled = $enabled " .
       "WHERE buttonId = $buttonInfo->buttonId;";
 
       $this->query($query);
@@ -600,7 +612,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "SELECT breakId FROM break WHERE stationId = $stationId AND shiftId = $shiftId AND endTime IS NULL";
-      
+
       $result = $this->query($query);
       
       if ($result && ($row = $result->fetch_assoc()))

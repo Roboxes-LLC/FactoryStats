@@ -317,6 +317,27 @@ body {
    border-radius: 50%;
    box-shadow: #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px;
 }
+  
+.led-bright-green {
+   margin: 20px 20px 20px 20px;
+   width: 12px;
+   height: 12px;
+   background-color: #05e502;
+   border-radius: 50%;
+   box-shadow: #000 0 -1px 7px 1px, inset #7D0 0 -1px 9px, #7D0 0 2px 12px 5px;   
+}
+
+.button-unconfigured {
+	color: red;
+}
+
+.button-disabled {
+   color: orange;
+}
+
+.button-ready {
+   color: green;
+}
 
 .historical-data-filter-div {
    margin: 20px 0px 0px 20px;  /*top, right, bottom, left */

@@ -132,7 +132,7 @@ function update()
          
          updateAverageCountTime(json.averageCountTime);
          
-         updateHardwareButtonIndicator(json.hardwareButtonStatus);
+         //updateHardwareButtonIndicator(json.hardwareButtonStatus);
          
          updateBreak(json.isOnBreak, json.breakInfo);
          

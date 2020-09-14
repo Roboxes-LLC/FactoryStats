@@ -51,7 +51,7 @@ function renderStationSummary($stationId, $shiftId)
 <<<HEREDOC
       <div class="flex-horizontal" style="justify-content: flex-start;">
          <div class="medium-stat station-id-div">{$stationInfo->getLabel()}</div>
-         <div class="flex-horizontal hardware-button-led"></div>
+         <!--div class="flex-horizontal hardware-button-led"></div-->
       </div>
 
       <div class="flex-vertical">

@@ -47,7 +47,7 @@ function updateWorkstation(workstationStatus)
    {
       divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.label;
       
-      updateHardwareButtonIndicator(workstationStatus.stationId, workstationStatus.hardwareButtonStatus);
+      //updateHardwareButtonIndicator(workstationStatus.stationId, workstationStatus.hardwareButtonStatus);
       
       divElement.getElementsByClassName("count-div")[0].innerHTML = workstationStatus.count;
       
