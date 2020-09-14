@@ -117,6 +117,124 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getUser($userId)
+   {
+      $query = "SELECT * FROM user WHERE userId = \"$userId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUserByEmployeeNumberName($employeeNumber)
+   {
+      $query = "SELECT * FROM user WHERE employeeNumber = \"$employeeNumber\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUserByName($username)
+   {
+      $query = "SELECT * FROM user WHERE username = \"$username\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUsers()
+   {
+      $query = "SELECT * FROM user ORDER BY firstName ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUsersByRole($role)
+   {
+      $roleClause = "";
+      if ($role != Role::UNKNOWN)
+      {
+         $roleClause = "WHERE roles = $role";
+      }
+      
+      $query = "SELECT * FROM user $roleClause ORDER BY firstName ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getUsersByRoles($roles)
+   {
+      $result = null;
+      
+      if (sizeof($roles) > 0)
+      {
+         $rolesClause = "roles in (";
+         
+         $count = 0;
+         foreach ($roles as $role)
+         {
+            $rolesClause .= "'$role'";
+            
+            $count++;
+            
+            if ($count < sizeof($roles))
+            {
+               $rolesClause .= ", ";
+            }
+         }
+         
+         $rolesClause .= ")";
+         
+         $query = "SELECT * FROM user WHERE $rolesClause ORDER BY firstName ASC;";
+         
+         $result = $this->query($query);
+      }
+      
+      return ($result);
+   }
+   
+   public function newUser($userInfo)
+   {
+      $query =
+      "INSERT INTO user " .
+      "(employeeNumber, username, password, roles, permissions, firstName, lastName, email, authToken, assignedStations) " .
+      "VALUES " .
+      "('$userInfo->employeeNumber', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->permissions', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->email', '$userInfo->authToken', '$userInfo->assignedStations');";
+
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function updateUser($userInfo)
+   {
+      $query =
+      "UPDATE user " .
+      "SET employeeNumber = '$userInfo->employeeNumber', username = '$userInfo->username', password = '$userInfo->password', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations' " .
+      "WHERE userId = '$userInfo->userId';";
+
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function deleteUser($userId)
+   {
+      $query = "DELETE FROM user WHERE userId = '$userId';";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
    public function getDisplay($displayId)
    {
       $query = "SELECT * from display WHERE displayId = \"$displayId\";";
@@ -198,7 +316,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getButtons()
    {
-      $query = "SELECT * from button ORDER BY macAddress DESC;";
+      $query = "SELECT * from button ORDER BY uid ASC;";
       
       $result = $this->query($query);
       
@@ -214,18 +332,18 @@ class FlexscreenDatabase extends MySqlDatabase
       return ($result);
    }
    
-   public function getButtonByMacAddress($macAddress)
+   public function getButtonByUid($uid)
    {
-      $query = "SELECT * from button WHERE macAddress = \"$macAddress\";";
+      $query = "SELECT * from button WHERE uid = \"$uid\";";
 
       $result = $this->query($query);
      
       return ($result);
    }
    
-   public function buttonExists($macAddress)
+   public function buttonExists($uid)
    {
-      $query = "SELECT buttonId from button WHERE macAddress = \"$macAddress\";";
+      $query = "SELECT buttonId from button WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
@@ -236,9 +354,15 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
       
+      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+      
+      $enabled = ($buttonInfo->enabled ? "true" : "false");
+      
       $query =
-      "INSERT INTO button (macAddress, ipAddress, lastContact) " .
-      "VALUES ('$buttonInfo->macAddress', '$buttonInfo->ipAddress', '$lastContact');";
+      "INSERT INTO button (uid, ipAddress, name, stationId, clickAction, doubleClickAction, holdAction, lastContact, enabled) " .
+      "VALUES ('$buttonInfo->uid', '$buttonInfo->ipAddress', '$buttonInfo->name', '$buttonInfo->stationId', '$clickAction', '$doubleClickAction', '$holdAction', '$lastContact', $enabled);";
 
       $this->query($query);
    }
@@ -247,9 +371,15 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
       
+      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+      
+      $enabled = ($buttonInfo->enabled ? "true" : "false");
+      
       $query =
       "UPDATE button " .
-      "SET macAddress = \"$buttonInfo->macAddress\", ipAddress = \"$buttonInfo->ipAddress\", stationId = \"$buttonInfo->stationId\", lastContact = \"$lastContact\" " .
+      "SET uid = \"$buttonInfo->uid\", ipAddress = \"$buttonInfo->ipAddress\", name = \"$buttonInfo->name\", stationId = \"$buttonInfo->stationId\", clickAction = \"$clickAction\", doubleClickAction = \"$doubleClickAction\", holdAction = \"$holdAction\", lastContact = \"$lastContact\", enabled = $enabled " .
       "WHERE buttonId = $buttonInfo->buttonId;";
 
       $this->query($query);
@@ -482,7 +612,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "SELECT breakId FROM break WHERE stationId = $stationId AND shiftId = $shiftId AND endTime IS NULL";
-      
+
       $result = $this->query($query);
       
       if ($result && ($row = $result->fetch_assoc()))
@@ -716,6 +846,26 @@ class FlexscreenDatabase extends MySqlDatabase
       }
       
       return ($countTime);
+   }
+   
+   // **************************************************************************
+   
+   public function getCustomer($customerId)
+   {
+      $query = "SELECT * from customer WHERE customerId = \"$customerId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getCustomerFromSubdomain($subdomain)
+   {
+      $query = "SELECT * from customer WHERE subdomain = \"$subdomain\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
    }
    
    // **************************************************************************

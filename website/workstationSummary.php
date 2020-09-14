@@ -6,10 +6,18 @@ require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/workstationStatus.php';
+require_once 'common/version.php';
 
 Time::init();
 
 session_start();
+
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::WORKSTATION_SUMMARY)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
 
 function renderStationSummaries($shiftId)
 {
@@ -43,7 +51,7 @@ function renderStationSummary($stationId, $shiftId)
 <<<HEREDOC
       <div class="flex-horizontal" style="justify-content: flex-start;">
          <div class="medium-stat station-id-div">{$stationInfo->getLabel()}</div>
-         <div class="flex-horizontal hardware-button-led"></div>
+         <!--div class="flex-horizontal hardware-button-led"></div-->
       </div>
 
       <div class="flex-vertical">
@@ -74,9 +82,9 @@ HEREDOC;
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/workstationSummary.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/workstationSummary.css<?php echo versionQuery();?>"/>
    
    <style>
       .station-summary-div {
@@ -99,9 +107,9 @@ HEREDOC;
      
 </div>
 
-<script src="script/flexscreen.js"></script>
-<?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"></script>";}?>
-<script src="script/workstationSummary.js"></script>
+<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+<?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"" . versionQuery() . "></script>";}?>
+<script src="script/workstationSummary.js<?php echo versionQuery();?>"></script>
 <script>
    // Set menu selection.
    setMenuSelection(MenuItem.WORKSTATION_SUMMARY);

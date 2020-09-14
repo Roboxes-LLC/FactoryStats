@@ -39,3 +39,7 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+.modal .input-block {
+	margin-bottom: 10px;
+}

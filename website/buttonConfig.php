@@ -5,23 +5,33 @@ require_once 'common/database.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
+require_once 'common/version.php';
 
 Time::init();
 
 session_start();
 
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::BUTTON_CONFIG)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
+
 function renderTable()
 {
    echo 
 <<<HEREDOC
-   <table>
+   <table id="button-table">
       <tr>
-         <th>Button ID</th>
-         <th>MAC Address</th>
-         <th>IP Address</th>
-         <th>Workstation ID</th>
+         <!--th>Button ID</th-->
+         <th>ID</th>
+         <!--th>Name</th-->
+         <!--th>IP Address</th-->
+         <th>Workstation</th>
          <th>Last Contact</th>
          <th>Status</th>
+         <th>Test</th>
          <th></th>
          <th></th>
       </tr>
@@ -48,20 +58,31 @@ HEREDOC;
             }
          }
          
-         $isOnline = $buttonInfo->isOnline();
-         $status = $isOnline ? "Online" : "Offline";
-         $ledClass = $isOnline ? "led-green" : "led-red";
+         $rowId = "button-" . $buttonInfo->buttonId;
+         
+         $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+         $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+         $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+         $enabled = $buttonInfo->enabled ? "true" : "false";
+         
+         $buttonStatus = $buttonInfo->getButtonStatus();
+         $buttonStatusLabel = ButtonStatus::getLabel($buttonStatus);
+         $buttonStatusClass = ButtonStatus::getClass($buttonStatus);
+         
+         $ledClass = "led-green";
          
          echo 
 <<<HEREDOC
-         <tr>
-            <td>$buttonInfo->buttonId</td>
-            <td>$buttonInfo->macAddress</td>
-            <td>$buttonInfo->ipAddress</td>
+         <tr id="$rowId">
+            <!--td>$buttonInfo->buttonId</td-->
+            <td>$buttonInfo->uid</td>
+            <!--td>$stationName</td-->
+            <!--td>$buttonInfo->ipAddress</td-->
             <td>$stationName</td>
             <td>$buttonInfo->lastContact</td>
-            <td>$status <div class="$ledClass"></div></td>
-            <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); setStationId($buttonInfo->stationId); showModal('config-modal');">Configure</button></div></td>
+            <td class="$buttonStatusClass">$buttonStatusLabel</td>
+            <td><div class="button-led $ledClass"></div></td>
+            <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); setButtonConfig($buttonInfo->buttonId, $buttonInfo->stationId, $clickAction, $doubleClickAction, $holdAction, $enabled); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setButtonId($buttonInfo->buttonId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -71,7 +92,7 @@ HEREDOC;
    echo "</table>";
 }
 
-function getOptions()
+function getStationOptions()
 {
    $options = "";
 
@@ -90,6 +111,22 @@ function getOptions()
    return ($options);
 }
 
+function getButtonClickOptions()
+{
+   $noAction = ButtonAction::UNKNOWN;
+   
+   $options = "<option value=\"$noAction\">No action</option>";
+   
+   foreach (ButtonAction::$values as $buttonAction)
+   {
+      $label = ButtonAction::getLabel($buttonAction);
+      
+      $options .= "<option value=\"$buttonAction\">$label</option>";      
+   }
+   
+   return ($options);
+}
+
 function deleteButton($buttonId)
 {
    $database = FlexscreenDatabase::getInstance();
@@ -100,10 +137,15 @@ function deleteButton($buttonId)
    }
 }
 
-function updateButton($buttonId, $stationId)
+function updateButton($buttonId, $stationId, $clickAction, $doubleClickAction, $holdAction, $enabled)
 {
    $buttonInfo = ButtonInfo::load($buttonId);
+   
    $buttonInfo->stationId = $stationId;
+   $buttonInfo->setButtonAction(ButtonPress::SINGLE_CLICK, $clickAction);
+   $buttonInfo->setButtonAction(ButtonPress::DOUBLE_CLICK, $doubleClickAction);
+   $buttonInfo->setButtonAction(ButtonPress::HOLD, $holdAction);
+   $buttonInfo->enabled = $enabled;
    
    $database = FlexscreenDatabase::getInstance();
    
@@ -130,7 +172,13 @@ switch ($params->get("action"))
    
    case "update":
    {
-      updateButton($params->get("buttonId"), $params->get("stationId"));
+      updateButton(
+         $params->getInt("buttonId"), 
+         $params->getInt("stationId"),
+         $params->getInt("clickAction"),
+         $params->getInt("doubleClickAction"),
+         $params->getInt("holdAction"),
+         $params->getBool("enabled"));         
       break;
    }
    
@@ -153,9 +201,9 @@ switch ($params->get("action"))
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/modal.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    
 </head>
 
@@ -183,10 +231,45 @@ switch ($params->get("action"))
 <div id="config-modal" class="modal">
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
-      <label>Associated workstation</label>
-      <select id="station-id-input" form="config-form" name="stationId">
-         <?php echo getOptions();?>
-      </select>
+      
+      <!--div class="flex-vertical input-block">
+         <label>Button name</label>
+         <input id="button-name-input" type="text" form="config-form" name="name"></input>
+      </div-->
+            
+      <div class="flex-vertical input-block">
+         <label>Associated workstation</label>
+         <select id="station-id-input" form="config-form" name="stationId">
+            <?php echo getStationOptions();?>
+         </select>
+      </div>
+      
+      <div class="flex-vertical input-block">
+         <label>Click action</label>
+         <select id="click-action-input" form="config-form" name="clickAction">
+            <?php echo getButtonClickOptions();?>
+         </select>
+      </div>
+      
+      <div class="flex-vertical input-block">
+         <label>Double-click action</label>
+         <select id="double-click-action-input" form="config-form" name="doubleClickAction">
+            <?php echo getButtonClickOptions();?>
+         </select>
+      </div>
+          
+      <div class="flex-vertical input-block">
+         <label>Hold action</label>
+         <select id="hold-action-input" form="config-form" name="holdAction">
+            <?php echo getButtonClickOptions();?>
+         </select>
+      </div>
+         
+      <div class="flex-horizontal input-block">
+         <label>Enabled</label>
+         <input id="enabled-input" type="checkbox" form="config-form" name="enabled">
+      </div>
+      
       <div class="flex-horizontal">
          <button class="config-button" type="submit" form="config-form" onclick="setAction('update')">Save</button>
       </div>
@@ -201,8 +284,9 @@ switch ($params->get("action"))
    </div>
 </div>
 
-<script src="script/flexscreen.js"></script>
-<script src="script/modal.js"></script>
+<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+<script src="script/modal.js<?php echo versionQuery();?>"></script>
+<script src="script/buttonConfig.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
@@ -211,11 +295,16 @@ switch ($params->get("action"))
       var input = document.getElementById('button-id-input');
       input.setAttribute('value', buttonId);
    }
-
-   function setStationId(stationId)
+   
+   function setButtonConfig(buttonId, stationId, clickAction, doubleClickAction, holdAction, enabled)
    {
-      var input = document.getElementById('station-id-input');
-      input.value = stationId;
+      setButtonId(buttonId);
+      
+      document.getElementById('station-id-input').value = stationId;
+      document.getElementById('click-action-input').value = clickAction;
+      document.getElementById('double-click-action-input').value = doubleClickAction;
+      document.getElementById('hold-action-input').value = holdAction;
+      document.getElementById('enabled-input').checked = enabled;
    }
 
    function setAction(action)
@@ -223,6 +312,9 @@ switch ($params->get("action"))
       var input = document.getElementById('action-input');
       input.value = action;
    }
+   
+   // Start a 1 second timer to update the button statuses.
+   setInterval(function(){updateButtonStatus();}, 1000);
 </script>
 
 </body>

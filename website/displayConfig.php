@@ -5,10 +5,18 @@ require_once 'common/database.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
+require_once 'common/version.php';
 
 Time::init();
 
 session_start();
+
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::DISPLAY_CONFIG)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
 
 function renderTable()
 {
@@ -152,9 +160,9 @@ switch ($params->get("action"))
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
-   <link rel="stylesheet" type="text/css" href="css/flex.css"/>
-   <link rel="stylesheet" type="text/css" href="css/flexscreen.css"/>
-   <link rel="stylesheet" type="text/css" href="css/modal.css"/>
+   <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
 
 </head>
 
@@ -200,9 +208,9 @@ switch ($params->get("action"))
    </div>
 </div>
 
-<script src="script/flexscreen.js"></script>
-<script src="script/modal.js"></script>
-<script src="script/displayConfig.js"></script>
+<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+<script src="script/modal.js<?php echo versionQuery();?>"></script>
+<script src="script/displayConfig.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
