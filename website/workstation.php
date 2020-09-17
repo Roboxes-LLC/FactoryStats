@@ -15,6 +15,8 @@ Time::init();
 
 session_start();
 
+Authentication::authenticate();
+
 if (!(Authentication::isAuthenticated() &&
       Authentication::checkPermissions(Permission::WORKSTATION)))
 {

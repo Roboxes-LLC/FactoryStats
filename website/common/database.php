@@ -246,29 +246,20 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getDisplays()
    {
-      $query = "SELECT * from display ORDER BY macAddress DESC;";
+      $query = "SELECT * from display ORDER BY uid DESC;";
       
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function getDisplayByMacAddress($macAddress)
+   public function getDisplayByUid($uid)
    {
-      $query = "SELECT * from display WHERE macAddress = \"$macAddress\";";
+      $query = "SELECT * from display WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
       return ($result);
-   }
-   
-   public function displayExists($macAddress)
-   {
-      $query = "SELECT displayId from display WHERE macAddress = \"$macAddress\";";
-      
-      $result = $this->query($query);
-      
-      return ($result && ($result->num_rows > 0));
    }
    
    public function newDisplay($displayInfo)
@@ -276,8 +267,8 @@ class FlexscreenDatabase extends MySqlDatabase
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
       $query =
-      "INSERT INTO display (macAddress, ipAddress, lastContact) " .
-      "VALUES ('$displayInfo->macAddress', '$displayInfo->ipAddress', '$lastContact');";
+      "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact) " .
+      "VALUES ('$displayInfo->uid', '$displayInfo->ipAddress', '$displayInfo->name', '$displayInfo->presentationId', '$lastContact');";
 
       $this->query($query);
    }
@@ -288,7 +279,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "UPDATE display " .
-      "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", stationId = \"$displayInfo->stationId\", lastContact = \"$lastContact\" " .
+      "SET uid = \"$displayInfo->uid\", ipAddress = \"$displayInfo->ipAddress\", name = \"$displayInfo->name\", presentationId = \"$displayInfo->presentationId\", lastContact = \"$lastContact\" " .
       "WHERE displayId = $displayInfo->displayId;";
 
       $this->query($query);

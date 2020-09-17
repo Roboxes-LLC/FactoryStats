@@ -4,6 +4,7 @@ require_once '../common/buttonInfo.php';
 require_once '../common/breakInfo.php';
 require_once '../common/database.php';
 require_once '../common/displayInfo.php';
+require_once '../common/presentation.php';
 require_once '../common/stationInfo.php';
 require_once '../common/shiftInfo.php';
 require_once '../common/time.php';
@@ -197,6 +198,63 @@ $router->add("registerDisplay", function($params) {
    }
 
    echo json_encode($result);
+});
+
+$router->add("display", function($params) {   
+   $tabRotateConfig = Presentation::getDefaultPresentation()->getTabRotateConfig();
+   
+   if (isset($params["uid"]))
+   {
+      $uid = $params["uid"];
+      
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $queryResult = $database->getDisplayByUid($uid);
+         
+         $displayInfo = null;
+         
+         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         {
+            // Load an existing display.
+            $displayInfo = DisplayInfo::load($row["displayId"]);
+         }
+         else
+         {
+            // Register a new display.
+            $displayInfo = new DisplayInfo();
+            
+            $displayInfo->uid = $uid;
+            
+            $database->newDisplay($displayInfo);
+         }
+         
+         if ($displayInfo)
+         {
+            // Set IP address, if provided.
+            if (isset($params["ipAddress"]))
+            {
+               $displayInfo->ipAddress = $params["ipAddress"];
+            }
+            
+            // Update last contact.
+            $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
+            
+            // Update display info in the database.
+            $database->updateDisplay($displayInfo);
+            
+            $presentation = Presentation::load($displayInfo->presentationId);
+            
+            if ($presentation)
+            {
+               $tabRotateConfig = $presentation->getTabRotateConfig();
+            }            
+         }
+      }
+   }
+   
+   echo json_encode($tabRotateConfig);
 });
 
 $router->add("update", function($params) {

@@ -8,13 +8,22 @@ class DisplayInfo
    
    const ONLINE_THRESHOLD = 20;  // seconds
    
-   public $displayId = DisplayInfo::UNKNOWN_DISPLAY_ID;
-   public $macAddress;
-   public $ipAddress;
+   public $displayId;
+   public $uid;
    public $name;
-   public $description;
-   public $stationId;
+   public $ipAddress;
+   public $presentationId;
    public $lastContact;
+   
+   public function __construct()
+   {
+      $this->displayId = DisplayInfo::UNKNOWN_DISPLAY_ID;
+      $this->uid = "";
+      $this->name = "";
+      $this->ipAddress = "";
+      $this->presentationId = Presentation::UNKNOWN_PRESENTATION_ID;
+      $this->lastContact = null;
+   }
 
    public static function load($displayId)
    {
@@ -31,35 +40,15 @@ class DisplayInfo
             $displayInfo = new DisplayInfo();
             
             $displayInfo->displayId = intval($row['displayId']);
-            $displayInfo->macAddress = $row['macAddress'];
-            $displayInfo->ipAddress = $row['ipAddress'];
+            $displayInfo->uid = $row['uid'];
             $displayInfo->name = $row['name'];
-            $displayInfo->description = $row['description'];
-            $displayInfo->stationId = intval($row['stationId']);
+            $displayInfo->ipAddress = $row['ipAddress'];
+            $displayInfo->presentationId = intval($row['presentationId']);
             $displayInfo->lastContact = Time::fromMySqlDate($row['lastContact'], "Y-m-d H:i:s");
          }
       }
       
       return ($displayInfo);
-   }
-   
-   public static function getDisplayIdFromMac($macAddress)
-   {
-      $displayId = DisplayInfo::UNKNOWN_DISPLAY_ID;
-      
-      $database = FlexscreenDatabase::getInstance();
-      
-      if ($database && $database->isConnected())
-      {
-         $result = $database->getDisplayByMacAddress($macAddress);
-         
-         if ($result && ($row = $result->fetch_assoc()))
-         {
-            $displayId = $row["displayId"];
-         }
-      }
-      
-      return ($displayId);
    }
    
    public function isOnline()
@@ -89,13 +78,12 @@ class DisplayInfo
     
     if ($displayInfo)
     {
-       echo "displayId: " .   $displayInfo->displayId .   "<br/>";
-       echo "macAddress: " .  $displayInfo->macAddress .  "<br/>";
-       echo "ipAddress: " .   $displayInfo->ipAddress .   "<br/>";
-       echo "name: " .        $displayInfo->roboxName .   "<br/>";
-       echo "description: " . $displayInfo->description . "<br/>";
-       echo "stationId: " .   $displayInfo->stationId .   "<br/>";
-       echo "lastContact: " . $displayInfo->lastContact . "<br/>";
+       echo "displayId: " .      $displayInfo->displayId .      "<br/>";
+       echo "uid: " .            $displayInfo->uid .            "<br/>";
+       echo "ipAddress: " .      $displayInfo->ipAddress .      "<br/>";
+       echo "name: " .           $displayInfo->roboxName .      "<br/>";
+       echo "presentationId: " . $displayInfo->presentationId . "<br/>";
+       echo "lastContact: " .    $displayInfo->lastContact .    "<br/>";
     }
     else
     {
