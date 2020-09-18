@@ -4,7 +4,7 @@ require_once '../common/buttonInfo.php';
 require_once '../common/breakInfo.php';
 require_once '../common/database.php';
 require_once '../common/displayInfo.php';
-require_once '../common/presentation.php';
+require_once '../common/presentationInfo.php';
 require_once '../common/stationInfo.php';
 require_once '../common/shiftInfo.php';
 require_once '../common/time.php';
@@ -201,7 +201,7 @@ $router->add("registerDisplay", function($params) {
 });
 
 $router->add("display", function($params) {   
-   $tabRotateConfig = Presentation::getDefaultPresentation()->getTabRotateConfig();
+   $tabRotateConfig = PresentationInfo::getDefaultPresentation()->getTabRotateConfig();
    
    if (isset($params["uid"]))
    {
@@ -244,7 +244,7 @@ $router->add("display", function($params) {
             // Update display info in the database.
             $database->updateDisplay($displayInfo);
             
-            $presentation = Presentation::load($displayInfo->presentationId);
+            $presentation = PresentationInfo::load($displayInfo->presentationId);
             
             if ($presentation)
             {

@@ -1,5 +1,6 @@
 <?php
 require_once 'database.php';
+require_once 'presentationInfo.php';
 require_once 'time.php';
 
 class DisplayInfo
@@ -21,7 +22,7 @@ class DisplayInfo
       $this->uid = "";
       $this->name = "";
       $this->ipAddress = "";
-      $this->presentationId = Presentation::UNKNOWN_PRESENTATION_ID;
+      $this->presentationId = PresentationInfo::UNKNOWN_PRESENTATION_ID;
       $this->lastContact = null;
    }
 

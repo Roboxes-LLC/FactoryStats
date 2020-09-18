@@ -861,6 +861,41 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getPresentation($presentationId)
+   {
+      $query = "SELECT * from presentation WHERE presentationId = \"$presentationId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+      
+   }
+      
+   // **************************************************************************
+   
+   public function getSlide($slideId)
+   {
+      $query = "SELECT * from slide WHERE slideId = \"$slideId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+      
+   }
+   
+   public function getSlidesForPresentation($presentationId)
+   {
+      $query = "SELECT * from slide WHERE presentationId = \"$presentationId\" ORDER BY slideIndex ASC";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+      
+   }
+   
+   // **************************************************************************
+   
+   
    private static $databaseInstance = null;
 }
 

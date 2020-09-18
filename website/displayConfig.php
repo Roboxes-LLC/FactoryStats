@@ -24,10 +24,8 @@ function renderTable()
 <<<HEREDOC
    <table>
       <tr>
-         <th>Display ID</th>
-         <th>MAC Address</th>
+         <th>ID</th>
          <th>IP Address</th>
-         <th>Workstation</th>
          <th>Last Contact</th>
          <th>Status</th>
          <th></th>
@@ -45,17 +43,6 @@ HEREDOC;
       {
          $displayInfo = DisplayInfo::load($row["displayId"]);
 
-         $stationName = "Workstation Summary";
-         if ($displayInfo->stationId != StationInfo::UNKNOWN_STATION_ID)
-         {
-            $stationInfo = StationInfo::load($displayInfo->stationId);
-
-            if ($stationInfo)
-            {
-               $stationName = $stationInfo->name;
-            }
-         }
-
          $id = "display-" . $displayInfo->displayId;
          $isOnline = $displayInfo->isOnline();
          $status = $isOnline ? "Online" : "Offline";
@@ -64,13 +51,11 @@ HEREDOC;
          echo
 <<<HEREDOC
          <tr>
-            <td>$displayInfo->displayId</td>
-            <td>$displayInfo->macAddress</td>
+            <td>$displayInfo->uid</td>
             <td>$displayInfo->ipAddress</td>
-            <td>$stationName</td>
             <td>$displayInfo->lastContact</td>
             <td id="$id"><div>$status</div><div class="$ledClass"></div></td>
-            <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); setStationId($displayInfo->stationId); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
