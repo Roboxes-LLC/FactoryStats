@@ -50,6 +50,7 @@ function toggleSubmenu(submenu)
             echo getMenuItem("menu-item-station-config", Permission::STATION_CONFIG, "stationConfig.php", "Workstations");
             echo getMenuItem("menu-item-button-config", Permission::BUTTON_CONFIG, "buttonConfig.php", "Hardware Buttons");
             echo getMenuItem("menu-item-display-config", Permission::DISPLAY_CONFIG, "displayConfig.php", "Displays");
+            echo getMenuItem("menu-item-presentation-config", Permission::PRESENTATION_CONFIG, "presentationConfig.php", "Presentations");
             echo getMenuItem("menu-item-break-config", Permission::BREAK_CONFIG, "breakDescriptionConfig.php", "Breaks");
          ?>
       </div>

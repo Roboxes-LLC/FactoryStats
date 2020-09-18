@@ -15,6 +15,7 @@ class DisplayInfo
    public $ipAddress;
    public $presentationId;
    public $lastContact;
+   public $enabled;
    
    public function __construct()
    {
@@ -24,6 +25,7 @@ class DisplayInfo
       $this->ipAddress = "";
       $this->presentationId = PresentationInfo::UNKNOWN_PRESENTATION_ID;
       $this->lastContact = null;
+      $this->enabled = false;
    }
 
    public static function load($displayId)
@@ -46,6 +48,7 @@ class DisplayInfo
             $displayInfo->ipAddress = $row['ipAddress'];
             $displayInfo->presentationId = intval($row['presentationId']);
             $displayInfo->lastContact = Time::fromMySqlDate($row['lastContact'], "Y-m-d H:i:s");
+            $displayInfo->enabled = filter_var($row["enabled"], FILTER_VALIDATE_BOOLEAN);
          }
       }
       
@@ -85,6 +88,7 @@ class DisplayInfo
        echo "name: " .           $displayInfo->roboxName .      "<br/>";
        echo "presentationId: " . $displayInfo->presentationId . "<br/>";
        echo "lastContact: " .    $displayInfo->lastContact .    "<br/>";
+       echo "enabled: " .        ($buttonInfo->enabled ? "true" : "false") . "<br/>";
     }
     else
     {

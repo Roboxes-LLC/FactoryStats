@@ -266,9 +266,11 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
+      $enabled = ($displayInfo->enabled ? "true" : "false");
+      
       $query =
-      "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact) " .
-      "VALUES ('$displayInfo->uid', '$displayInfo->ipAddress', '$displayInfo->name', '$displayInfo->presentationId', '$lastContact');";
+      "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact, enabled) " .
+      "VALUES ('$displayInfo->uid', '$displayInfo->ipAddress', '$displayInfo->name', '$displayInfo->presentationId', '$lastContact', $enabled);";
 
       $this->query($query);
    }
@@ -277,9 +279,11 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
+      $enabled = ($displayInfo->enabled ? "true" : "false");
+      
       $query =
       "UPDATE display " .
-      "SET uid = \"$displayInfo->uid\", ipAddress = \"$displayInfo->ipAddress\", name = \"$displayInfo->name\", presentationId = \"$displayInfo->presentationId\", lastContact = \"$lastContact\" " .
+      "SET uid = \"$displayInfo->uid\", ipAddress = \"$displayInfo->ipAddress\", name = \"$displayInfo->name\", presentationId = \"$displayInfo->presentationId\", lastContact = \"$lastContact\", enabled = $enabled " .
       "WHERE displayId = $displayInfo->displayId;";
 
       $this->query($query);
@@ -861,14 +865,52 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getPresentations()
+   {
+      $query = "SELECT * from presentation ORDER BY name ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
    public function getPresentation($presentationId)
    {
       $query = "SELECT * from presentation WHERE presentationId = \"$presentationId\";";
       
       $result = $this->query($query);
       
-      return ($result);
+      return ($result);      
+   }
+   
+   public function newPresentation($presentationInfo)
+   {
+      $query =
+      "INSERT INTO presentation (name) " .
+      "VALUES ('$presentationInfo->name');";
       
+      $this->query($query);
+   }
+   
+   public function updatePresentation($presentationInfo)
+   {
+      $query =
+      "UPDATE presentation " .
+      "SET name = \"$presentationInfo->name\" " .
+      "WHERE presentationId = $presentationInfo->presentationId;";
+      
+      $this->query($query);
+   }
+   
+   public function deletePresentation($presentationId)
+   {
+      $query = "DELETE FROM presentation WHERE presentationId = $presentationId;";
+      
+      $this->query($query);
+      
+      $query = "DELETE FROM slide WHERE presentationId = $presentationId;";
+      
+      $this->query($query);
    }
       
    // **************************************************************************
@@ -879,8 +921,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $result = $this->query($query);
       
-      return ($result);
-      
+      return ($result);      
    }
    
    public function getSlidesForPresentation($presentationId)
@@ -889,8 +930,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $result = $this->query($query);
       
-      return ($result);
-      
+      return ($result);      
    }
    
    // **************************************************************************
