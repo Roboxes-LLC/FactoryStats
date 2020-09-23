@@ -35,6 +35,7 @@ class SlideInfo
    public $presentationId;
    public $slideType;
    public $duration;
+   public $enabled;
    
    // URL options
    public $url;
@@ -54,6 +55,7 @@ class SlideInfo
       $this->slideType = SlideType::UNKNOWN;
       $this->slideIndex = 0;
       $this->duration = 0;
+      $this->enabled = false;
       $this->url = "";
       $this->image = "";
       $this->shiftIds = ShiftInfo::UNKNOWN_SHIFT_ID;
@@ -67,6 +69,7 @@ class SlideInfo
       $this->slideType = intval($row['slideType']);
       $this->slideIndex = intval($row['slideIndex']);
       $this->duration = intval($row['duration']);
+      $this->enabled = filter_var($row["enabled"], FILTER_VALIDATE_BOOLEAN);
       $this->url = $row['url'];
       $this->image = $row['image'];
       $this->shiftId = intval($row['shiftId']);
@@ -164,6 +167,63 @@ class SlideInfo
       
       return ($url);
    }
+   
+   function getContentDescription()
+   {
+      $content = "";
+      
+      switch ($this->slideType)
+      {
+         case SlideType::URL:
+         {
+            $content = $this->url;
+            break;
+         }
+            
+         case SlideType::IMAGE:
+         {
+            $content = $this->image;
+            break;
+         }
+            
+         case SlideType::WORKSTATION_SUMMARY_PAGE:
+         {
+            $content = SlideType::getLabel(SlideType::WORKSTATION_SUMMARY_PAGE);
+            break;
+         }
+            
+         case SlideType::WORKSTATION_PAGE:
+         {
+            $content = "";
+            
+            $addComma = false;
+            for ($i = 0; $i < SlideInfo::MAX_STATION_IDS; $i++)
+            {
+               if ($this->stationIds[$i] != StationInfo::UNKNOWN_STATION_ID)
+               {
+                  $stationInfo = StationInfo::load($this->stationIds[$i]);
+                  
+                  if ($stationInfo)
+                  {
+                     if ($addComma)
+                     {
+                        $content .= ", ";
+                     }
+                     
+                     $content .= $stationInfo->label;
+                     
+                     $addComma = true;
+                  }
+               }
+            }
+            
+            $content = ($content == "") ? "<no worsktations>" : $content;
+            break;
+         }
+      }            
+      
+      return ($content);      
+   }
 }
 
 /*
@@ -174,11 +234,14 @@ if (isset($_GET["slideId"]))
  
    if ($slideInfo)
    {
+      $enabled = $slideInfo->enabled ? "Enabled" : "Disabled";
+      
       echo "slideId: " .          $slideInfo->slideId .                        "<br/>";
       echo "presentationId: " .   $slideInfo->presentationId .                 "<br/>";
       echo "slideType: " .        SlideType::getLabel($slideInfo->slideType) . "<br/>";
       echo "slideIndex: " .       $slideInfo->slideIndex .                     "<br/>";
       echo "duration: " .         $slideInfo->duration .                       "<br/>";
+      echo "enabled: " .          $enabled .                                   "<br/>";
       echo "url: " .              $slideInfo->url .                            "<br/>";
       echo "image: " .            $slideInfo->image .                          "<br/>";
       echo "shiftId: " .          $slideInfo->shiftId .                        "<br/>";

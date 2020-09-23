@@ -546,5 +546,34 @@ $router->add("displayStatus", function($params) {
    echo json_encode($result);
 });
 
+$router->add("presentation", function($params) {
+   $result = new stdClass();
+   
+   $presentationId = $params->get("presentationId");
+   
+   if ($presentationId)
+   {
+      $presentationInfo = PresentationInfo::load($presentationId);
+      
+      if ($presentationInfo)
+      {
+         $result->success = true;
+         $result->presentation = $presentationInfo;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No presentation found";
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>
