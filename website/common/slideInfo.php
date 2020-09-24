@@ -119,7 +119,7 @@ class SlideInfo
          
          case SlideType::IMAGE:
          {
-            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/uploads/" . $this->image;
+            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/slide.php?slideId=" . $this->slideId;
             break;
          }
          
@@ -261,4 +261,5 @@ if (isset($_GET["slideId"]))
    }
 }
 */
+
 ?>

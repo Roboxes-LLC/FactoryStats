@@ -50,7 +50,7 @@ HEREDOC;
          <tr>
             <td>$presentationInfo->name</td>
             <td>$slideCount</td>
-            <td><button class="config-button" onclick="document.location = 'slideConfig.php?presentationId=$presentationInfo->presentationId'">Configure</button></div></td>
+            <td><button class="config-button" onclick="setPresentationConfig($presentationInfo->presentationId, '$presentationInfo->name'); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setPresentationId($presentationInfo->presentationId); showModal('confirm-delete-modal');">Delete</button></div></td>
             <td><button class="config-button" onclick="setPresentationId($presentationInfo->presentationId); showModal('preview-modal');">Preview</button></div></td>
          </tr>
@@ -185,18 +185,8 @@ switch ($params->get("action"))
          <input id="name-input" form="config-form" name="name">
       </div>
       
-      <div class="flex-vertical input-block">
-         <label>Slides</label>
-         <table id="slide-table">
-            <tr id="slide-template-row">
-               <td class="content"></td>
-               <td><button class="config-button edit-slide-button" type="submit" form="config-form">E</button></td>
-               <td><button class="config-button delete-slide-button" type="submit" form="config-form">D</button></td>
-            </tr>
-         </table>
-         <div class="flex-horizontal">
-            <button class="config-button" onclick="addSlide()">+</button>
-         </div>
+      <div class="flex-horizontal">
+         <button class="config-button" onclick="editSlides()">Edit Slides</button>
       </div>
       
       <div class="flex-horizontal">
@@ -235,6 +225,12 @@ switch ($params->get("action"))
    {
       var input = document.getElementById('action-input');
       input.value = action;
+   }
+   
+   function editSlides()
+   {
+      var presentationId = parseInt(document.getElementById('presentation-id-input').value);
+      document.location = "slideConfig.php?presentationId=" + presentationId;
    }
 </script>
 

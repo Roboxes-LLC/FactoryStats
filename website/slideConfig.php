@@ -150,29 +150,23 @@ function addSlide(
    $shiftId,
    $stationIds)
 {
-   $presentationInfo = getPresentationInfo();
+   $slideInfo = new SlideInfo();
    
-   if ($presentationInfo)
+   $slideInfo->presentationId = getPresentationId();
+   $slideInfo->slideType = $slideType;
+   $slideInfo->slideIndex = 0;  // TODO
+   $slideInfo->duration = $duration;   
+   $slideInfo->enabled = $enabled;
+   $slideInfo->url = $url;
+   $slideInfo->image = $image;
+   $slideInfo->shiftId = $shiftId;
+   $slideInfo->stationIds = $stationIds;
+   
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
    {
-      $slideInfo = new SlideInfo();
-      
-      $slideInfo->$slideType = $slideType;
-      $slideInfo->$duration = $duration;   
-      $slideInfo->$enabled = $enabled;
-      $slideInfo->url = url;
-      $slideInfo->image = image;
-      $slideInfo->shiftId = shiftId;
-      $slideInfo->shiftId = shiftId;
-      $slideInfo->stationIds = $stationIds;
-      
-      $presentationInfo->slides[] = $slideInfo;
-      
-      $database = FlexscreenDatabase::getInstance();
-      
-      if ($database && $database->isConnected())
-      {
-         $database->updatePresentation($presentationInfo);
-      }
+      $database->newSlide($slideInfo);
    }
 }
 
@@ -190,14 +184,13 @@ function updateSlide(
    
    if ($slideInfo)
    {
-      $slideInfo->slideType = $slideType;
+      $slideInfo->presentationId = getPresentationId();
       $slideInfo->slideType = $slideType;
       $slideInfo->duration = $duration;
       $slideInfo->enabled = $enabled;
-      $slideInfo->url = url;
-      $slideInfo->image = image;
-      $slideInfo->shiftId = shiftId;
-      $slideInfo->shiftId = shiftId;
+      $slideInfo->url = $url;
+      $slideInfo->image = $image;
+      $slideInfo->shiftId = $shiftId;
       $slideInfo->stationIds = $stationIds;
 
       $database = FlexscreenDatabase::getInstance();
@@ -216,7 +209,7 @@ switch (getParams()->get("action"))
 {
    case "delete":
    {
-      deleteSlide(getPresentationId());
+      deleteSlide(getSlideId());
       break;
    }
 
@@ -285,7 +278,7 @@ switch (getParams()->get("action"))
 
 <form id="config-form" method="post">
    <input id="action-input" type="hidden" name="action">
-   <input id="presentation-id-input" type="hidden" name="presentationId" value="<?php getPresentationId()?>">
+   <input id="presentation-id-input" type="hidden" name="presentationId" value="<?php echo getPresentationId()?>">
    <input id="slide-id-input" type="hidden" name="slideId">
 </form>
 
@@ -297,6 +290,8 @@ switch (getParams()->get("action"))
    
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
+         <div class="flex-horizontal" style="align-self: flex-start"><a class="nav-link" style="color: #14a3db;" href="presentationConfig.php?presentationId=<?php echo getPresentationId()?>">Back to Presentation</a></div>
+         <br>
          <?php renderTable();?>
          <br>
          <button class="config-button" onclick="setSlideConfig(0); showModal('config-modal');">Add Slide</button>
