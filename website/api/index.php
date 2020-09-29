@@ -4,6 +4,7 @@ require_once '../common/buttonInfo.php';
 require_once '../common/breakInfo.php';
 require_once '../common/database.php';
 require_once '../common/displayInfo.php';
+require_once '../common/displayRegistry.php';
 require_once '../common/presentationInfo.php';
 require_once '../common/stationInfo.php';
 require_once '../common/shiftInfo.php';
@@ -156,105 +157,154 @@ $router->add("buttonStatus", function($params) {
    echo json_encode($result);
 });
 
-$router->add("registerDisplay", function($params) {
+$router->add("display", function($params) {
    $result = new stdClass();
-
-   if (isset($params["macAddress"]))
-   {
-      $displayInfo = new DisplayInfo();
-      $displayInfo->macAddress = $params->get("macAddress");
-      $displayInfo->ipAddress = $params->get("ipAddress");
-      $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
-
-      $database = FlexscreenDatabase::getInstance();
-
-      if ($database && $database->isConnected())
-      {
-         $queryResult = $database->getDisplayByMacAddress($displayInfo->macAddress);
-
-         if ($queryResult && ($row = $queryResult->fetch_assoc()))
-         {
-            $displayInfo->displayId = $row["displayId"];
-            $database->updateDisplay($displayInfo);
-         }
-         else
-         {
-            $database->newDisplay($displayInfo);
-         }
-
-         $result->success = true;
-         $result->displayInfo = $displayInfo;
-      }
-      else
-      {
-         $result->success = false;
-         $result->error = "No database connection";
-      }
-   }
-   else
-   {
-      $result->success = false;
-      $result->error = "No MAC address supplied";
-   }
-
-   echo json_encode($result);
-});
-
-$router->add("display", function($params) {   
-   $tabRotateConfig = PresentationInfo::getDefaultPresentation()->getTabRotateConfig();
+   $result->success = false;
    
    if (isset($params["uid"]))
    {
       $uid = $params["uid"];
       
-      $database = FlexscreenDatabase::getInstance();
-      
-      if ($database && $database->isConnected())
+      if (CustomerInfo::getSubdomain() == "displayregistry")
       {
-         $queryResult = $database->getDisplayByUid($uid);
-         
-         $displayInfo = null;
-         
-         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         if (DisplayRegistry::isRegistered($uid))
          {
-            // Load an existing display.
-            $displayInfo = DisplayInfo::load($row["displayId"]);
+            $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
+            
+            if ($subdomain && ($subdomain != ""))
+            {
+               $result->subdomain = $subdomain;
+               $result->server = $subdomain . ".factorystats.com";
+            }
          }
          else
          {
-            // Register a new display.
-            $displayInfo = new DisplayInfo();
-            
-            $displayInfo->uid = $uid;
-            
-            $database->newDisplay($displayInfo);
+            DisplayRegistry::register($uid);
          }
          
-         if ($displayInfo)
+         $result->success = true;
+         $result->registered = true;
+         
+         // Determine if this display has been associated with a domain.
+         if (!isset($result->subdomain))
          {
-            // Set IP address, if provided.
-            if (isset($params["ipAddress"]))
-            {
-               $displayInfo->ipAddress = $params["ipAddress"];
-            }
-            
-            // Update last contact.
-            $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
-            
-            // Update display info in the database.
-            $database->updateDisplay($displayInfo);
-            
-            $presentation = PresentationInfo::load($displayInfo->presentationId);
-            
-            if ($presentation)
-            {
-               $tabRotateConfig = $presentation->getTabRotateConfig();
-            }            
+            $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();
          }
       }
+      else
+      {
+         $database = FlexscreenDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $queryResult = $database->getDisplayByUid($uid);
+            
+            $displayInfo = null;
+            
+            if ($queryResult && ($row = $queryResult->fetch_assoc()))
+            {
+               // Load an existing display.
+               $displayInfo = DisplayInfo::load($row["displayId"]);
+            }
+            else
+            {
+               // Register a new display.
+               $displayInfo = new DisplayInfo();
+               
+               $displayInfo->uid = $uid;
+               
+               $database->newDisplay($displayInfo);
+               
+               $displayInfo->displayId = $database->lastInsertId();
+            }
+            
+            if ($displayInfo)
+            {
+               // Set IP address, if provided.
+               if (isset($params["ipAddress"]))
+               {
+                  $displayInfo->ipAddress = $params["ipAddress"];
+               }
+               
+               // Update last contact.
+               $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
+               
+               // Update display info in the database.
+               $database->updateDisplay($displayInfo);
+               
+               $presentation = PresentationInfo::load($displayInfo->presentationId);
+               
+               if ($presentation)
+               {
+                  $result->presentation = $presentation->getTabRotateConfig();
+               }
+               else
+               {
+                  $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();                  
+               }
+               
+               $result->success = true;
+            }
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "Database error";
+         }         
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
    }
    
-   echo json_encode($tabRotateConfig);
+   echo json_encode($result);
+});
+
+$router->add("displayStatus", function($params) {
+   $result = new stdClass();
+   
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result->success = true;
+      $result->displayStatuses = array();
+      
+      $dbaseResult = $database->getDisplays();
+      
+      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      {
+         $displayInfo = DisplayInfo::load(intval($row["displayId"]));
+         
+         $dateTime = new DateTime($displayInfo->lastContact, new DateTimeZone('America/New_York'));
+         $formattedDateTime = $dateTime->format("m/d/Y h:i A");
+         
+         $displayStatus = new stdClass();
+         $displayStatus->displayId = $displayInfo->displayId;
+         
+         $displayStatus->ipAddress = $displayInfo->ipAddress;
+         $displayStatus->lastContact = $formattedDateTime;
+         
+         $status = $displayInfo->getDisplayStatus();
+         $displayStatus->displayStatus = $status;
+         $displayStatus->displayStatusLabel = DisplayStatus::getLabel($status);
+         $displayStatus->displayStatusClass = DisplayStatus::getClass($status);
+         $displayStatus->isOnline = $displayInfo->isOnline();
+
+         $displayStatus->ledClass = $displayStatus->isOnline ? "led-green" : "led-red";
+         
+         $result->displayStatuses[] = $displayStatus;
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "No database connection";
+   }
+   
+   echo json_encode($result);
 });
 
 $router->add("update", function($params) {
@@ -508,40 +558,6 @@ $router->add("shift", function($params) {
    
    $result->shiftId = $shiftId;
    $result->success = true;
-   
-   echo json_encode($result);
-});
-
-$router->add("displayStatus", function($params) {
-   $result = new stdClass();
-   
-   $database = FlexscreenDatabase::getInstance();
-   
-   if ($database && $database->isConnected())
-   {
-      $result->success = true;
-      $result->displayStatuses = array();
-      
-      $dbaseResult = $database->getDisplays();
-      
-      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
-      {
-         $displayInfo = DisplayInfo::load(intval($row["displayId"]));
-         
-         $displayStatus = new stdClass();
-         $displayStatus->displayId = $displayInfo->displayId;
-         $displayStatus->isOnline = $displayInfo->isOnline();
-         $displayStatus->label = $displayStatus->isOnline ? "Online" : "Offline";
-         $displayStatus->ledClass = $displayStatus->isOnline ? "led-green" : "led-red";
-
-         $result->displayStatuses[] = $displayStatus;
-      }
-   }
-   else
-   {
-      $result->success = false;
-      $result->error = "No database connection";
-   }
    
    echo json_encode($result);
 });

@@ -70,12 +70,27 @@ class MySqlDatabase implements Database
 
       return ($result);
    }
-   
+
    public static function countResults($result)
    {
       return (mysqli_num_rows($result));
    }
-   
+
+   public function rowsAffected()
+   {
+      return(mysqli_affected_rows($this->connection));
+   }
+
+   public function lastInsertId()
+   {
+      return (mysqli_insert_id($this->connection));
+   }
+
+   public function lastQuery()
+   {
+      return ($this->connection->last_query());
+   }
+
    protected function getConnection()
    {
       return ($this->connection);
@@ -92,6 +107,86 @@ class MySqlDatabase implements Database
    private $connection;
 
    private $isConnected = false;
+}
+
+class FactoryStatsGlobalDatabase extends MySqlDatabase
+{
+   public static function getInstance()
+   {
+      if (!FactoryStatsGlobalDatabase::$databaseInstance)
+      {
+         self::$databaseInstance = new FactoryStatsGlobalDatabase();
+         
+         self::$databaseInstance->connect();
+      }
+      
+      return (self::$databaseInstance);
+   }
+   
+   public function __construct()
+   {
+      global $SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE;
+      
+      parent::__construct($SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE);
+   }
+   
+   // **************************************************************************
+   
+   public function isDisplayRegistered($uid)
+   {
+      $query = "SELECT * FROM display WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return (FactoryStatsGlobalDatabase::countResults($result) == 1);
+   }
+   
+   public function registerDisplay($uid)
+   {
+      $query = "INSERT INTO display (uid, subdomain) VALUES (\"$uid\", \"\");";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function uregisterDisplay($uid)
+   {
+      $query = "DELETE FROM display WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function associateDisplayWithSubdomain($uid, $subdomain)
+   {
+      $query = "UPDATE display SET subdomain = '$subdomain' WHERE uid = '$uid';";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getAssociatedSubdomainForDisplay($uid)
+   {
+      $domain = "";
+      
+      $query = "SELECT * FROM display WHERE uid = '$uid';";
+      
+      $result = $this->query($query);
+      
+      if ($result && ($row = $result->fetch_assoc()))
+      {
+         $domain = $row["subdomain"];
+      }
+      
+      return ($domain);
+   }
+   
+   // **************************************************************************
+
+   private static $databaseInstance = null;
 }
 
 class FlexscreenDatabase extends MySqlDatabase

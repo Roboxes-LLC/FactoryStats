@@ -7,31 +7,64 @@ function updateDisplayStatus()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         try
+         //try
          {
             var json = JSON.parse(this.responseText);
-
-            for (displayStatus of json.displayStatuses)
+            
+            var table = document.getElementById("display-table");
+            var rowCount = (table.rows.length - 1);
+            var displayCount = json.displayStatuses.length;
+            
+            // Check for a change in the number of registered displays.
+            if (rowCount != displayCount)
             {
-               var id = "display-" + displayStatus.displayId;
-               
-               var element = document.getElementById(id);
-               
-               if (element != null)
+               location.reload();
+            }
+            else
+            {
+               // Update all displays.
+               for (displayStatus of json.displayStatuses)
                {
-                  element.childNodes[0].innerHTML = displayStatus.label;
+                  var id = "display-" + displayStatus.displayId;
                   
-                  element.childNodes[1].classList.remove("led-green");
-                  element.childNodes[1].classList.remove("led-red");
-                  element.childNodes[1].classList.add(displayStatus.ledClass);
+                  // Get table row.
+                  var row = document.getElementById(id);
+                  
+                  if (row != null)
+                  {
+                     // IP address.
+                     row.cells[1].innerHTML = displayStatus.ipAddress;
+                     
+                     // Last contact.
+                     row.cells[2].innerHTML = displayStatus.lastContact;
+                     
+                     // Display status.
+                     row.cells[3].className = "";
+                     row.cells[3].innerHTML = displayStatus.displayStatusLabel;
+                     row.cells[3].classList.add(displayStatus.displayStatusClass);
+   
+                     // LED indicator.         
+                     var ledDiv = row.cells[4].querySelector('.display-led');     
+                     ledDiv.classList.remove("led-green");     
+                     if (displayStatus.isOnline)
+                     {
+                        ledDiv.classList.add("led-green");
+                     }
+                     else
+                     {
+                        ledDiv.classList.add("led-red");                     
+                     }
+                  }
                }
             }     
          }
-         catch (expection)
+         /*
+         catch (exception)
          {
             console.log("JSON syntax error");
             console.log(this.responseText);
          }
+         */
       }
    };
    xhttp.open("GET", requestURL, true);

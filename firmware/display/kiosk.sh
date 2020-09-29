@@ -1,4 +1,4 @@
-# Flexscreen kiosk script
+# Factory Stats kiosk script
 
 # Disable screensaver and display power management
 xset s noblank

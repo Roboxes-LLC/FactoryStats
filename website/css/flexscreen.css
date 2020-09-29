@@ -327,15 +327,15 @@ body {
    box-shadow: #000 0 -1px 7px 1px, inset #7D0 0 -1px 9px, #7D0 0 2px 12px 5px;   
 }
 
-.button-unconfigured {
+.button-unconfigured, .display-unconfigured {
 	color: red;
 }
 
-.button-disabled {
+.button-disabled, .display-disabled {
    color: orange;
 }
 
-.button-ready {
+.button-ready, .display-ready {
    color: green;
 }
 

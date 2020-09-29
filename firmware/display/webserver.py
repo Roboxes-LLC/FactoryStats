@@ -18,7 +18,7 @@ class StaticServer(BaseHTTPRequestHandler):
         if filename[-4:] == '.css':
             self.send_header('Content-type', 'text/css')
         elif filename[-5:] == '.json':
-            self.send_header('Content-type', 'application/javascript')
+            self.send_header('Content-type', 'application/json')
         elif filename[-3:] == '.js':
             self.send_header('Content-type', 'application/javascript')
         elif filename[-4:] == '.ico':
@@ -31,7 +31,7 @@ class StaticServer(BaseHTTPRequestHandler):
             #html = bytes(html, 'utf8')
             self.wfile.write(html)
  
-def run(server_class=HTTPServer, handler_class=StaticServer, port=80):
+def run(server_class=HTTPServer, handler_class=StaticServer, port=1975):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd on port {}'.format(port))

@@ -3,6 +3,33 @@ require_once 'database.php';
 require_once 'presentationInfo.php';
 require_once 'time.php';
 
+abstract class DisplayStatus
+{
+   const UNKNOWN = 0;
+   const FIRST = 1;
+   const UNCONFIGURED = DisplayStatus::FIRST;
+   const DISABLED = 2;
+   const READY = 3;
+   const LAST = 4;
+   const COUNT = DisplayStatus::LAST - DisplayStatus::FIRST;
+   
+   public static $values = array(DisplayStatus::UNCONFIGURED, DisplayStatus::DISABLED, DisplayStatus::READY);
+   
+   public static function getLabel($displayStatus)
+   {
+      $labels = array("---", "Unconfigured", "Disabled", "Ready");
+      
+      return ($labels[$displayStatus]);
+   }
+   
+   public static function getClass($displayStatus)
+   {
+      $labels = array("", "display-unconfigured", "display-disabled", "display-ready");
+      
+      return ($labels[$displayStatus]);
+   }
+}
+
 class DisplayInfo
 {
    const UNKNOWN_DISPLAY_ID = 0;
@@ -72,6 +99,26 @@ class DisplayInfo
 
       return ($isOnline);
    }
+   
+   public function getDisplayStatus()
+   {
+      $displayStatus = DisplayStatus::UNKNOWN;
+      
+      if ($this->presentationId == PresentationInfo::UNKNOWN_PRESENTATION_ID)
+      {
+         $displayStatus = DisplayStatus::UNCONFIGURED;
+      }
+      else if ($this->enabled == false)
+      {
+         $displayStatus = DisplayStatus::DISABLED;
+      }
+      else
+      {
+         $displayStatus = DisplayStatus::READY;
+      }
+      
+      return ($displayStatus);
+   }
 }
 
 /*
@@ -88,7 +135,7 @@ class DisplayInfo
        echo "name: " .           $displayInfo->roboxName .      "<br/>";
        echo "presentationId: " . $displayInfo->presentationId . "<br/>";
        echo "lastContact: " .    $displayInfo->lastContact .    "<br/>";
-       echo "enabled: " .        ($buttonInfo->enabled ? "true" : "false") . "<br/>";
+       echo "enabled: " .        ($displayInfo->enabled ? "true" : "false") . "<br/>";
     }
     else
     {

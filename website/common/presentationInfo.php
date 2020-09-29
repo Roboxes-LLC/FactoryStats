@@ -64,6 +64,34 @@ class PresentationInfo
       return ($presentation);
    }
    
+   public static function getUnregisteredPresentation($uid)
+   {
+      $presentation = new PresentationInfo();
+      
+      $slideInfo = new SlideInfo();
+      $slideInfo->slideType = SlideType::URL;
+      $slideInfo->duration = 0;
+      $slideInfo->url = "http://displayregistry.factorystats.com/unregistered.php?uid=$uid";
+      
+      $presentation->slides[] = $slideInfo;
+      
+      return ($presentation);
+   }
+   
+   public static function getUnconfiguredPresentation($uid)
+   {
+      $presentation = new PresentationInfo();
+      
+      $slideInfo = new SlideInfo();
+      $slideInfo->slideType = SlideType::URL;
+      $slideInfo->duration = 0;
+      $slideInfo->url = "http://displayregistry.factorystats.com/unconfigured.php?uid=$uid";
+      
+      $presentation->slides[] = $slideInfo;
+      
+      return ($presentation);
+   }
+   
    public function getTabRotateConfig()
    {
       //global $ROOT;
