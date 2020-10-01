@@ -1,7 +1,7 @@
 <?php
 
-require_once 'common/customerInfo.php';
-require_once 'common/slideInfo.php';
+require_once '../common/customerInfo.php';
+require_once '../common/slideInfo.php';
 
 function getParams()
 {

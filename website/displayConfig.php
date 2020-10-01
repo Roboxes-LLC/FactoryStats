@@ -1,7 +1,7 @@
 <?php
 
-require_once 'common/displayInfo.php';
 require_once 'common/database.php';
+require_once 'common/displayInfo.php';
 require_once 'common/displayRegistry.php';
 require_once 'common/header.php';
 require_once 'common/params.php';

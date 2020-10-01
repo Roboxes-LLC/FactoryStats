@@ -50,14 +50,16 @@ class PresentationInfo
       return ($presentationInfo);
    }
 
-   public static function getDefaultPresentation()
+   public static function getDefaultPresentation($uid)
    {
       $presentation = new PresentationInfo();
       
+      $subdomain = CustomerInfo::getSubdomain();
+      
       $slideInfo = new SlideInfo();
-      $slideInfo->slideType = SlideType::WORKSTATION_SUMMARY_PAGE;
+      $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+      $slideInfo->url = "http://$subdomain.factorystats.com/pages/default.php?uid=$uid";
       
       $presentation->slides[] = $slideInfo;
       
@@ -66,12 +68,14 @@ class PresentationInfo
    
    public static function getUnregisteredPresentation($uid)
    {
+      global $DISPLAY_REGISTRY;
+
       $presentation = new PresentationInfo();
-      
+
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = "http://displayregistry.factorystats.com/unregistered.php?uid=$uid";
+      $slideInfo->url = "http://$DISPLAY_REGISTRY.factorystats.com/pages/unregistered.php?uid=$uid";
       
       $presentation->slides[] = $slideInfo;
       
@@ -80,12 +84,20 @@ class PresentationInfo
    
    public static function getUnconfiguredPresentation($uid)
    {
+      global $DISPLAY_REGISTRY;
+      
       $presentation = new PresentationInfo();
+      
+      $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
+      if (!$subdomain || ($subdomain == ""))
+      {
+         $subdomain = $DISPLAY_REGISTRY;
+      }
       
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = "http://displayregistry.factorystats.com/unconfigured.php?uid=$uid";
+      $slideInfo->url = "http://$subdomain.factorystats.com/pages/unconfigured.php?uid=$uid";
       
       $presentation->slides[] = $slideInfo;
       

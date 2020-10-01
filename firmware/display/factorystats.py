@@ -2,22 +2,23 @@
 import os 
 import json
 import requests
+import shutil
 import time
 
+# Working directory
+DIR = os.environ['HOME'] + "/factorystats"
+
 # getMac script
-GET_MAC = "/home/pi/getMac.sh"
+GET_MAC = "%s/getMac.sh" % DIR
 
 # GET_IP linux command
 GET_IP = "hostname  -I | cut -f1 -d' ' | tr -d '\n' | tr -d '\r'"
-
-# kiosk script
-KIOSK = "bash /home/pi/kiosk.sh"
 
 # Host name from file
 HOST_NAME = open("/etc/hostname").read().replace('\n','')
 
 # server address from file
-SERVER = open("/home/pi/server.txt").read().replace('\n','')
+SERVER = open("%s/server.txt" % DIR).read().replace('\n','')
 print("Read server: '%s'" % SERVER)
 
 # IP address, via script
@@ -31,10 +32,6 @@ print("Read MAC address: '%s'" % MAC_ADDRESS)
 # "Random" UID
 UID = MAC_ADDRESS.upper().replace(":", "")[-6:]
 
-# launch Chromium browser
-print("Launching Chromium browser")
-os.system(KIOSK)
-
 # ping parameters
 PARAMS = {'uid':UID, 'ipAddress':IP_ADDRESS, 'macAddress':MAC_ADDRESS}
 
@@ -45,13 +42,27 @@ def getUrl(server):
    return ("http://" + SERVER + "/api/display/")
 
 def pingServer():
-    status = requests.get(url = URL, params = PARAMS)
-    if (status.status_code == 200):
-       try:
-          response = status.json()
-          processPingResult(response)
-       except ValueError:
-          print("Bad response: %s" % status.content)
+   global serverAvailable
+   
+   try:
+      status = requests.get(url = URL, params = PARAMS)
+
+      serverAvailable = True
+
+      if (status.status_code == 200):
+         try:
+            response = status.json()
+            processPingResult(response)
+         except ValueError:
+            print("Failed to parse response: %s" % status.content)
+      else:
+         print("Bad response code: %d" % status.status_code)     
+          
+   except (requests.exceptions.ConnectionError, requests.HTTPError):
+      if (serverAvailable == True):
+         serverAvailable = False
+         print("Server ping failed")
+         processNoConnection()
 
 def processPingResult(response):
    global SERVER
@@ -71,7 +82,7 @@ def processPingResult(response):
          if (newPresentation != PRESENTATION):
             PRESENTATION = newPresentation         
             print("Updated presentation: %s" % response["presentation"])
-            file = open("/home/pi/www/presentation.json", "w+")
+            file = open("%s/www/presentation.json" % DIR, "w+")
             file.write(PRESENTATION)
             file.close()
    elif ("error" in response):
@@ -79,9 +90,19 @@ def processPingResult(response):
    else:
       print("Undefined server error")
 
-# Launch the web server that will serve the presentation.json file.
-print("Starting Python web server")
-os.system("python /home/pi/webserver.py")
+def processNoConnection():
+      # Copy UID into unconnected.html
+      filename = "%s/www/unconnected.html" % DIR
+      with open(filename) as file:
+         content = file.read().replace("%UID", UID)
+      with open(filename, "w") as file:
+         file.write(content)
+   
+      # Copy unconnected.json into presentation.json
+      shutil.copyfile("%s/www/unconnected.json" % DIR, "%s/www/presentation.json" % DIR)
+
+# Global variable tracking server availability.
+serverAvailable = True
 
 # Ping server every 30 seconds.
 URL = getUrl(SERVER)

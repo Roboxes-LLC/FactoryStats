@@ -1,9 +1,10 @@
 <?php
 
-require_once 'database.php';
 require_once 'params.php';
 require_once 'root.php';
 require_once 'usa.php';
+
+require_once 'database.php';  // TODO: Require order matters here, for some reason.
 
 class CustomerInfo
 {
@@ -151,7 +152,7 @@ class CustomerInfo
          $this->phone = $row['phone'];
          $this->timeZone = $row['timeZone'];
          
-         $customerInfo->disableAuthentication = $row['disableAuthentication'];
+         $this->disableAuthentication = $row['disableAuthentication'];
       }
    }
 }

@@ -1,4 +1,5 @@
 <?php
+
 class Params extends ArrayObject
 {
    public static function parse()
@@ -51,3 +52,5 @@ class Params extends ArrayObject
       return (intval($this->get($key)));
    }
 }
+
+?>

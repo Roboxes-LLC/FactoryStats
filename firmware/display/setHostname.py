@@ -2,8 +2,11 @@
 import os 
 import time
 
+# Working directory
+DIR = os.environ['HOME'] + "/factorystats"
+
 # getMac script
-GET_MAC = "/home/pi/getMac.sh"
+GET_MAC = "%s/getMac.sh" % DIR
 
 # Host name from file
 HOST_NAME = open("/etc/hostname").read().replace('\n','')
@@ -20,7 +23,7 @@ if (HOST_NAME != PREFERRED_HOST_NAME):
    file = open("/etc/hostname", "w")
    file.write(PREFERRED_HOST_NAME)
    file.close()
-   print("Updated hostname: '%s'" % (PREFERRED_HOST_NAME))
+   print("Updated hostname: '%s'" % PREFERRED_HOST_NAME)
    print("Rebooting ...")
    time.sleep(10)
    os.system('sudo shutdown -r now')

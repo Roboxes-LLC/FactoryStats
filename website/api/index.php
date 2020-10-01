@@ -6,6 +6,7 @@ require_once '../common/database.php';
 require_once '../common/displayInfo.php';
 require_once '../common/displayRegistry.php';
 require_once '../common/presentationInfo.php';
+require_once '../common/root.php';
 require_once '../common/stationInfo.php';
 require_once '../common/shiftInfo.php';
 require_once '../common/time.php';
@@ -158,101 +159,119 @@ $router->add("buttonStatus", function($params) {
 });
 
 $router->add("display", function($params) {
+   global $DISPLAY_REGISTRY;
+   
    $result = new stdClass();
    $result->success = false;
    
    if (isset($params["uid"]))
    {
+      $result->success = true;
+      
       $uid = $params["uid"];
       
-      if (CustomerInfo::getSubdomain() == "displayregistry")
+      // Is this display registered?
+      if (DisplayRegistry::isRegistered($uid))
       {
-         if (DisplayRegistry::isRegistered($uid))
-         {
-            $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
-            
-            if ($subdomain && ($subdomain != ""))
-            {
-               $result->subdomain = $subdomain;
-               $result->server = $subdomain . ".factorystats.com";
-            }
-         }
-         else
-         {
-            DisplayRegistry::register($uid);
-         }
+         // Retrieve the associated subdomain (if any).
+         $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
          
-         $result->success = true;
-         $result->registered = true;
-         
-         // Determine if this display has been associated with a domain.
-         if (!isset($result->subdomain))
+         // Is this display associated with *this* subdomain?
+         if ($subdomain == CustomerInfo::getSubdomain())
          {
-            $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();
-         }
-      }
-      else
-      {
-         $database = FlexscreenDatabase::getInstance();
-         
-         if ($database && $database->isConnected())
-         {
-            $queryResult = $database->getDisplayByUid($uid);
+            $database = FlexscreenDatabase::getInstance();
             
-            $displayInfo = null;
-            
-            if ($queryResult && ($row = $queryResult->fetch_assoc()))
+            if ($database && $database->isConnected())
             {
-               // Load an existing display.
-               $displayInfo = DisplayInfo::load($row["displayId"]);
-            }
-            else
-            {
-               // Register a new display.
-               $displayInfo = new DisplayInfo();
+               $queryResult = $database->getDisplayByUid($uid);
                
-               $displayInfo->uid = $uid;
+               $displayInfo = null;
                
-               $database->newDisplay($displayInfo);
-               
-               $displayInfo->displayId = $database->lastInsertId();
-            }
-            
-            if ($displayInfo)
-            {
-               // Set IP address, if provided.
-               if (isset($params["ipAddress"]))
+               if ($queryResult && ($row = $queryResult->fetch_assoc()))
                {
-                  $displayInfo->ipAddress = $params["ipAddress"];
-               }
-               
-               // Update last contact.
-               $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
-               
-               // Update display info in the database.
-               $database->updateDisplay($displayInfo);
-               
-               $presentation = PresentationInfo::load($displayInfo->presentationId);
-               
-               if ($presentation)
-               {
-                  $result->presentation = $presentation->getTabRotateConfig();
+                  // Load an existing display.
+                  $displayInfo = DisplayInfo::load($row["displayId"]);
                }
                else
                {
-                  $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();                  
+                  // Register a new display.
+                  $displayInfo = new DisplayInfo();
+                  
+                  $displayInfo->uid = $uid;
+                  
+                  $database->newDisplay($displayInfo);
+                  
+                  $displayInfo->displayId = $database->lastInsertId();
                }
                
-               $result->success = true;
+               if ($displayInfo)
+               {
+                  // Set IP address, if provided.
+                  if (isset($params["ipAddress"]))
+                  {
+                     $displayInfo->ipAddress = $params["ipAddress"];
+                  }
+                  
+                  // Update last contact.
+                  $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
+                  
+                  // Update display info in the database.
+                  $database->updateDisplay($displayInfo);
+                  
+                  $presentation = PresentationInfo::load($displayInfo->presentationId);
+                  
+                  // If a presentation has been configured for this display ...
+                  if ($presentation)
+                  {
+                     // If the display is enabled ...
+                     if ($displayInfo->enabled)
+                     {
+                        $result->presentation = $presentation->getTabRotateConfig();
+                        
+                     }
+                     // If the display is disabled ...
+                     else
+                     {
+                        $result->presentation = PresentationInfo::getDefaultPresentation($displayInfo->uid)->getTabRotateConfig();
+                     }
+                  }
+                  // If no presentation has been configured ...
+                  else
+                  {
+                     $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();
+                  }
+               }
             }
          }
+         // The display is associated with another subdomain.
+         else if ($subdomain && ($subdomain != ""))
+         {
+            // Redirect to correct subdomain.
+            $result->subdomain = $subdomain;
+            $result->server = $subdomain . ".factorystats.com";
+            $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();
+         }
+         // No associated subdomain.
          else
          {
-            $result->success = false;
-            $result->error = "Database error";
-         }         
+            // Redirect back to the display registry.
+            $result->server = $DISPLAY_REGISTRY . ".factorystats.com";
+            
+            // Poor choice of naming here.  It is registered, just not associated with a subdomain.
+            $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();            
+         }
+      }
+      // Unregistered display.
+      else
+      {
+         // Register with the display registry.
+         DisplayRegistry::register($uid);
+
+         // Poor choice of naming here.  It is registered (now), just not associated with a subdomain.         
+         $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();         
       }
    }
+   // No valid UID specified in query.
    else
    {
       $result->success = false;

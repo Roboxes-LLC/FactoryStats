@@ -34,7 +34,7 @@ class DisplayInfo
 {
    const UNKNOWN_DISPLAY_ID = 0;
    
-   const ONLINE_THRESHOLD = 20;  // seconds
+   const ONLINE_THRESHOLD = 45;  // seconds
    
    public $displayId;
    public $uid;
