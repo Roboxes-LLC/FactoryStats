@@ -165,7 +165,7 @@ $cycleTime = getCycleTime($stationId);
    
 </head>
 
-<body onload="update()">
+<body onload="initializeChart(); update()">
 
    <form>
       <input id="station-id-input" type="hidden" name="stationId" value="<?php echo $stationId; ?>">

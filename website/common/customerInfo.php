@@ -81,13 +81,20 @@ class CustomerInfo
       return ("$ROOT/$subdomain/css");
    }
    
-   public static function getSlidesFolder()
+   public static function getSlideImagesFolder()
    {
       global $ROOT;
       
       $subdomain = CustomerInfo::getSubdomain();
       
-      return ("$ROOT/$subdomain/slides");
+      return ("$ROOT/$subdomain/uploads/images");
+   }
+   
+   public static function getSlideImagesUploadFolder()
+   {
+      $slideImagesFolder = CustomerInfo::getSlideImagesFolder();
+      
+      return ("{$_SERVER['DOCUMENT_ROOT']}/$slideImagesFolder");
    }
    
    public static function getCustomerInfo()

@@ -454,32 +454,43 @@ $router->add("count", function($params) {
 
 $router->add("status", function($params) {
    $result = new stdClass();
+   $result->success = true;
 
-   if (!isset($params["stationId"]))
+   if (!isset($params["stationId"]) && !isset($params["stationIds"]))
    {
       $result->success = false;
-      $result->error = "Invalid stationId";
+      $result->error = "Invalid parameters";
    }
    else
    {
-      $stationId = $params->get("stationId");
+      $stationIds = array();
+      if (isset($params["stationIds"]))
+      {
+         $stationIds = $params["stationIds"];
+      }
+      else  // isset($params["stationId"])
+      {
+         $stationIds[] = $params->getInt("stationId");
+      }
 
       $shiftId = isset($params["shiftId"]) ? $params->get("shiftId") : ShiftInfo::UNKNOWN_SHIFT_ID;
 
-      $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
-
-      if ($workstationStatus)
+      $result->workstations = array();
+      
+      foreach ($stationIds as $stationId)
       {
-         // Including the current shift allows the client to validate that user actions are intended for
-         // the correct shift.
-         $workstationStatus->currentShiftId = ShiftInfo::getShift(Time::now(Time::now("Y-m-d H:i:s")));
-         
-         $result = $workstationStatus;
-      }
-      else
-      {
-         $result->success = false;
-         $result->error = "Failed to retrieve status";
+         $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
+   
+         if ($workstationStatus)
+         {
+            $result->workstations[] = $workstationStatus;
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "Failed to retrieve status";
+            break;
+         }
       }
    }
 

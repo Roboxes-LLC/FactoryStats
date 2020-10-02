@@ -51,7 +51,7 @@ function getImage()
    
    if ($slideInfo && ($slideInfo->slideType == SlideType::IMAGE))
    {
-      $image = CustomerInfo::getSlidesFolder() . "/" . $slideInfo->image;
+      $image = CustomerInfo::getSlideImagesFolder() . "/" . $slideInfo->image;
    }
    
    return ($image);

@@ -5,7 +5,10 @@ xset s noblank
 xset s off
 xset -dpms
 
-// Fix issue caused by changing the hostname under Chromium
+# Hide the mouse
+#unclutter -idle 0
+
+# Fix issue caused by changing the hostname under Chromium
 rm -rf ~/.config/chromium/Singleton*
 
 # Clear Chrome flags to disable pop-ups

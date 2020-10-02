@@ -1,0 +1,125 @@
+@CHARSET "ISO-8859-1"
+
+html, body {
+   height: 100%;
+   width: 100%;
+   margin: 0;
+   overflow: hidden;
+}
+
+body {
+	color: white;
+   background: black;
+   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+}
+
+.header {
+   width: 100%;
+   align-items: center;
+   border-bottom-style: solid;
+   border-color: white;
+   border-width: 2px;
+   padding-top: 5px;
+   padding-bottom: 5px;
+}
+
+#shift-id-input, #am-pm-selection-input {
+   background-color: #14a3db;
+   border: none;
+   color: white;
+   padding: 10px 15px;
+   font-size: 16px;
+   border-radius: 4px;
+   margin: 5px;   
+}
+
+#shift-id-input option, #am-pm-selection-input option {
+   background-color: white;
+   color: #14a3db;
+}	
+
+.station-grid {
+  display: grid;
+  grid-column-gap: 20px;
+  grid-row-gap: 20px;
+  margin: 20px;
+  width: 100%;
+  height: 80%;
+}
+
+.station-grid.single {
+  display: grid;
+  grid-template-columns: auto;
+}
+
+.station-grid.double {
+  display: grid;
+  grid-template-columns: auto;
+}
+
+.station-grid.triple {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.station-grid.quad {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.station-panel {
+   color: white;
+   border: 1px solid white;
+   padding: 20px;
+   display: grid;
+   grid-template-columns: auto auto;
+}
+
+.station-grid.single .station-panel {
+   border: none;
+}
+
+.stats-panel {
+   display: grid;
+   grid-template-columns: auto auto;
+   grid-column-gap: 30px;
+   grid-row-gap: 15px;
+}
+
+.station-label {
+   font-size: 65px;
+}
+
+.station-label, .count { 
+	grid-column: 1 / 3;
+}
+
+.station-panel .large-stat {
+	color: white;
+   font-size: 75px;
+}
+
+.station-panel .small-stat {
+   color: white;
+   font-size: 30px;
+}
+
+.station-panel .stat-label {
+   font-size: 20px;
+   color: #14a3db;
+}
+
+.station-panel .stat-unit {
+   font-size: 20px;
+   color: white;
+}
+
+.station-panel .urgent-stat {
+   color: yellow;
+}
+
+.hourly-count-chart {
+    margin-top: 20px; 
+    width: 500px; 
+    height: 300px;
+}

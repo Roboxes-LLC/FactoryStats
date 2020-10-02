@@ -47,7 +47,9 @@ def pingServer():
    try:
       status = requests.get(url = URL, params = PARAMS)
 
-      serverAvailable = True
+      if (serverAvailable == False):
+         serverAvailable = True
+         print("Server ping succeeded")
 
       if (status.status_code == 200):
          try:
@@ -68,6 +70,7 @@ def processPingResult(response):
    global SERVER
    global URL
    global PRESENTATION
+   global pingRate
    
    if (("success" in response) and (response["success"] == True)):
       # Process server redirection
@@ -75,6 +78,13 @@ def processPingResult(response):
          SERVER = response["server"]
          URL = getUrl(SERVER)
          print("Redirecting to server: %s" % SERVER)
+         
+      # Process ping rate update
+      if ("pingRate" in response):
+         newPingRate = response["pingRate"]
+         if (pingRate != newPingRate):
+            pingRate = newPingRate
+            print("Ping rate updated: %d" % newPingRate)
       
       # Process presentation config
       if ("presentation" in response):
@@ -95,14 +105,25 @@ def processNoConnection():
       filename = "%s/www/unconnected.html" % DIR
       with open(filename) as file:
          content = file.read().replace("%UID", UID)
+         file.close()
       with open(filename, "w") as file:
          file.write(content)
+         file.close()
    
       # Copy unconnected.json into presentation.json
-      shutil.copyfile("%s/www/unconnected.json" % DIR, "%s/www/presentation.json" % DIR)
+      unconnectedFilename = "%s/www/unconnected.json" % DIR
+      presentationFilename = "%s/www/presentation.json" % DIR
+      shutil.copyfile(unconnectedFilename, presentationFilename)
+      with open(presentationFilename) as file:
+         content = file.read()
+         print("Updated presentation: %s" % content)
+         file.close()
 
 # Global variable tracking server availability.
 serverAvailable = True
+
+# Global variable regulating ping rate (in seconds)
+pingRate = 30
 
 # Ping server every 30 seconds.
 URL = getUrl(SERVER)
@@ -110,6 +131,6 @@ print("Pinging server at %s" % URL)
 try:
     while (True):
         success = pingServer()
-        time.sleep(30)        
+        time.sleep(pingRate)        
 except KeyboardInterrupt:
     pass

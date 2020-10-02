@@ -1045,7 +1045,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "UPDATE slide " .
-      "SET presentationId = \"$slideInfo->presentationId\", slideType = \"$slideInfo->slideType\", slideIndex = \"$slideInfo->slideIndex\", duration = \"$slideInfo->duration\", enabled = $enabled, url = \"$slideInfo->url\", image = \"$slideInfo->image\", shiftId = \"$slideInfo->shiftId\", stationId1 = \"{$slideInfo->stationIds[0]}\", stationId2 = \"{$slideInfo->stationIds[1]}\", stationId3 = \"{$slideInfo->stationIds[1]}\", stationId4 = \"{$slideInfo->stationIds[3]}\" " .
+      "SET presentationId = \"$slideInfo->presentationId\", slideType = \"$slideInfo->slideType\", slideIndex = \"$slideInfo->slideIndex\", duration = \"$slideInfo->duration\", enabled = $enabled, url = \"$slideInfo->url\", image = \"$slideInfo->image\", shiftId = \"$slideInfo->shiftId\", stationId1 = \"{$slideInfo->stationIds[0]}\", stationId2 = \"{$slideInfo->stationIds[1]}\", stationId3 = \"{$slideInfo->stationIds[2]}\", stationId4 = \"{$slideInfo->stationIds[3]}\" " .
       "WHERE slideId = $slideInfo->slideId;";
 
       $this->query($query);

@@ -4,7 +4,9 @@ require_once 'common/database.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/presentationInfo.php';
+require_once 'common/root.php';
 require_once 'common/slideInfo.php';
+require_once 'common/upload.php';
 require_once 'common/version.php';
 
 Time::init();
@@ -217,6 +219,22 @@ switch (getParams()->get("action"))
    {
       $params = getParams();
       
+      //
+      // Upload any specified image file.
+      //
+      
+      $imageFile = $params->get("image");
+      
+      if (isset($_FILES["newImage"]) && ($_FILES["newImage"]["name"] != ""))
+      {
+         $uploadStatus = Upload::uploadSlideImage($_FILES["newImage"]);
+         
+         if ($uploadStatus == UploadStatus::UPLOADED)
+         {
+            $imageFile = basename($_FILES["newImage"]["name"]);
+         }
+      }   
+      
       if (getSlideId() == SlideInfo::UNKNOWN_SLIDE_ID)
       {
          addSlide(
@@ -224,7 +242,7 @@ switch (getParams()->get("action"))
             $params->getInt("duration"),
             $params->getBool("enabled"),
             $params->get("url"),
-            $params->get("image"),
+            $imageFile,
             $params->getInt("shift"),
                array($params->getInt("station1"),
                      $params->getInt("station2"),
@@ -239,13 +257,13 @@ switch (getParams()->get("action"))
             $params->getInt("duration"),
             $params->getBool("enabled"),
             $params->get("url"),
-            $params->get("image"),
+            $imageFile,
             $params->getInt("shift"),
             array($params->getInt("station1"),
                   $params->getInt("station2"),
                   $params->getInt("station3"),
                   $params->getInt("station4")));
-      }
+      }         
       break;
    }
 
@@ -276,7 +294,7 @@ switch (getParams()->get("action"))
 
 <body>
 
-<form id="config-form" method="post">
+<form id="config-form" method="post" enctype="multipart/form-data">
    <input id="action-input" type="hidden" name="action">
    <input id="presentation-id-input" type="hidden" name="presentationId" value="<?php echo getPresentationId()?>">
    <input id="slide-id-input" type="hidden" name="slideId">
@@ -328,7 +346,11 @@ switch (getParams()->get("action"))
       <div id="image-slide-params">
          <div class="flex-vertical input-block">
             <label>Image</label>
-            <input id="image-input" type="text" form="config-form" name="image">
+            <img id="image-thumbnail" class="thumbnail">
+         </div>
+         <div class="flex-vertical input-block">            
+            <input id="image-input" type="hidden" name="image">
+            <input type="file" name="newImage" form="config-form">
          </div>
       </div>
       
@@ -428,6 +450,7 @@ switch (getParams()->get("action"))
                document.getElementById('enabled-input').checked = slideInfo.enabled;
                document.getElementById('url-input').value = slideInfo.url;
                document.getElementById('image-input').value = slideInfo.image;
+               document.getElementById('image-thumbnail').src = "<?php echo CustomerInfo::getSlideImagesFolder(); ?>/" + slideInfo.image;
                document.getElementById('shift-input').value = slideInfo.shiftId;
                
                for (var i = 0; i < <?php echo SlideInfo::MAX_STATION_IDS; ?>; i++)
@@ -457,7 +480,7 @@ switch (getParams()->get("action"))
    function resetCustomSlideParams()
    {
       document.getElementById('url-input').value = "";
-      document.getElementById('image-input').value = "";
+      document.getElementById('image-thumbnail').src = "<?php echo $IMAGES_DIR; ?>/no-image-icon-6.png";
       document.getElementById('shift-input').value = <?php echo ShiftInfo::UNKNOWN_SHIFT_ID; ?>;
       
       for (var i = 0; i < <?php echo SlideInfo::MAX_STATION_IDS?>; i++)

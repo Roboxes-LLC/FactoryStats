@@ -114,6 +114,12 @@ class SlideInfo
          case SlideType::URL:
          {
             $url = $this->url;
+            
+            // Add HTTP prefex if necessary.
+            if (substr($url, 0, 4) != "http")
+            {
+               $url = "http://" . $url;
+            }
             break;
          }
          
@@ -132,6 +138,7 @@ class SlideInfo
                $url .= "&shiftId=" . $this->shiftId;
             }
             
+            // TODO: Better solution for this!
             $url .= "&authToken=jO9xT7iKvBwUsZDD56fV9UzFPin3qyvp";
             
             break;
@@ -139,13 +146,13 @@ class SlideInfo
          
          case SlideType::WORKSTATION_PAGE:
          {
-            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstation.php?kiosk=true";            
+            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstations.php?kiosk=true";            
             
             foreach ($this->stationIds as $stationId)
             {
                if ($stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  $url .= "&stationId=" . $stationId;
+                  $url .= "&stationIds[]=" . $stationId;
                }
             }
             
@@ -154,6 +161,7 @@ class SlideInfo
                $url .= "&shiftId=" . $this->shiftId;
             }
             
+            // TODO: Better solution for this!            
             $url .= "&authToken=jO9xT7iKvBwUsZDD56fV9UzFPin3qyvp";
             
             break;
@@ -170,6 +178,8 @@ class SlideInfo
    
    function getContentDescription()
    {
+      global $SLIDE_IMAGES_DIR;
+      
       $content = "";
       
       switch ($this->slideType)
@@ -182,7 +192,12 @@ class SlideInfo
             
          case SlideType::IMAGE:
          {
-            $content = $this->image;
+            $slideImagesDir = CustomerInfo::getSlideImagesFolder();
+            
+            $content =
+<<<HEREDOC
+            <img class="thumbnail" src="$slideImagesDir/$this->image"> 
+HEREDOC;
             break;
          }
             

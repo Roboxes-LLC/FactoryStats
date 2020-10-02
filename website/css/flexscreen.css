@@ -456,3 +456,7 @@ tr.total td, tr.total th {
 	color: #14a3db;
    font-weight: bold; 
 }
+
+.thumbnail {
+   width: 50px;
+}

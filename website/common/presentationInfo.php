@@ -60,6 +60,7 @@ class PresentationInfo
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
       $slideInfo->url = "http://$subdomain.factorystats.com/pages/default.php?uid=$uid";
+      $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
       
@@ -76,6 +77,7 @@ class PresentationInfo
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
       $slideInfo->url = "http://$DISPLAY_REGISTRY.factorystats.com/pages/unregistered.php?uid=$uid";
+      $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
       
@@ -98,6 +100,7 @@ class PresentationInfo
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
       $slideInfo->url = "http://$subdomain.factorystats.com/pages/unconfigured.php?uid=$uid";
+      $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
       
@@ -106,8 +109,6 @@ class PresentationInfo
    
    public function getTabRotateConfig()
    {
-      //global $ROOT;
-      
       $tabRotateConfig = new stdClass();
       
       $tabRotateConfig->settingsReloadIntervalMinutes = 1;
@@ -120,21 +121,15 @@ class PresentationInfo
       {
          $website = new stdClass();
          
-         $website->url = $slideInfo->getUrl();
-         $website->duration = $slideInfo->duration;
-         $website->tabReloadIntervalSeconds = 120;
-         
-         $tabRotateConfig->websites[] = $website;
+         if ($slideInfo->enabled)
+         {
+            $website->url = $slideInfo->getUrl();
+            $website->duration = $slideInfo->duration;
+            $website->tabReloadIntervalSeconds = 120;
+            
+            $tabRotateConfig->websites[] = $website;
+         }
       }
-
-      /*
-      $website = new stdClass();
-      $website->url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true&username=operator&password=1234";
-      $website->duration = 3;
-      $website->tabReloadIntervalSeconds = 120;
-      
-      $tabRotateConfig->websites[] = $website;
-      */
       
       return ($tabRotateConfig);
    }
