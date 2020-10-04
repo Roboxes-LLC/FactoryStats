@@ -147,7 +147,7 @@ function update()
          
          updateFirstEntry(workstation.firstEntry);
          
-         currentShiftId = parseInt(workstation.currentShiftId);
+         currentShiftId = parseInt(json.currentShiftId);
       }
    };
    xhttp.open("GET", requestURL, true);

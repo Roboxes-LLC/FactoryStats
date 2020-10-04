@@ -492,6 +492,8 @@ $router->add("status", function($params) {
             break;
          }
       }
+      
+      $result->currentShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
    }
 
    echo json_encode($result);

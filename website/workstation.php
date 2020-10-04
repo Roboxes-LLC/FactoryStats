@@ -249,7 +249,7 @@ $cycleTime = getCycleTime($stationId);
          <div class="flex-vertical">
             <div style="color:orange"><b>Shift Warning</b></div>
             <br>
-            <div id="shift-validation-template" style="display:none">It looks like your updating values for <b>%shiftName</b> which runs from %shiftStart to %shiftEnd. Is this correct?</div>            
+            <div id="shift-validation-template" style="display:none">It looks like you are updating values for <b>%shiftName</b> which runs from %shiftStart to %shiftEnd. Is this correct?</div>            
             <div id="shift-validation-text"></div>
             <br>
             <div class="flex-horizontal">

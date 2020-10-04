@@ -116,7 +116,7 @@ HEREDOC;
 
 function getSlideTypeOptions()
 {
-   $options .= "<option style=\"display:none\">";
+   $options = "<option style=\"display:none\">";
    
    $presentationInfo = getPresentationInfo();
    
