@@ -43,7 +43,7 @@ var shiftHours = null;
 var currentShiftId = 0;
 
 // The stations being displayed.
-var stationIds = null;
+var stationIds = new Array();
 
 var lastCountTime = new Array();
 
@@ -53,13 +53,15 @@ function initializeCharts()
 {
    for (const stationId of stationIds)
    {
-      var element = getElement("hourly-count-chart-div", stationId);
+      var container = getElement("hourly-count-chart-div", stationId);
       
-      if (element != null)
+      if (container != null)
       {
-         charts[stationId] = new HourlyStatsChart(element);
+         charts[stationId] = new HourlyStatsChart(container);
       }
    }
+   
+   resizeCharts();
 }
 
 function setMenuSelection(menuItem)
@@ -295,6 +297,71 @@ function updateHourlyCount(stationId, hourlyCount)
    charts[stationId].setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHour);
    
    charts[stationId].update(hourlyCount);
+}
+
+function getChartDimensions(screenWidth)
+{
+   var dimensions = 
+   {
+      titleFontSize: 0, 
+      hAxisFontSize: 0, 
+      annotationFontSize: 0
+   };
+   
+   // Small
+   // 768px - 1023px
+   if (screenWidth < 1024)
+   {
+      dimensions.titleFontSize = 0;
+      dimensions.hAxisFontSize = 0;  
+      dimensions.annotationFontSize = 0;
+   }
+   // Medium
+   // 1024px - 1365px
+   else if (screenWidth < 1366)
+   {
+      dimensions.titleFontSize = 20;
+      dimensions.hAxisFontSize = 18;  
+      dimensions.annotationFontSize = 18;
+   }
+   // Large
+   // 1366px - 1919px
+   else if (screenWidth < 1920)
+   {
+      dimensions.titleFontSize = 0;
+      dimensions.hAxisFontSize = 0;  
+      dimensions.annotationFontSize = 0;
+   }
+   // X-Large
+   // 1920px - 2559px
+   else if (screenWidth < 2560)
+   {
+      dimensions.titleFontSize = 20;
+      dimensions.hAxisFontSize = 15;  
+      dimensions.annotationFontSize = 15;
+   }
+   // XX-Large
+   // >= 2560px
+   else 
+   {
+      dimensions.titleFontSize = 80;
+      dimensions.hAxisFontSize = 80;  
+      dimensions.annotationFontSize = 80;
+   }
+   
+   return (dimensions);
+}
+
+function resizeCharts()
+{
+   document.getElementById("screen-res-div").innerHTML = screen.width  + "x" + screen.height;
+
+   var chartDimensions = getChartDimensions(screen.width);
+
+   for (const stationId of stationIds)
+   {
+      charts[stationId].setChartFontSize(chartDimensions.titleFontSize, chartDimensions.hAxisFontSize, chartDimensions.annotationFontSize);
+   }
 }
 
 function getShiftId()

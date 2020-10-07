@@ -74,6 +74,20 @@ function getPresentationInfo()
    return ($presentationInfo);
 }
 
+function getPresentationName()
+{
+   $presentationName = "<unknown>";
+   
+   $presentationInfo = getPresentationInfo();
+   
+   if ($presentationInfo)
+   {
+      $presentationName = $presentationInfo->name;
+   }
+   
+   return ($presentationName);
+}
+
 function renderTable()
 {
    echo
@@ -308,7 +322,9 @@ switch (getParams()->get("action"))
    
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
-         <div class="flex-horizontal" style="align-self: flex-start"><a class="nav-link" style="color: #14a3db;" href="presentationConfig.php?presentationId=<?php echo getPresentationId()?>">Back to Presentation</a></div>
+         <div class="flex-horizontal" style="align-self: flex-start"><a class="nav-link" style="color: #14a3db;" href="presentationConfig.php?action=edit&presentationId=<?php echo getPresentationId()?>">Back to Presentation</a></div>
+         <br>
+         <div style="align-self: flex-start">Presentation: <span style="color: yellow;"><?php echo getPresentationName(); ?></span></div>
          <br>
          <?php renderTable();?>
          <br>

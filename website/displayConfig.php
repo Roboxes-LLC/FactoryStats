@@ -26,6 +26,7 @@ function renderTable()
    <table id="display-table">
       <tr>
          <th>ID</th>
+         <th>Description</th>
          <th>IP Address</th>
          <th>Last Contact</th>
          <th>Status</th>
@@ -60,11 +61,12 @@ HEREDOC;
 <<<HEREDOC
          <tr id="$id">
             <td>$displayInfo->uid</td>
+            <td>$displayInfo->name</td>
             <td>$displayInfo->ipAddress</td>
             <td>$formattedDateTime</td>
             <td class="$displayStatusClass">$displayStatusLabel</td>
             <td><div class="display-led $ledClass"></div></td>
-            <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, '$displayInfo->name', $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -103,17 +105,18 @@ function deleteDisplay($displayId)
    }
 }
 
-function updateDisplay($displayId, $presentationId, $enabled)
+function updateDisplay($displayId, $name, $presentationId, $enabled)
 {
-   $diplayInfo = DisplayInfo::load($displayId);
-   $diplayInfo->presentationId = $presentationId;
-   $diplayInfo->enabled = $enabled;
+   $displayInfo = DisplayInfo::load($displayId);
+   $displayInfo->name = $name;
+   $displayInfo->presentationId = $presentationId;
+   $displayInfo->enabled = $enabled;
 
    $database = FlexscreenDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
-      $database->updateDisplay($diplayInfo);
+      $database->updateDisplay($displayInfo);
    }
 }
 
@@ -189,7 +192,7 @@ switch ($params->get("action"))
 
    case "update":
    {
-      updateDisplay($params->getInt("displayId"), $params->getInt("presentationId"), $params->getBool("enabled"));
+      updateDisplay($params->getInt("displayId"), $params->get("name"), $params->getInt("presentationId"), $params->getBool("enabled"));
       break;
    }
    
@@ -288,10 +291,19 @@ switch ($params->get("action"))
       <div id="close" class="close">&times;</div>
       
       <div class="flex-vertical input-block">
+         <label>Description</label>
+         <input id="name-input" type="text" form="config-form" name="name">
+      </div>
+      
+      <div class="flex-vertical input-block">
          <label>Presentation</label>
-         <select id="presentation-id-input" form="config-form" name="presentationId">
-            <?php echo getPresentationOptions();?>
-         </select>
+         <div class="flex-horizontal">
+            <select id="presentation-id-input" form="config-form" name="presentationId" oninput="onPresentationIdChanged(parseInt(this.value))">
+               <?php echo getPresentationOptions();?>
+            </select>
+            &nbsp;
+            <button id="edit-presentation-button" class="config-button small">Edit</button>
+         </div>
       </div>
       
       <div class="flex-horizontal input-block">
@@ -328,6 +340,7 @@ switch ($params->get("action"))
    </div>
 </div>
 
+<script src="script/common.js<?php echo versionQuery();?>"></script>
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
 <script src="script/modal.js<?php echo versionQuery();?>"></script>
 <script src="script/displayConfig.js<?php echo versionQuery();?>"></script>
@@ -340,12 +353,30 @@ switch ($params->get("action"))
       input.value = displayId;
    }
 
-   function setDisplayConfig(displayId, presentationId, enabled)
+   function setDisplayConfig(displayId, name, presentationId, enabled)
    {
       setDisplayId(displayId);
       
+      document.getElementById('name-input').value = name;
       document.getElementById('presentation-id-input').value = presentationId;
       document.getElementById('enabled-input').checked = enabled;
+      
+      // Hide the edit presentation button for unconfigured displays.
+      onPresentationIdChanged(presentationId);
+   }
+   
+   function onPresentationIdChanged(presentationId)
+   {
+      // Hide the edit presentation button for unconfigured displays.
+      if (presentationId != 0)
+      {
+         show("edit-presentation-button", "block");
+         document.getElementById('edit-presentation-button').onclick = function(){document.location = "slideConfig.php?action=edit&presentationId=" + presentationId};
+      }
+      else
+      {
+         hide("edit-presentation-button");     
+      }
    }
 
    function setAction(action)

@@ -33,18 +33,18 @@ function updateDisplayStatus()
                   if (row != null)
                   {
                      // IP address.
-                     row.cells[1].innerHTML = displayStatus.ipAddress;
+                     row.cells[2].innerHTML = displayStatus.ipAddress;
                      
                      // Last contact.
-                     row.cells[2].innerHTML = displayStatus.lastContact;
+                     row.cells[3].innerHTML = displayStatus.lastContact;
                      
                      // Display status.
-                     row.cells[3].className = "";
-                     row.cells[3].innerHTML = displayStatus.displayStatusLabel;
-                     row.cells[3].classList.add(displayStatus.displayStatusClass);
+                     row.cells[4].className = "";
+                     row.cells[4].innerHTML = displayStatus.displayStatusLabel;
+                     row.cells[4].classList.add(displayStatus.displayStatusClass);
    
                      // LED indicator.         
-                     var ledDiv = row.cells[4].querySelector('.display-led');     
+                     var ledDiv = row.cells[5].querySelector('.display-led');     
                      ledDiv.classList.remove("led-green");     
                      if (displayStatus.isOnline)
                      {

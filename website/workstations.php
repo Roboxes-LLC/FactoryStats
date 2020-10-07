@@ -152,11 +152,11 @@ function getStationPanel($stationId)
    
    $html =
 <<<HEREDOC
-   <div id="station-$stationId" class="station-panel flex-vertical">
+   <div id="station-$stationId" class="station-panel flex-vertical" style="align-items: flex-start">
 
       <div class="station-label">$stationLabel</div>   
 
-      <div class="flex-horizontal">
+      <div class="flex-horizontal" style="flex-wrap: wrap">
 
          <div class="stats-panel">   
          
@@ -238,6 +238,8 @@ HEREDOC;
       stationIds = [
          <?php echo getStationIdsVar(); ?>
       ];
+      
+      //window.addEventListener("resize", resizeCharts());
       
       // Start a timer to update the count/hourly count div.
       setInterval(function(){update(stationIds);}, 3000);

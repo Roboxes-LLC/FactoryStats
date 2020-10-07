@@ -17,6 +17,60 @@ if (!(Authentication::isAuthenticated() &&
    exit;
 }
 
+function getParams()
+{
+   static $params = null;
+   
+   if (!$params)
+   {
+      $params = Params::parse();
+   }
+   
+   return ($params);
+}
+
+function getPresentationId()
+{
+   $presentationId = PresentationInfo::UNKNOWN_PRESENTATION_ID;
+   
+   $params = getParams();
+   
+   if ($params->keyExists("presentationId"))
+   {
+      $presentationId = $params->getInt("presentationId");
+   }
+   
+   return ($presentationId);
+}
+
+function getPresentationInfo()
+{
+   $presentationInfo = null;
+   
+   $presentationId = getPresentationId();
+   
+   if ($presentationId != PresentationInfo::UNKNOWN_PRESENTATION_ID)
+   {
+      $presentationInfo = PresentationInfo::load($presentationId);
+   }
+   
+   return ($presentationInfo);
+}
+
+function getPresentationName()
+{
+   $presentationName = "";
+   
+   $presentationInfo = getPresentationInfo();
+   
+   if ($presentationInfo)
+   {
+      $presentationName = $presentationInfo->name;
+   }
+   
+   return ($presentationName);
+}
+
 function renderTable()
 {
    echo
@@ -25,7 +79,6 @@ function renderTable()
       <tr>
          <th>Name</th>
          <th>Slides</th>
-         <th></th>
          <th></th>
          <th></th>
       </tr>
@@ -40,8 +93,6 @@ HEREDOC;
       while ($result && $row = $result->fetch_assoc())
       {
          $presentationInfo = PresentationInfo::load($row["presentationId"]);
-
-         $id = "presentation-" . $presentationInfo->presentationId;
          
          $slideCount = count($presentationInfo->slides);
 
@@ -52,7 +103,6 @@ HEREDOC;
             <td>$slideCount</td>
             <td><button class="config-button" onclick="setPresentationConfig($presentationInfo->presentationId, '$presentationInfo->name'); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setPresentationId($presentationInfo->presentationId); showModal('confirm-delete-modal');">Delete</button></div></td>
-            <td><button class="config-button" onclick="setPresentationId($presentationInfo->presentationId); showModal('preview-modal');">Preview</button></div></td>
          </tr>
 HEREDOC;
       }
@@ -154,8 +204,8 @@ switch ($params->get("action"))
 <body>
 
 <form id="config-form" method="post">
-   <input id="action-input" type="hidden" name="action">
-   <input id="presentation-id-input" type="hidden" name="presentationId">
+   <input id="action-input" type="hidden" name="action" value="<?php echo getParams()->get("action"); ?>">
+   <input id="presentation-id-input" type="hidden" name="presentationId" value="<?php echo getPresentationId(); ?>">
 </form>
 
 <div class="flex-vertical" style="align-items: flex-start;">
@@ -182,11 +232,11 @@ switch ($params->get("action"))
       
       <div class="flex-vertical input-block">
          <label>Name</label>
-         <input id="name-input" form="config-form" name="name">
+         <input id="name-input" form="config-form" name="name" value="<?php echo getPresentationName(); ?>">
       </div>
       
       <div class="flex-horizontal">
-         <button class="config-button" onclick="editSlides()">Edit Slides</button>
+         <button id="edit-slides-button" class="config-button" onclick="editSlides()">Edit Slides</button>
       </div>
       
       <div class="flex-horizontal">
@@ -203,10 +253,18 @@ switch ($params->get("action"))
    </div>
 </div>
 
+<script src="script/common.js<?php echo versionQuery();?>"></script>
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
 <script src="script/modal.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
+   
+   // Set the supplied presentation id and open the edit dialog if set.
+   if ((document.getElementById('action-input').value == "edit") && 
+       (document.getElementById('presentation-id-input').value != 0))
+   {
+      showModal('config-modal');
+   }
 
    function setPresentationId(presentationId)
    {
@@ -219,6 +277,16 @@ switch ($params->get("action"))
       setPresentationId(presentationId);
       
       document.getElementById('name-input').value = name;
+      
+      // Hide the edit slides button for new presentations.
+      if (presentationId != 0)
+      {
+         show('edit-slides-button', 'block');
+      }
+      else
+      {
+         hide('edit-slides-button');
+      }
    }
 
    function setAction(action)

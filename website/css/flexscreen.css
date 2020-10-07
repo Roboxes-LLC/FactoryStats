@@ -355,6 +355,11 @@ body {
   margin: 5px;	
 }
 
+.config-button.small {
+  font-size: 12px;
+  padding: 5px 8px;
+}
+
 .config-button:hover {
    cursor: pointer;
 }

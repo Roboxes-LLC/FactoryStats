@@ -40,7 +40,7 @@ HEREDOC;
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:center;">
-            <img src="$imagesFolder/flexscreen-logo.png" width="350px">
+            <img class="header-image" src="$imagesFolder/flexscreen-logo.png" width="350px">
          </div>
 
          <div class="flex-horizontal" style="width:33%; justify-content:flex-end; margin-right: 20px;">
@@ -60,6 +60,7 @@ HEREDOC;
          
       $html .= 
 <<<HEREDOC
+         <div id="screen-res-div"></div>
          </div>
       </div>
 HEREDOC;

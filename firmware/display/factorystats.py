@@ -18,7 +18,8 @@ GET_IP = "hostname  -I | cut -f1 -d' ' | tr -d '\n' | tr -d '\r'"
 HOST_NAME = open("/etc/hostname").read().replace('\n','')
 
 # server address from file
-SERVER = open("%s/server.txt" % DIR).read().replace('\n','')
+ORIG_SERVER = open("%s/server.txt" % DIR).read().replace('\n','')
+SERVER = ORIG_SERVER
 print("Read server: '%s'" % SERVER)
 
 # IP address, via script
@@ -38,17 +39,24 @@ PARAMS = {'uid':UID, 'ipAddress':IP_ADDRESS, 'macAddress':MAC_ADDRESS}
 # presentation (JSON string)
 PRESENTATION = ""
 
+# Global variable regulating ping rate (in seconds)
+INIT_PING_RATE = 30
+PING_RATE = INIT_PING_RATE
+
+# Global variable tracking server availability.
+SERVER_AVAILABLE = True
+
 def getUrl(server):
    return ("http://" + SERVER + "/api/display/")
 
 def pingServer():
-   global serverAvailable
+   global SERVER_AVAILABLE
    
    try:
       status = requests.get(url = URL, params = PARAMS)
 
-      if (serverAvailable == False):
-         serverAvailable = True
+      if (SERVER_AVAILABLE == False):
+         SERVER_AVAILABLE = True
          print("Server ping succeeded")
 
       if (status.status_code == 200):
@@ -61,8 +69,8 @@ def pingServer():
          print("Bad response code: %d" % status.status_code)     
           
    except (requests.exceptions.ConnectionError, requests.HTTPError):
-      if (serverAvailable == True):
-         serverAvailable = False
+      if (SERVER_AVAILABLE == True):
+         SERVER_AVAILABLE = False
          print("Server ping failed")
          processNoConnection()
 
@@ -70,7 +78,7 @@ def processPingResult(response):
    global SERVER
    global URL
    global PRESENTATION
-   global pingRate
+   global PING_RATE
    
    if (("success" in response) and (response["success"] == True)):
       # Process server redirection
@@ -82,9 +90,9 @@ def processPingResult(response):
       # Process ping rate update
       if ("pingRate" in response):
          newPingRate = response["pingRate"]
-         if (pingRate != newPingRate):
-            pingRate = newPingRate
-            print("Ping rate updated: %d" % newPingRate)
+         if (PING_RATE != newPingRate):
+            PING_RATE = newPingRate
+            print("Ping rate updated: %d" % PING_RATE)
       
       # Process presentation config
       if ("presentation" in response):
@@ -101,29 +109,34 @@ def processPingResult(response):
       print("Undefined server error")
 
 def processNoConnection():
-      # Copy UID into unconnected.html
-      filename = "%s/www/unconnected.html" % DIR
-      with open(filename) as file:
-         content = file.read().replace("%UID", UID)
-         file.close()
-      with open(filename, "w") as file:
-         file.write(content)
-         file.close()
+   global SERVER
+   global URL
+   global PRESENTATION
+   global PING_RATE   
+         
+   # Reset global variables
+   SERVER = ORIG_SERVER
+   URL = getUrl(SERVER)
+   PRESENTATION = ""
+   PING_RATE = INIT_PING_RATE
+
+   # Copy UID into unconnected.html
+   filename = "%s/www/unconnected.html" % DIR
+   with open(filename) as file:
+      content = file.read().replace("%UID", UID)
+      file.close()
+   with open(filename, "w") as file:
+      file.write(content)
+      file.close()
    
-      # Copy unconnected.json into presentation.json
-      unconnectedFilename = "%s/www/unconnected.json" % DIR
-      presentationFilename = "%s/www/presentation.json" % DIR
-      shutil.copyfile(unconnectedFilename, presentationFilename)
-      with open(presentationFilename) as file:
-         content = file.read()
-         print("Updated presentation: %s" % content)
-         file.close()
-
-# Global variable tracking server availability.
-serverAvailable = True
-
-# Global variable regulating ping rate (in seconds)
-pingRate = 30
+   # Copy unconnected.json into presentation.json
+   unconnectedFilename = "%s/www/unconnected.json" % DIR
+   presentationFilename = "%s/www/presentation.json" % DIR
+   shutil.copyfile(unconnectedFilename, presentationFilename)
+   with open(presentationFilename) as file:
+      content = file.read()
+      print("Updated presentation: %s" % content)
+      file.close()
 
 # Ping server every 30 seconds.
 URL = getUrl(SERVER)
@@ -131,6 +144,6 @@ print("Pinging server at %s" % URL)
 try:
     while (True):
         success = pingServer()
-        time.sleep(pingRate)        
+        time.sleep(PING_RATE)        
 except KeyboardInterrupt:
     pass

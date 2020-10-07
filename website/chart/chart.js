@@ -2,13 +2,13 @@ google.charts.load('current', {packages: ['corechart', 'bar']});
 
 class HourlyStatsChart
 {
-   constructor(element)
+   constructor(container)
    {
-      this.element = element;
+      this.container = container;
       
-      if (element != null)
+      if (container != null)
       {
-         this.chart = new google.visualization.ColumnChart(element);
+         this.chart = new google.visualization.ColumnChart(container);
          
          this.options = HourlyStatsChart.getOptions();
       }
@@ -22,6 +22,13 @@ class HourlyStatsChart
          min: [startHour, 0, 0], 
          max: [endHour, 0, 0]
       };
+   }
+   
+   setChartFontSize(titleFontSize, hAxisFontSize, annotationFontSize)
+   {
+      this.options.hAxis.titleTextStyle.fontSize = titleFontSize;
+      this.options.hAxis.textStyle.fontSize = hAxisFontSize;
+      this.options.annotations.textStyle.fontSize = annotationFontSize;
    }
    
    static getOptions()
@@ -60,6 +67,11 @@ class HourlyStatsChart
             textStyle: {
                color: 'white'
             },
+         },
+         annotations: {
+            textStyle: {
+               color: 'white'
+            }
          },
          backgroundColor: '#000000',
       };
