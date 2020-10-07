@@ -50,9 +50,19 @@ class StationInfo
       return ($label);
    }
    
-   public static function getStationOptions($selectedStationId)
+   public static function getStationOptions($selectedStationId, $includeNoStationOption)
    {
-      $html = "<option style=\"display:none\">";
+      $html = "";
+      
+      if ($includeNoStationOption)
+      {
+         $selected = ($selectedStationId == StationInfo::UNKNOWN_STATION_ID) ? "selected" : "";
+         $html = "<option value=\"" . StationInfo::UNKNOWN_STATION_ID . "\" $selected>None</option>";         
+      }
+      else
+      {
+         $html = "<option style=\"display:none\">";         
+      }
       
       $database = FlexscreenDatabase::getInstance();
       

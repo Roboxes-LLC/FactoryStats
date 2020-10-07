@@ -386,25 +386,25 @@ switch (getParams()->get("action"))
          
          <div class="flex-horizontal input-block">
             <select id="station-1-input" form="config-form" name="station1">
-               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID); ?>
+               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID, true); ?>
             </select>
          </div>
          
          <div class="flex-horizontal input-block">
             <select id="station-2-input" form="config-form" name="station2">
-               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID); ?>
+               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID, true); ?>
             </select>
          </div>
          
          <div class="flex-horizontal input-block">
             <select id="station-3-input" form="config-form" name="station3">
-               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID);?>
+               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID, true);?>
             </select>
          </div>         
       
          <div class="flex-horizontal input-block">
             <select id="station-4-input" form="config-form" name="station4">
-               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID); ?>
+               <?php echo StationInfo::getStationOptions(StationInfo::UNKNOWN_STATION_ID, true); ?>
             </select>
          </div>         
       </div>
