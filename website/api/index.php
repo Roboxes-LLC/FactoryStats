@@ -249,7 +249,7 @@ $router->add("display", function($params) {
             // Redirect to correct subdomain.
             $result->subdomain = $subdomain;
             $result->server = $subdomain . ".factorystats.com";
-            $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();
+            $result->presentation = PresentationInfo::getRedirectingPresentation($uid)->getTabRotateConfig();
          }
          // No associated subdomain.
          else

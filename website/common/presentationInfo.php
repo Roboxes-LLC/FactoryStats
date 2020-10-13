@@ -84,6 +84,29 @@ class PresentationInfo
       return ($presentation);
    }
    
+   public static function getRedirectingPresentation($uid)
+   {
+      global $DISPLAY_REGISTRY;
+      
+      $presentation = new PresentationInfo();
+      
+      $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
+      if (!$subdomain || ($subdomain == ""))
+      {
+         $subdomain = $DISPLAY_REGISTRY;
+      }
+      
+      $slideInfo = new SlideInfo();
+      $slideInfo->slideType = SlideType::URL;
+      $slideInfo->duration = 0;
+      $slideInfo->url = "http://$subdomain.factorystats.com/pages/redirecting.php?uid=$uid";
+      $slideInfo->enabled = true;
+      
+      $presentation->slides[] = $slideInfo;
+      
+      return ($presentation);
+   }
+   
    public static function getUnconfiguredPresentation($uid)
    {
       global $DISPLAY_REGISTRY;
