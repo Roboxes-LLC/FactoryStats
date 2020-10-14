@@ -161,6 +161,7 @@ function addSlide(
    $slideType,
    $duration,
    $enabled,
+   $reloadInterval,
    $url,
    $image,
    $shiftId,
@@ -173,6 +174,7 @@ function addSlide(
    $slideInfo->slideIndex = 0;  // TODO
    $slideInfo->duration = $duration;   
    $slideInfo->enabled = $enabled;
+   $slideInfo->reloadInterval = $reloadInterval;
    $slideInfo->url = $url;
    $slideInfo->image = $image;
    $slideInfo->shiftId = $shiftId;
@@ -191,6 +193,7 @@ function updateSlide(
    $slideType,
    $duration,
    $enabled,
+   $reloadInterval,
    $url,
    $image,
    $shiftId,
@@ -204,6 +207,7 @@ function updateSlide(
       $slideInfo->slideType = $slideType;
       $slideInfo->duration = $duration;
       $slideInfo->enabled = $enabled;
+      $slideInfo->reloadInterval = $reloadInterval;
       $slideInfo->url = $url;
       $slideInfo->image = $image;
       $slideInfo->shiftId = $shiftId;
@@ -255,6 +259,7 @@ switch (getParams()->get("action"))
             $params->getInt("slideType"),
             $params->getInt("duration"),
             $params->getBool("enabled"),
+            $params->getInt("reloadInterval"),
             $params->get("url"),
             $imageFile,
             $params->getInt("shift"),
@@ -270,6 +275,7 @@ switch (getParams()->get("action"))
             $params->getInt("slideType"),
             $params->getInt("duration"),
             $params->getBool("enabled"),
+            $params->getInt("reloadInterval"),
             $params->get("url"),
             $imageFile,
             $params->getInt("shift"),
@@ -348,8 +354,14 @@ switch (getParams()->get("action"))
       </div>
       
       <div class="flex-horizontal input-block">
-         <label>Duration</label>
+         <label>Slide duration&nbsp;</label>
          <input id="duration-input" type="number" style="width: 50px;" form="config-form" name="duration">
+      </div>
+      
+      <div class="flex-horizontal input-block">
+         <label>Reload every&nbsp;</label>
+         <input id="reload-interval-input" type="number" style="width: 50px;" form="config-form" name="reloadInterval">
+         &nbsp;sec.
       </div>
       
       <div id="url-slide-params">
@@ -464,6 +476,7 @@ switch (getParams()->get("action"))
                document.getElementById('slide-type-input').value = slideInfo.slideType;
                document.getElementById('duration-input').value = slideInfo.duration;
                document.getElementById('enabled-input').checked = slideInfo.enabled;
+               document.getElementById('reload-interval-input').value = slideInfo.reloadInterval;
                document.getElementById('url-input').value = slideInfo.url;
                document.getElementById('image-input').value = slideInfo.image;
                document.getElementById('image-thumbnail').src = "<?php echo CustomerInfo::getSlideImagesFolder(); ?>/" + slideInfo.image;
@@ -489,6 +502,7 @@ switch (getParams()->get("action"))
       document.getElementById('slide-type-input').value = <?php echo SlideType::UNKNOWN; ?>;
       document.getElementById('duration-input').value = 0;
       document.getElementById('enabled-input').checked = false;
+      document.getElementById('reload-interval-input').value = <?php echo SlideInfo::DEFAULT_RELOAD_INTERVAL; ?>;
       
       resetCustomSlideParams();
    }

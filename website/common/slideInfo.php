@@ -31,11 +31,14 @@ class SlideInfo
    
    const MAX_STATION_IDS = 4;
    
+   const DEFAULT_RELOAD_INTERVAL = 300;  // 5 minutes
+   
    public $slideId;
    public $presentationId;
    public $slideType;
    public $duration;
    public $enabled;
+   public $reloadInterval;  // seconds
    
    // URL options
    public $url;
@@ -56,6 +59,7 @@ class SlideInfo
       $this->slideIndex = 0;
       $this->duration = 0;
       $this->enabled = false;
+      $this->reloadInterval = SlideInfo::DEFAULT_RELOAD_INTERVAL;
       $this->url = "";
       $this->image = "";
       $this->shiftIds = ShiftInfo::UNKNOWN_SHIFT_ID;
@@ -70,6 +74,7 @@ class SlideInfo
       $this->slideIndex = intval($row['slideIndex']);
       $this->duration = intval($row['duration']);
       $this->enabled = filter_var($row["enabled"], FILTER_VALIDATE_BOOLEAN);
+      $this->reloadInterval = intval($row['reloadInterval']);
       $this->url = $row['url'];
       $this->image = $row['image'];
       $this->shiftId = intval($row['shiftId']);
@@ -257,6 +262,7 @@ if (isset($_GET["slideId"]))
       echo "slideIndex: " .       $slideInfo->slideIndex .                     "<br/>";
       echo "duration: " .         $slideInfo->duration .                       "<br/>";
       echo "enabled: " .          $enabled .                                   "<br/>";
+      echo "reloadInterval: " .   $slideInfo->reloadInterval .                 "<br/>";      
       echo "url: " .              $slideInfo->url .                            "<br/>";
       echo "image: " .            $slideInfo->image .                          "<br/>";
       echo "shiftId: " .          $slideInfo->shiftId .                        "<br/>";

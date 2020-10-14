@@ -36,6 +36,11 @@ var MenuItem = {
    LAST : 3
 };
 
+// Constants for screen/chart sizes.
+const SMALL = 1;
+const MEDIUM = 2;
+const LARGE = 3;
+
 // Store the shift info.
 var shiftHours = null;
 
@@ -299,7 +304,45 @@ function updateHourlyCount(stationId, hourlyCount)
    charts[stationId].update(hourlyCount);
 }
 
-function getChartDimensions(screenWidth)
+function getScreenSize(screenWidth)
+{
+   var screenSize = SMALL;  // small
+   
+   // Small
+   // 768px - 1023px
+   if (screenWidth < 1024)
+   {
+      screenSize = SMALL;
+   }
+   // Medium
+   // 1024px - 1365px
+   else if (screenWidth < 1366)
+   {
+      screenSize = SMALL;
+   }
+   // Large
+   // 1366px - 1919px
+   else if (screenWidth < 1920)
+   {
+      screenSize = MEDIUM;      
+   }
+   // X-Large
+   // 1920px - 2559px
+   else if (screenWidth < 2560)
+   {
+      screenSize = MEDIUM;      
+   }
+   // XX-Large
+   // >= 2560px
+   else 
+   {
+      screenSize = LARGE; 
+   }
+   
+   return (screenSize);
+}
+
+function getChartDimensions(screenSize, chartSize)
 {
    var dimensions = 
    {
@@ -308,45 +351,19 @@ function getChartDimensions(screenWidth)
       annotationFontSize: 0
    };
    
-   // Small
-   // 768px - 1023px
-   if (screenWidth < 1024)
+   var chartDimensions = 
+   [  /*                       small        medium         large */
+      /* small screen  */ [[10, 10, 10], [15, 15, 15], [25, 25, 25]],
+      /* medium screen */ [[15, 15, 15], [25, 25, 25], [40, 40, 40]],
+      /* large screen  */ [[50, 50, 50], [60, 60, 60], [80, 80, 80]]
+   ];
+   
+   if ((chartSize >= SMALL) && (chartSize <= LARGE) &&
+       (screenSize >= SMALL) && (screenSize <= LARGE))
    {
-      dimensions.titleFontSize = 0;
-      dimensions.hAxisFontSize = 0;  
-      dimensions.annotationFontSize = 0;
-   }
-   // Medium
-   // 1024px - 1365px
-   else if (screenWidth < 1366)
-   {
-      dimensions.titleFontSize = 20;
-      dimensions.hAxisFontSize = 18;  
-      dimensions.annotationFontSize = 18;
-   }
-   // Large
-   // 1366px - 1919px
-   else if (screenWidth < 1920)
-   {
-      dimensions.titleFontSize = 0;
-      dimensions.hAxisFontSize = 0;  
-      dimensions.annotationFontSize = 0;
-   }
-   // X-Large
-   // 1920px - 2559px
-   else if (screenWidth < 2560)
-   {
-      dimensions.titleFontSize = 20;
-      dimensions.hAxisFontSize = 15;  
-      dimensions.annotationFontSize = 15;
-   }
-   // XX-Large
-   // >= 2560px
-   else 
-   {
-      dimensions.titleFontSize = 80;
-      dimensions.hAxisFontSize = 80;  
-      dimensions.annotationFontSize = 80;
+      dimensions.titleFontSize = chartDimensions[screenSize - SMALL][chartSize - SMALL][0]; 
+      dimensions.hAxisFontSize = chartDimensions[screenSize - SMALL][chartSize - SMALL][1]; 
+      dimensions.annotationFontSize = chartDimensions[screenSize - SMALL][chartSize - SMALL][2];
    }
    
    return (dimensions);
@@ -356,10 +373,14 @@ function resizeCharts()
 {
    document.getElementById("screen-res-div").innerHTML = screen.width  + "x" + screen.height;
 
-   var chartDimensions = getChartDimensions(screen.width);
+   var screenSize = getScreenSize(screen.width);
 
    for (const stationId of stationIds)
    {
+      var chartSize = charts[stationId].container.getAttribute("data-chart-size");
+         
+      var chartDimensions = getChartDimensions(screenSize, chartSize);
+
       charts[stationId].setChartFontSize(chartDimensions.titleFontSize, chartDimensions.hAxisFontSize, chartDimensions.annotationFontSize);
    }
 }

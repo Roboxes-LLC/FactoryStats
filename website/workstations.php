@@ -114,19 +114,41 @@ function getStationIdsVar()
    return ($stationIdsVar);
 }
 
+function getGridClass($stationCount)
+{
+   $gridClasses = array("single", "double", "triple", "quad");
+   
+   $gridClass = $gridClasses[0]; // single
+   
+   if (($stationCount> 0) && ($stationCount <= 4))
+   {
+      $gridClass = $gridClasses[$stationCount - 1];
+   }
+   
+   return ($gridClass);
+}
+
+function getChartSize($stationCount)
+{
+   $chartSizes = array(3, 2, 1, 1);  // large, medium, small, small
+   
+   $chartSize = $chartSizes[0];  // small
+   
+   if (($stationCount> 0) && ($stationCount <= 4))
+   {
+      $chartSize = $chartSizes[$stationCount - 1];
+   }
+   
+   return ($chartSize);
+}
+
 function getStationGrid($stationIds)
 {
    $html = "";
    
    $stationCount = count($stationIds);
    
-   $gridClasses = array("single", "double", "triple", "quad");
-   
-   $gridClass = "single";
-   if (($stationCount> 0) && ($stationCount <= 4))
-   {
-      $gridClass = $gridClasses[$stationCount - 1];
-   }
+   $gridClass = getGridClass($stationCount);
    
    $html =
 <<<HEREDOC
@@ -135,7 +157,7 @@ HEREDOC;
    
    foreach ($stationIds as $stationId)
    {
-      $html .= getStationPanel($stationId);
+      $html .= getStationPanel($stationId, getChartSize($stationCount));
    }
    
    $html .=
@@ -146,7 +168,7 @@ HEREDOC;
    return ($html);
 }
 
-function getStationPanel($stationId)
+function getStationPanel($stationId, $chartSize)
 {
    $stationLabel = getStationLabel($stationId);
    
@@ -188,7 +210,7 @@ function getStationPanel($stationId)
          </div>
    
          <div class="grid-item flex-vertical">
-            <div id="hourly-count-chart-div-$stationId" class="hourly-count-chart"></div>
+            <div id="hourly-count-chart-div-$stationId" data-chart-size="$chartSize" class="hourly-count-chart"></div>
          </div>
 
       </div>

@@ -148,7 +148,7 @@ class PresentationInfo
          {
             $website->url = $slideInfo->getUrl();
             $website->duration = $slideInfo->duration;
-            $website->tabReloadIntervalSeconds = 120;
+            $website->tabReloadIntervalSeconds = $slideInfo->reloadInterval;
             
             $tabRotateConfig->websites[] = $website;
          }

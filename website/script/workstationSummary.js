@@ -45,7 +45,7 @@ function updateWorkstation(workstationStatus)
    
    if (divElement)
    {
-      divElement.getElementsByClassName("station-id-div")[0].innerHTML = workstationStatus.label;
+      divElement.getElementsByClassName("station-label")[0].innerHTML = workstationStatus.label;
       
       //updateHardwareButtonIndicator(workstationStatus.stationId, workstationStatus.hardwareButtonStatus);
       
@@ -143,20 +143,20 @@ function updateAverageCountTime(stationId, averageCountTime)
          var seconds = (averageCountTime % 60);
          
          timeString = "";
-         
+                  
          if (hours > 0)
          {
-            timeString += hours + "<span class=\"stat-label\"> hours </span>";
+            timeString += hours + "<span class=\"stat-units\"> hr </span>";
          }
          
          if ((hours > 0) || (minutes > 0))
          {
-            timeString += minutes + "<span class=\"stat-label\"> minutes </span>";
+            timeString += minutes + "<span class=\"stat-units\"> min </span>";
          }
          
          if (hours == 0)
          {
-            timeString += seconds + "<span class=\"stat-label\"> seconds</span>";
+            timeString += seconds + "<span class=\"stat-units\"> sec</span>";
          }
       }
    
