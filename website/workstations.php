@@ -36,6 +36,22 @@ function getParams()
    return ($params);
 }
 
+function getScreenSizeClass()
+{
+   $class = "";
+   
+   $params = getParams();
+   
+   if ($params->keyExists("screenSize"))
+   {
+      $screenSize = $params->getInt("screenSize");
+      
+      $class = ScreenSize::getClass($screenSize);
+   }
+   
+   return ($class);
+}
+
 function getStationIds()
 {
    $stationIds = array();
@@ -66,38 +82,6 @@ function getStationLabel($stationId)
    }
    
    return ($label);
-}
-   
-function getShiftHoursVar()
-{
-   $shiftHours = "";
-   
-   $database = FlexscreenDatabase::getInstance();
-   
-   if ($database && $database->isConnected())
-   {
-      $result = $database->getShifts();
-      
-      while ($result && ($row = $result->fetch_assoc()))
-      {
-         $shiftName = $row["shiftName"];
-         
-         $dateTime = new DateTime($row["startTime"]);
-         $startHour = intval($dateTime->format("H"));
-         $startTime = $dateTime->format("g:i A");
-         
-         $dateTime = new DateTime($row["endTime"]);
-         $endHour = intval($dateTime->format("H"));
-         $endTime = $dateTime->format("g:i A");
-
-         $shiftHours .= 
-<<<HEREDOC
-         {$row["shiftId"]}: {shiftName: "$shiftName", startTime: "$startTime", startHour: $startHour, endTime: "$endTime", endHour: $endHour}, 
-HEREDOC;
-      }
-   }
-   
-   return ($shiftHours);
 }
 
 function getStationIdsVar()
@@ -223,7 +207,7 @@ HEREDOC;
 
 ?>
 
-<html>
+<html class="<?php echo getScreenSizeClass(); ?>">
 
 <head>
 
@@ -251,11 +235,6 @@ HEREDOC;
    <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"" . versionQuery() . "></script>";}?>
    
    <script>
-      // Store shift hours for updating the x-axis of the hourly chart.
-      shiftHours = {
-         <?php echo getShiftHoursVar(); ?>
-      };
-      
       // Store station ids
       stationIds = [
          <?php echo getStationIdsVar(); ?>

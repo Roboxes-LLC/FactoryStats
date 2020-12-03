@@ -36,9 +36,6 @@ var MenuItem = {
    LAST : 3
 };
 
-// Store the shift info.
-var shiftHours = null;
-
 // Keep track of the current shift, as it is updated by the server.
 var currentShiftId = 0;
 
@@ -124,7 +121,7 @@ function update()
 
          updateCount(workstation.count);
          
-         updateHourlyCount(workstation.hourlyCount);
+         updateHourlyCount(workstation.hourlyCount, new Date(workstation.shiftStartTime), new Date(workstation.shiftEndTime));
          
          if (workstation.isOnBreak == true)
          {
@@ -290,11 +287,9 @@ function updateHardwareButtonIndicator(hardwareButtonStatus)
    element.classList.add(ledClass);
 }
 
-function updateHourlyCount(hourlyCount)
+function updateHourlyCount(hourlyCount, shiftStartTime, shiftEndTime)
 {
-   var shiftId = getShiftId();
-   
-   chart.setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHour);
+   chart.setChartHours(shiftStartTime, shiftEndTime);
    
    chart.update(hourlyCount);
 }

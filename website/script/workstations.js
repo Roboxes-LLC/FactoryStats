@@ -41,9 +41,6 @@ const SMALL = 1;
 const MEDIUM = 2;
 const LARGE = 3;
 
-// Store the shift info.
-var shiftHours = null;
-
 // Keep track of the current shift, as it is updated by the server.
 var currentShiftId = 0;
 
@@ -174,7 +171,7 @@ function updateWorkstation(workstation)
 {
    updateCount(workstation.stationId, workstation.count);
 
-   updateHourlyCount(workstation.stationId, workstation.hourlyCount);
+   updateHourlyCount(workstation.stationId, workstation.hourlyCount, new Date(workstation.shiftStartTime), new Date(workstation.shiftEndTime));
 
    if (workstation.isOnBreak == true)
    {
@@ -295,11 +292,9 @@ function updateAverageCountTime(stationId, averageCountTime)
    element.innerHTML = timeString;
 }
 
-function updateHourlyCount(stationId, hourlyCount)
+function updateHourlyCount(stationId, hourlyCount, shiftStartTime, shiftEndTime)
 {
-   var shiftId = getShiftId();
-   
-   charts[stationId].setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHour);
+   charts[stationId].setChartHours(shiftStartTime, shiftEndTime);
    
    charts[stationId].update(hourlyCount);
 }

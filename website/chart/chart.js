@@ -14,13 +14,11 @@ class HourlyStatsChart
       }
    }
 
-   setChartHours(startHour, endHour)
+   setChartHours(startDateTime, endDateTime)
    {
-      endHour = (endHour > startHour) ? endHour : 23;
-
       this.options.hAxis.viewWindow = {
-         min: [startHour, 0, 0], 
-         max: [endHour, 0, 0]
+         min: startDateTime, 
+         max: endDateTime
       };
    }
    
@@ -43,10 +41,12 @@ class HourlyStatsChart
                color: 'white'
             },
             format: 'ha',
+            /*
             viewWindow: {
                min: [5, 30, 0],  // 5:30am
                max: [16, 30, 0]  // 4:30pm
              },
+             */
              gridlines: {
                 color: 'transparent'
              },
@@ -85,7 +85,7 @@ class HourlyStatsChart
       {
          var data = new google.visualization.DataTable();
          
-         data.addColumn('timeofday', 'Time of Day');
+         data.addColumn('datetime', 'Time of Day');
          data.addColumn('number', 'Screen Count');
          data.addColumn({type: 'string', role: 'annotation'});  // bar annotation
          
@@ -103,9 +103,7 @@ class HourlyStatsChart
       
       for (var key in data)
       {
-         var time = new Date(Date.parse(key));
-   
-         rows.push([{v: [time.getHours(), 0, 0]}, data[key], data[key].toString()]);
+         rows.push([new Date(key), data[key], data[key].toString()]);
       }
       
       return (rows);
