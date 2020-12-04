@@ -36,6 +36,9 @@ var MenuItem = {
    LAST : 3
 };
 
+// Store the shift info.
+var shiftHours = null;
+
 // Keep track of the current shift, as it is updated by the server.
 var currentShiftId = 0;
 

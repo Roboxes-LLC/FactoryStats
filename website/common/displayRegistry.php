@@ -19,7 +19,9 @@ class DisplayRegistry
    }
    
    static function register($uid)
-   {
+   {      
+      $result = null;
+      
       $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())

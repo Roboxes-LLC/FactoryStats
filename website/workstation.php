@@ -106,7 +106,39 @@ function getBreakButton()
    </div>
 HEREDOC;
 }
+
+function getShiftHours()
+{
+   $shiftHours = "";
    
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result = $database->getShifts();
+      
+      while ($result && ($row = $result->fetch_assoc()))
+      {
+         $shiftName = $row["shiftName"];
+         
+         $dateTime = new DateTime($row["startTime"]);
+         $startHour = intval($dateTime->format("H"));
+         $startTime = $dateTime->format("g:i A");
+         
+         $dateTime = new DateTime($row["endTime"]);
+         $endHour = intval($dateTime->format("H"));
+         $endTime = $dateTime->format("g:i A");
+         
+         $shiftHours .=
+<<<HEREDOC
+         {$row["shiftId"]}: {shiftName: "$shiftName", startTime: "$startTime", startHour: $startHour, endTime: "$endTime", endHour: $endHour},
+HEREDOC;
+      }
+   }
+   
+   return ($shiftHours);
+}
+
 $stationId = getStationId();
 
 $stationLabel = getStationLabel($stationId);
@@ -240,6 +272,11 @@ $cycleTime = getCycleTime($stationId);
    
       // Start a one-second timer to update the elapsed-time-div.
       setInterval(function(){updateElapsedTime();}, 50);
+      
+      // Store shift hours for updating the x-axis of the hourly chart.
+      shiftHours = {
+         <?php echo getShiftHours(); ?>
+      };
    </script>
 
 </body>

@@ -183,8 +183,6 @@ class SlideInfo
    
    function getContentDescription()
    {
-      global $SLIDE_IMAGES_DIR;
-      
       $content = "";
       
       switch ($this->slideType)
