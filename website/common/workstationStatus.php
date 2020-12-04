@@ -51,9 +51,15 @@ class WorkstationStatus
          // Get start and end times based on the shift.
          $evaluationTimes = $shiftInfo->getEvaluationTimes($dateTime, $dateTime);
          
+         // Get start and end times based on the shift.
+         $shiftTimes = $shiftInfo->getShiftTimes($dateTime);
+         
          $workstationStatus->stationId = $stationId;
          
          $workstationStatus->shiftId = $shiftId;
+         
+         $workstationStatus->shiftStartTime = $shiftTimes->startDateTime;
+         $workstationStatus->shiftEndTime = $shiftTimes->endDateTime;
          
          $workstationStatus->label = WorkStationStatus::getWorkstationLabel($stationId, $database);
          
