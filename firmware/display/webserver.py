@@ -2,6 +2,7 @@
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os 
+from urlparse import urlparse
  
 class StaticServer(BaseHTTPRequestHandler):
  
@@ -12,20 +13,27 @@ class StaticServer(BaseHTTPRequestHandler):
         if self.path == '/':
             filename = root + '/index.html'
         else:
-            filename = root + self.path
+            parsed = urlparse(self.path)        
+            filename = root + parsed.path
  
         self.send_response(200)
+        
         if filename[-4:] == '.css':
-            self.send_header('Content-type', 'text/css')
+           self.send_header('Content-type', 'text/css')
         elif filename[-5:] == '.json':
-            self.send_header('Content-type', 'application/javascript')
+           self.send_header('Content-type', 'application/json')
         elif filename[-3:] == '.js':
-            self.send_header('Content-type', 'application/javascript')
+           self.send_header('Content-type', 'application/javascript')
         elif filename[-4:] == '.ico':
-            self.send_header('Content-type', 'image/x-icon')
+           self.send_header('Content-type', 'image/x-icon')
+        elif filename[-4:] == '.jpg':
+           self.send_header('Content-type', 'image/jpg')
+        elif filename[-4:] == '.png':
+           self.send_header('Content-type', 'image/png')            
         else:
             self.send_header('Content-type', 'text/html')
         self.end_headers()
+        
         with open(filename, 'rb') as fh:
             html = fh.read()
             #html = bytes(html, 'utf8')

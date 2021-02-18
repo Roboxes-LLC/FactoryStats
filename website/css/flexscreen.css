@@ -327,15 +327,15 @@ body {
    box-shadow: #000 0 -1px 7px 1px, inset #7D0 0 -1px 9px, #7D0 0 2px 12px 5px;   
 }
 
-.button-unconfigured {
+.button-unconfigured, .display-unconfigured {
 	color: red;
 }
 
-.button-disabled {
+.button-disabled, .display-disabled {
    color: orange;
 }
 
-.button-ready {
+.button-ready, .display-ready {
    color: green;
 }
 
@@ -353,6 +353,11 @@ body {
   font-size: 16px;
   border-radius: 4px;
   margin: 5px;	
+}
+
+.config-button.small {
+  font-size: 12px;
+  padding: 5px 8px;
 }
 
 .config-button:hover {
@@ -455,4 +460,8 @@ Screen = B/w 768px to 1024px
 tr.total td, tr.total th {
 	color: #14a3db;
    font-weight: bold; 
+}
+
+.thumbnail {
+   width: 50px;
 }

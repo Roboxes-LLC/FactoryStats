@@ -49,6 +49,13 @@ var ValidatingAction = {
 
 var validatingAction = 0;
 
+var chart = null;
+
+function initializeChart()
+{
+   chart = new HourlyStatsChart(document.getElementById("hourly-count-chart-div"));
+}
+
 function setMenuSelection(menuItem)
 {
    var menuItemElements = [
@@ -105,38 +112,40 @@ function storeInSession(key, value)
 function update()
 {
    var requestURL = "api/status/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&action=status";
-   
+
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
    {
       if (this.readyState == 4 && this.status == 200)
       {
          var json = JSON.parse(this.responseText);
+         
+         workstation = json.workstations[0];
 
-         updateCount(json.count);
+         updateCount(workstation.count);
          
-         updateHourlyCount(json.hourlyCount);
+         updateHourlyCount(workstation.hourlyCount, new Date(workstation.shiftStartTime), new Date(workstation.shiftEndTime));
          
-         if (json.isOnBreak == true)
+         if (workstation.isOnBreak == true)
          {
-            updateCountTime(json.breakInfo.startTime);
+            updateCountTime(workstation.breakInfo.startTime);
          }
          else
          {
-            updateCountTime(json.updateTime);
+            updateCountTime(workstation.updateTime);
          }
          
          updateElapsedTime();
          
-         updateCycleTimeStatus(json.cycleTimeStatus, json.cycleTimeStatusLabel, json.isOnBreak);
+         updateCycleTimeStatus(workstation.cycleTimeStatus, workstation.cycleTimeStatusLabel, workstation.isOnBreak);
          
-         updateAverageCountTime(json.averageCountTime);
+         updateAverageCountTime(workstation.averageCountTime);
          
          //updateHardwareButtonIndicator(json.hardwareButtonStatus);
          
-         updateBreak(json.isOnBreak, json.breakInfo);
+         updateBreak(workstation.isOnBreak, workstation.breakInfo);
          
-         updateFirstEntry(json.firstEntry);
+         updateFirstEntry(workstation.firstEntry);
          
          currentShiftId = parseInt(json.currentShiftId);
       }
@@ -281,13 +290,11 @@ function updateHardwareButtonIndicator(hardwareButtonStatus)
    element.classList.add(ledClass);
 }
 
-function updateHourlyCount(hourlyCount)
+function updateHourlyCount(hourlyCount, shiftStartTime, shiftEndTime)
 {
-   var shiftId = getShiftId();
+   chart.setChartHours(shiftStartTime, shiftEndTime);
    
-   setChartHours(shiftHours[shiftId].startHour, shiftHours[shiftId].endHour);
-   
-   drawChart(hourlyCount);
+   chart.update(hourlyCount);
 }
 
 function incrementCount()

@@ -1,0 +1,11 @@
+{
+   "settingsReloadIntervalMinutes": 1,
+   "fullscreen": false,
+   "autoStart": true,
+   "lazyLoadTabs": true,
+   "websites": [{
+      "url": "http:\/\/localhost\/unconnected.html",
+      "duration": 0,
+      "tabReloadIntervalSeconds": 60
+   }]
+}

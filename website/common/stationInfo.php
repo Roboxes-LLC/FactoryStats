@@ -49,6 +49,40 @@ class StationInfo
 
       return ($label);
    }
+   
+   public static function getStationOptions($selectedStationId, $includeNoStationOption)
+   {
+      $html = "";
+      
+      if ($includeNoStationOption)
+      {
+         $selected = ($selectedStationId == StationInfo::UNKNOWN_STATION_ID) ? "selected" : "";
+         $html = "<option value=\"" . StationInfo::UNKNOWN_STATION_ID . "\" $selected>None</option>";         
+      }
+      else
+      {
+         $html = "<option style=\"display:none\">";         
+      }
+      
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $result = $database->getStations();
+         
+         while ($result && ($row = $result->fetch_assoc()))
+         {
+            $stationId = intval($row["stationId"]);
+            $stationName = $row["name"];
+            
+            $selected = ($stationId == $selectedStationId) ? "selected" : "";
+            
+            $html .= "<option value=\"$stationId\" $selected>$stationName</option>";
+         }
+      }
+      
+      return ($html);
+   }
 }
 
 /*

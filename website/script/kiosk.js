@@ -1,10 +1,10 @@
 function setShift(shiftId)
 {
-   $element = document.getElementById("shift-id-input");
+   var element = document.getElementById("shift-id-input");
    
-   if ($element)
+   if (element)
    {
-      $element.value = shiftId;
+      element.value = shiftId;
    }
 }
 

@@ -1,4 +1,5 @@
 <?php
+
 class Params extends ArrayObject
 {
    public static function parse()
@@ -17,7 +18,14 @@ class Params extends ArrayObject
       {
          foreach ($_GET as $key => $value)
          {
-            $params[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+            if (is_array($_GET[$key]))
+            {
+               $params[$key] = $_GET[$key];  // TODO: Sanitize input and implement for PUT, SESSION
+            }
+            else
+            {
+               $params[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+            }
          }
       }
       else if ($_SERVER["REQUEST_METHOD"] === "POST")
@@ -51,3 +59,5 @@ class Params extends ArrayObject
       return (intval($this->get($key)));
    }
 }
+
+?>

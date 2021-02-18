@@ -1,6 +1,7 @@
 @lxpanel --profile LXDE-pi
 @pcmanfm --desktop --profile LXDE-pi
-#@xscreensaver -no-splash
-point-rpi
-@bash python /home/pi/flexscreen.py
-
+@xscreensaver -no-splash
+@sudo -E /usr/bin/python /home/pi/factorystats/setHostname.py
+@sudo -E /usr/bin/python /home/pi/factorystats/webserver.py
+@/usr/bin/python /home/pi/factorystats/factorystats.py
+@bash /home/pi/factorystats/kiosk.sh

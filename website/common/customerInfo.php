@@ -1,9 +1,10 @@
 <?php
 
-require_once 'database.php';
 require_once 'params.php';
 require_once 'root.php';
 require_once 'usa.php';
+
+require_once 'database.php';  // TODO: Require order matters here, for some reason.
 
 class CustomerInfo
 {
@@ -27,17 +28,28 @@ class CustomerInfo
    {
       static $subdomain = null;
       
+      $params = Params::parse();
+      
       if ($subdomain == null)
-      {      
-         $tokens = explode('.', $_SERVER['HTTP_HOST']);
-         
-         if (count($tokens) >= 3)
+      {
+         // Allow spoofing of subdomain for testing.
+         if ($params->keyExists("subdomain"))
          {
-            $subdomain = $tokens[0];
+            $subdomain = $params["subdomain"];
          }
+         // Otherwise, parse the domain from the HTTP request.
          else
          {
-            $subdomain = "flexscreentest";  // Default to test domain
+            $tokens = explode('.', $_SERVER['HTTP_HOST']);
+            
+            if (count($tokens) >= 3)
+            {
+               $subdomain = $tokens[0];
+            }
+            else
+            {
+               $subdomain = "flexscreentest";  // Default to test domain
+            }
          }
       }
       
@@ -67,6 +79,22 @@ class CustomerInfo
       $subdomain = CustomerInfo::getSubdomain();
       
       return ("$ROOT/$subdomain/css");
+   }
+   
+   public static function getSlideImagesFolder()
+   {
+      global $ROOT;
+      
+      $subdomain = CustomerInfo::getSubdomain();
+      
+      return ("$ROOT/$subdomain/uploads/images");
+   }
+   
+   public static function getSlideImagesUploadFolder()
+   {
+      $slideImagesFolder = CustomerInfo::getSlideImagesFolder();
+      
+      return ("{$_SERVER['DOCUMENT_ROOT']}/$slideImagesFolder");
    }
    
    public static function getCustomerInfo()
@@ -119,19 +147,19 @@ class CustomerInfo
    {
       if ($row)
       {         
-         $customerInfo->customerId = intval($row['customerId']);
-         $customerInfo->name = $row['name'];
-         $customerInfo->subdomain = $row['subdomain'];
-         $customerInfo->emailAddress = $row['emailAddress'];
-         $customerInfo->addressLine1 = $row['addressLine1'];
-         $customerInfo->addressLine2 = $row['addressLine2'];
-         $customerInfo->city = $row['city'];
-         $customerInfo->state = intval($row['state']);
-         $customerInfo->zipcode = intval($row['zipcode']);
-         $customerInfo->phone = $row['phone'];
-         $customerInfo->timeZone = $row['timeZone'];
+         $this->customerId = intval($row['customerId']);
+         $this->name = $row['name'];
+         $this->subdomain = $row['subdomain'];
+         $this->emailAddress = $row['emailAddress'];
+         $this->addressLine1 = $row['addressLine1'];
+         $this->addressLine2 = $row['addressLine2'];
+         $this->city = $row['city'];
+         $this->state = intval($row['state']);
+         $this->zipcode = intval($row['zipcode']);
+         $this->phone = $row['phone'];
+         $this->timeZone = $row['timeZone'];
          
-         $customerInfo->disableAuthentication = $row['disableAuthentication'];
+         $this->disableAuthentication = $row['disableAuthentication'];
       }
    }
 }

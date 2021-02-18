@@ -180,6 +180,32 @@ class ShiftInfo
        
       return ($evaluationTimes);
    }
+   
+   // This function returns an object containing the exact shift start/end times for the specified date.
+   public function getShiftTimes($startDate)
+   {
+      $shiftTimes = new stdClass();
+      
+      // Start time.
+      $shiftStartDateTime = new DateTime($startDate);
+      $shiftStartTime = new DateTime($this->startTime);
+      $shiftStartDateTime->setTime(intval($shiftStartTime->format('G')), intval($shiftStartTime->format('i')), 0);
+      $shiftTimes->startDateTime =  $shiftStartDateTime->format("Y-m-d H:i:s");
+      
+      // End time.
+      $shiftEndDateTime = new DateTime($startDate);
+      
+      if ($this->shiftSpansDays())
+      {
+         $shiftEndDateTime = new DateTime(Time::incrementDay($startDate));
+      }
+      
+      $shiftEndTime = new DateTime($this->endTime);
+      $shiftEndDateTime->setTime(intval($shiftEndTime->format('G')), intval($shiftEndTime->format('i')), 0);
+      $shiftTimes->endDateTime = $shiftEndDateTime->format("Y-m-d H:i:s");
+      
+      return ($shiftTimes);
+   }
 }
 
 /*

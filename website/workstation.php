@@ -15,6 +15,8 @@ Time::init();
 
 session_start();
 
+Authentication::authenticate();
+
 if (!(Authentication::isAuthenticated() &&
       Authentication::checkPermissions(Permission::WORKSTATION)))
 {
@@ -104,7 +106,7 @@ function getBreakButton()
    </div>
 HEREDOC;
 }
-   
+
 function getShiftHours()
 {
    $shiftHours = "";
@@ -126,10 +128,10 @@ function getShiftHours()
          $dateTime = new DateTime($row["endTime"]);
          $endHour = intval($dateTime->format("H"));
          $endTime = $dateTime->format("g:i A");
-
-         $shiftHours .= 
+         
+         $shiftHours .=
 <<<HEREDOC
-         {$row["shiftId"]}: {shiftName: "$shiftName", startTime: "$startTime", startHour: $startHour, endTime: "$endTime", endHour: $endHour}, 
+         {$row["shiftId"]}: {shiftName: "$shiftName", startTime: "$startTime", startHour: $startHour, endTime: "$endTime", endHour: $endHour},
 HEREDOC;
       }
    }
@@ -163,7 +165,7 @@ $cycleTime = getCycleTime($stationId);
    
 </head>
 
-<body onload="update()">
+<body onload="initializeChart(); update()">
 
    <form>
       <input id="station-id-input" type="hidden" name="stationId" value="<?php echo $stationId; ?>">
@@ -247,7 +249,7 @@ $cycleTime = getCycleTime($stationId);
          <div class="flex-vertical">
             <div style="color:orange"><b>Shift Warning</b></div>
             <br>
-            <div id="shift-validation-template" style="display:none">It looks like your updating values for <b>%shiftName</b> which runs from %shiftStart to %shiftEnd. Is this correct?</div>            
+            <div id="shift-validation-template" style="display:none">It looks like you are updating values for <b>%shiftName</b> which runs from %shiftStart to %shiftEnd. Is this correct?</div>            
             <div id="shift-validation-text"></div>
             <br>
             <div class="flex-horizontal">
@@ -270,7 +272,7 @@ $cycleTime = getCycleTime($stationId);
    
       // Start a one-second timer to update the elapsed-time-div.
       setInterval(function(){updateElapsedTime();}, 50);
-
+      
       // Store shift hours for updating the x-axis of the hourly chart.
       shiftHours = {
          <?php echo getShiftHours(); ?>

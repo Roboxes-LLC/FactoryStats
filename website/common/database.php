@@ -70,12 +70,27 @@ class MySqlDatabase implements Database
 
       return ($result);
    }
-   
+
    public static function countResults($result)
    {
       return (mysqli_num_rows($result));
    }
-   
+
+   public function rowsAffected()
+   {
+      return(mysqli_affected_rows($this->connection));
+   }
+
+   public function lastInsertId()
+   {
+      return (mysqli_insert_id($this->connection));
+   }
+
+   public function lastQuery()
+   {
+      return ($this->connection->last_query());
+   }
+
    protected function getConnection()
    {
       return ($this->connection);
@@ -92,6 +107,86 @@ class MySqlDatabase implements Database
    private $connection;
 
    private $isConnected = false;
+}
+
+class FactoryStatsGlobalDatabase extends MySqlDatabase
+{
+   public static function getInstance()
+   {
+      if (!FactoryStatsGlobalDatabase::$databaseInstance)
+      {
+         self::$databaseInstance = new FactoryStatsGlobalDatabase();
+         
+         self::$databaseInstance->connect();
+      }
+      
+      return (self::$databaseInstance);
+   }
+   
+   public function __construct()
+   {
+      global $SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE;
+      
+      parent::__construct($SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE);
+   }
+   
+   // **************************************************************************
+   
+   public function isDisplayRegistered($uid)
+   {
+      $query = "SELECT * FROM display WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return (FactoryStatsGlobalDatabase::countResults($result) == 1);
+   }
+   
+   public function registerDisplay($uid)
+   {
+      $query = "INSERT INTO display (uid, subdomain) VALUES (\"$uid\", \"\");";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function uregisterDisplay($uid)
+   {
+      $query = "DELETE FROM display WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function associateDisplayWithSubdomain($uid, $subdomain)
+   {
+      $query = "UPDATE display SET subdomain = '$subdomain' WHERE uid = '$uid';";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getAssociatedSubdomainForDisplay($uid)
+   {
+      $domain = "";
+      
+      $query = "SELECT * FROM display WHERE uid = '$uid';";
+      
+      $result = $this->query($query);
+      
+      if ($result && ($row = $result->fetch_assoc()))
+      {
+         $domain = $row["subdomain"];
+      }
+      
+      return ($domain);
+   }
+   
+   // **************************************************************************
+
+   private static $databaseInstance = null;
 }
 
 class FlexscreenDatabase extends MySqlDatabase
@@ -246,38 +341,31 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getDisplays()
    {
-      $query = "SELECT * from display ORDER BY macAddress DESC;";
+      $query = "SELECT * from display ORDER BY uid DESC;";
       
       $result = $this->query($query);
       
       return ($result);
    }
    
-   public function getDisplayByMacAddress($macAddress)
+   public function getDisplayByUid($uid)
    {
-      $query = "SELECT * from display WHERE macAddress = \"$macAddress\";";
+      $query = "SELECT * from display WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
       return ($result);
-   }
-   
-   public function displayExists($macAddress)
-   {
-      $query = "SELECT displayId from display WHERE macAddress = \"$macAddress\";";
-      
-      $result = $this->query($query);
-      
-      return ($result && ($result->num_rows > 0));
    }
    
    public function newDisplay($displayInfo)
    {
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
+      $enabled = ($displayInfo->enabled ? "true" : "false");
+      
       $query =
-      "INSERT INTO display (macAddress, ipAddress, lastContact) " .
-      "VALUES ('$displayInfo->macAddress', '$displayInfo->ipAddress', '$lastContact');";
+      "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact, enabled) " .
+      "VALUES ('$displayInfo->uid', '$displayInfo->ipAddress', '$displayInfo->name', '$displayInfo->presentationId', '$lastContact', $enabled);";
 
       $this->query($query);
    }
@@ -286,9 +374,11 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
+      $enabled = ($displayInfo->enabled ? "true" : "false");
+      
       $query =
       "UPDATE display " .
-      "SET macAddress = \"$displayInfo->macAddress\", ipAddress = \"$displayInfo->ipAddress\", stationId = \"$displayInfo->stationId\", lastContact = \"$lastContact\" " .
+      "SET uid = \"$displayInfo->uid\", ipAddress = \"$displayInfo->ipAddress\", name = \"$displayInfo->name\", presentationId = \"$displayInfo->presentationId\", lastContact = \"$lastContact\", enabled = $enabled " .
       "WHERE displayId = $displayInfo->displayId;";
 
       $this->query($query);
@@ -388,6 +478,80 @@ class FlexscreenDatabase extends MySqlDatabase
    public function deleteButton($buttonId)
    {
       $query = "DELETE FROM button WHERE buttonId = $buttonId;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
+   public function getSensor($sensorId)
+   {
+      $query = "SELECT * from sensor WHERE sensorId = \"$sensorId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getSensors()
+   {
+      $query = "SELECT * from sensor ORDER BY uid ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getSensorByUid($uid)
+   {
+      $query = "SELECT * from sensor WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function sensorExists($uid)
+   {
+      $query = "SELECT sensorId from sensors WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return ($result && ($result->num_rows > 0));
+   }
+   
+   public function newSensor($sensorInfo)
+   {
+      $lastContact = Time::toMySqlDate($sensorInfo->lastContact);
+      
+      $enabled = ($sensorInfo->enabled ? "true" : "false");
+      
+      $query =
+      "INSERT INTO sensor (uid, ipAddress, name, sensorType, stationId, lastContact, enabled) " .
+      "VALUES ('$sensorInfo->uid', '$sensorInfo->ipAddress', '$sensorInfo->name', '$sensorInfo->sensorType', '$sensorInfo->stationId', '$lastContact', $enabled);";
+      
+      $this->query($query);
+   }
+   
+   public function updateSensor($sensorInfo)
+   {
+      $lastContact = Time::toMySqlDate($sensorInfo->lastContact);
+      
+      $enabled = ($sensorInfo->enabled ? "true" : "false");
+      
+      $query =
+      "UPDATE sensor " .
+      "SET uid = \"$sensorInfo->uid\", ipAddress = \"$sensorInfo->ipAddress\", name = \"$sensorInfo->name\", sensorType = \"$sensorInfo->sensorType\", stationId = \"$sensorInfo->stationId\", lastContact = \"$lastContact\", enabled = $enabled " .
+      "WHERE sensorId = $sensorInfo->sensorId;";
+      
+      $this->query($query);
+   }
+   
+   public function deleteSensor($sensorId)
+   {
+      $query = "DELETE FROM sensor WHERE sensorId = $sensorId;";
       
       $result = $this->query($query);
       
@@ -869,6 +1033,107 @@ class FlexscreenDatabase extends MySqlDatabase
    }
    
    // **************************************************************************
+   
+   public function getPresentations()
+   {
+      $query = "SELECT * from presentation ORDER BY name ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getPresentation($presentationId)
+   {
+      $query = "SELECT * from presentation WHERE presentationId = \"$presentationId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);      
+   }
+   
+   public function newPresentation($presentationInfo)
+   {
+      $query =
+      "INSERT INTO presentation (name) " .
+      "VALUES ('$presentationInfo->name');";
+      
+      $this->query($query);
+   }
+   
+   public function updatePresentation($presentationInfo)
+   {
+      $query =
+      "UPDATE presentation " .
+      "SET name = \"$presentationInfo->name\" " .
+      "WHERE presentationId = $presentationInfo->presentationId;";
+      
+      $this->query($query);
+   }
+   
+   public function deletePresentation($presentationId)
+   {
+      $query = "DELETE FROM presentation WHERE presentationId = $presentationId;";
+      
+      $this->query($query);
+      
+      $query = "DELETE FROM slide WHERE presentationId = $presentationId;";
+      
+      $this->query($query);
+   }
+      
+   // **************************************************************************
+   
+   public function getSlide($slideId)
+   {
+      $query = "SELECT * from slide WHERE slideId = \"$slideId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);      
+   }
+   
+   public function getSlidesForPresentation($presentationId)
+   {
+      $query = "SELECT * from slide WHERE presentationId = \"$presentationId\" ORDER BY slideIndex ASC";
+      
+      $result = $this->query($query);
+      
+      return ($result);      
+   }
+   
+   public function newSlide($slideInfo)
+   {
+      $enabled = ($slideInfo->enabled ? "true" : "false");
+      
+      $query =
+      "INSERT INTO slide (presentationId, slideType, slideIndex, duration, enabled, reloadInterval, url, image, shiftId, stationId1, stationId2, stationId3, stationId4) " .
+      "VALUES ('$slideInfo->presentationId', '$slideInfo->slideType', '$slideInfo->slideIndex', '$slideInfo->duration', $enabled, '$slideInfo->reloadInterval', '$slideInfo->url', '$slideInfo->image', '$slideInfo->shiftId', '{$slideInfo->stationIds[0]}', '{$slideInfo->stationIds[1]}', '{$slideInfo->stationIds[2]}', '{$slideInfo->stationIds[3]}');";
+
+      $this->query($query);
+   }
+   
+   public function updateSlide($slideInfo)
+   {
+      $enabled = ($slideInfo->enabled ? "true" : "false");
+      
+      $query =
+      "UPDATE slide " .
+      "SET presentationId = \"$slideInfo->presentationId\", slideType = \"$slideInfo->slideType\", slideIndex = \"$slideInfo->slideIndex\", duration = \"$slideInfo->duration\", enabled = $enabled, reloadInterval = \"$slideInfo->reloadInterval\", url = \"$slideInfo->url\", image = \"$slideInfo->image\", shiftId = \"$slideInfo->shiftId\", stationId1 = \"{$slideInfo->stationIds[0]}\", stationId2 = \"{$slideInfo->stationIds[1]}\", stationId3 = \"{$slideInfo->stationIds[2]}\", stationId4 = \"{$slideInfo->stationIds[3]}\" " .
+      "WHERE slideId = $slideInfo->slideId;";
+
+      $this->query($query);
+   }
+   
+   public function deleteSlide($slideId)
+   {
+      $query = "DELETE FROM slide WHERE slideId = $slideId;";
+      
+      $this->query($query);
+   }
+   
+   // **************************************************************************
+   
    
    private static $databaseInstance = null;
 }

@@ -1,0 +1,39 @@
+.instructions {
+   font-size: 30px; 
+   color: white; 
+   text-align: center; 
+   background-color: rgba(0, 0, 0, 0.3); 
+   padding: 20px;
+}
+          
+.url {
+   color: #14a3db;
+}
+ 
+.uid {
+   font-size: 50px;
+   color: yellow;
+}
+ 
+html, body {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+   height: 100%;
+}
+
+body {
+   min-height: 100%;
+}
+
+html {
+   background: url(../images/graph-arrow-background-1080-688.png) no-repeat top left fixed; 
+   -webkit-background-size: cover;
+   -moz-background-size: cover;
+   -o-background-size: cover;
+   background-size: cover;
+   
+   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;            
+}

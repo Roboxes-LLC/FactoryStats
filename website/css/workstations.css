@@ -1,0 +1,423 @@
+@CHARSET "ISO-8859-1"
+
+html, body {
+   height: 100%;
+   width: 100%;
+   margin: 0;
+   overflow: hidden;
+}
+
+body {
+	color: white;
+   background: black;
+   font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
+}
+
+.header {
+   width: 100%;
+   align-items: center;
+   border-bottom-style: solid;
+   border-color: white;
+   border-width: 2px;
+   padding-top: 5px;
+   padding-bottom: 5px;
+}
+
+#shift-id-input, #am-pm-selection-input {
+   background-color: #14a3db;
+   border: none;
+   color: white;
+   padding: 10px 15px;
+   font-size: 16px;
+   border-radius: 4px;
+   margin: 5px;   
+}
+
+#shift-id-input option, #am-pm-selection-input option {
+   background-color: white;
+   color: #14a3db;
+}	
+
+.station-grid {
+  display: grid;
+  grid-column-gap: 20px;
+  grid-row-gap: 20px;
+  margin: 10px;
+  width: 100%;
+  height: 80%;
+}
+
+.station-grid.single {
+  display: grid;
+  grid-template-columns: auto;
+}
+
+.station-grid.double {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.station-grid.triple {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.station-grid.quad {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.station-panel {
+   color: white;
+   border: 1px solid white;
+   padding: 20px;
+   display: grid;
+   grid-template-columns: auto auto;
+}
+
+.station-grid.single .station-panel {
+   border: none;
+}
+
+.stats-panel {
+   display: grid;
+   grid-template-columns: auto auto;
+}
+
+.station-label, .count { 
+	grid-column: 1 / 3;
+}
+
+.station-panel .large-stat {
+	color: white;
+}
+
+.station-panel .small-stat {
+   color: white;
+}
+
+.station-panel .stat-label {
+   color: #14a3db;
+}
+
+.station-panel .stat-unit {
+   color: white;
+}
+
+.station-panel .urgent-stat {
+   color: yellow;
+}
+
+/* Screen-based formatting */
+
+/* Small - 768px */
+/*
+@media (min-width: 48em) {
+}
+*/
+
+/* Medium - 1024px */
+/*@media (min-width: 64em) {*/
+/* Temporary until all screen resolutions are supported */
+@media (max-width: 1919px) {
+   /* Header */
+   .header-image {
+      width: 350px;
+   }   
+   .header {
+      border-width: 2px;
+   }
+   #shift-id-input {
+      font-size: 2em;
+   }   
+   
+   /* Single panel */
+   .stats-panel {
+      grid-column-gap: 1em;
+      grid-row-gap: 1em;
+   }
+   .station-label {
+      font-size: 5em;
+   }   
+   .station-panel .stat-label {
+      font-size: 2em;
+   }   
+   .station-panel .large-stat {
+      font-size: 7em;
+   }   
+   .station-panel .small-stat {
+      color: white;
+      font-size: 2.5em;
+   }   
+   .hourly-count-chart {
+      width: 500px; 
+      height: 300px;
+   }
+   
+   /* Double panel */
+   .station-grid.double .stats-panel {
+      grid-column-gap: 1em;
+      grid-row-gap: 1em;
+   }
+   .station-grid.double .station-label {
+      font-size: 3em;
+   }   
+   .station-grid.double .station-panel .stat-label {
+      font-size: 1.5em;
+   }   
+   .station-grid.double .station-panel .large-stat {
+      font-size: 5em;
+   }   
+   .station-grid.double .station-panel .small-stat {
+      color: white;
+      font-size: 2em;
+   }
+   .station-grid.double .hourly-count-chart {
+      width: 300px; 
+      height: 150px;
+   }
+   
+   /* Triple/Quad panel */
+   
+   .station-grid.triple .station-panel,
+   .station-grid.quad .station-panel {
+      padding: 10px;
+   }
+
+   .station-grid.triple .stats-panel,
+   .station-grid.quad .stats-panel {
+      grid-column-gap: 1.0em;
+      grid-row-gap: 0.5em;
+   }
+   .station-grid.triple .station-label,
+   .station-grid.quad .station-label {
+      font-size: 2.1em;
+   }   
+   .station-grid.triple .station-panel .stat-label,
+   .station-grid.quad .station-panel .stat-label {
+      font-size: 1em;
+   }   
+   .station-grid.triple .station-panel .large-stat,
+   .station-grid.quad .station-panel .large-stat {
+      font-size: 2.6em;
+   }   
+   .station-grid.triple .station-panel .small-stat,
+   .station-grid.quad .station-panel .small-stat {
+      color: white;
+      font-size: 1.3em;
+   }
+   .station-grid.triple .hourly-count-chart,
+   .station-grid.quad .hourly-count-chart {
+      width: 300px; 
+      height: 200px;
+   }
+}
+
+/* Large - 1366px */
+/*
+@media (min-width: 85.375em) {
+}
+*/
+
+/* XLarge - 1920px */
+
+@media (min-width: 1920px) {
+   /* Header */
+   .header-image {
+      width: 350px;
+   }   
+   .header {
+      border-width: 2px;
+   }
+   #shift-id-input {
+      font-size: 2em;
+   }   
+   
+   /* Single panel */
+   .station-grid.double .station-panel {
+      padding: 30px;
+   }
+   .stats-panel {
+      grid-column-gap: 4em;
+      grid-row-gap: 2em;
+   }
+   .station-label {
+      font-size: 8em;
+   }   
+   .station-panel .stat-label {
+      font-size: 4.6em;
+   }   
+   .station-panel .large-stat {
+      font-size: 10em;
+   }   
+   .station-panel .small-stat {
+      color: white;
+      font-size: 6em;
+   }   
+   .hourly-count-chart {
+      width: 800px; 
+      height: 500px;
+   }
+   
+   /* Double panel */
+   .station-grid.double .station-panel {
+      padding: 20px;
+   }
+   .station-grid.double .stats-panel {
+      grid-column-gap: 2.5em;
+      grid-row-gap: 1.25em;
+   }
+   .station-grid.double .station-label {
+      font-size: 5em;
+   }   
+   .station-grid.double .station-panel .stat-label {
+      font-size: 2.88em;
+   }   
+   .station-grid.double .station-panel .large-stat {
+      font-size: 6.25em;
+   }   
+   .station-grid.double .station-panel .small-stat {
+      color: white;
+      font-size: 3.75em;
+   }
+   .station-grid.double .hourly-count-chart {
+      width: 500px; 
+      height: 313px;
+   }
+   
+   /* Triple/Quad panel */
+   
+   .station-grid.triple .station-panel,
+   .station-grid.quad .station-panel {
+      padding: 10px;
+   }
+
+   .station-grid.triple .stats-panel,
+   .station-grid.quad .stats-panel {
+      grid-column-gap: 2em;
+      grid-row-gap: 1em;
+   }
+   .station-grid.triple .station-label,
+   .station-grid.quad .station-label {
+      font-size: 4em;
+   }   
+   .station-grid.triple .station-panel .stat-label,
+   .station-grid.quad .station-panel .stat-label {
+      font-size: 2.3em;
+   }   
+   .station-grid.triple .station-panel .large-stat,
+   .station-grid.quad .station-panel .large-stat {
+      font-size: 5em;
+   }   
+   .station-grid.triple .station-panel .small-stat,
+   .station-grid.quad .station-panel .small-stat {
+      color: white;
+      font-size: 3em;
+   }
+   .station-grid.triple .hourly-count-chart,
+   .station-grid.quad .hourly-count-chart {
+      width: 400px; 
+      height: 250px;
+   }
+}
+
+
+/* XXLarge - 2560px */
+/*
+@media (min-width: 160em) {
+}
+*/
+
+/* XXLarge - 2560px */
+@media (min-width: 2560px) {
+   
+   /* Header */
+   .header-image {
+      width: 1000px;
+   }   
+   .header {
+      border-width: 0.5em;
+   }
+   #shift-id-input {
+      font-size: 7em;
+   }
+   
+   .station-panel {
+      border: 0.5em solid white; 
+   }
+   
+   /* Single panel */
+   .stats-panel {
+      grid-column-gap: 5em;
+      grid-row-gap: 5em;
+   }  
+   .station-label {
+      font-size: 20em;
+   }   
+   .station-panel .stat-label {
+      font-size: 7em;
+   }   
+   .station-panel .large-stat {
+      font-size: 20em;
+   }   
+   .station-panel .small-stat {
+      color: white;
+      font-size: 11em;
+   }
+   .hourly-count-chart {
+      width: 1800px; 
+      height: 900px;
+   }
+   
+   /* Double panel */
+   .station-grid.double .stats-panel {
+      grid-column-gap: 2em;
+      grid-row-gap: 2em;
+   }
+   .station-grid.double .station-label {
+      font-size: 13em;
+   }   
+   .station-grid.double .station-panel .stat-label {
+      font-size: 5em;
+   }   
+   .station-grid.double .station-panel .large-stat {
+      font-size: 15em;
+   }   
+   .station-grid.double .station-panel .small-stat {
+      color: white;
+      font-size: 7em;
+   }
+   .station-grid.double .hourly-count-chart {
+      width: 1700px; 
+      height: 500px;
+   }
+   
+   /* Triple/Quad panel */
+   .station-grid.triple .stats-panel,
+   .station-grid.quad .stats-panel {
+      grid-column-gap: 2em;
+      grid-row-gap: 2em;
+   }
+   .station-grid.triple .station-label,
+   .station-grid.quad .station-label {
+      font-size: 7em;
+   }   
+   .station-grid.triple .station-panel .stat-label,
+   .station-grid.quad .station-panel .stat-label {
+      font-size: 4em;
+   }   
+   .station-grid.triple .station-panel .large-stat,
+   .station-grid.quad .station-panel .large-stat {
+      font-size: 10em;
+   }   
+   .station-grid.triple .station-panel .small-stat,
+   .station-grid.quad .station-panel .small-stat {
+      color: white;
+      font-size: 6em;
+   }
+   .station-grid.triple .hourly-count-chart,
+   .station-grid.quad .hourly-count-chart {
+      width: 800px; 
+      height: 400px;
+   }
+}

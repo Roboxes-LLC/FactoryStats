@@ -1,7 +1,8 @@
 <?php
 
-require_once 'common/displayInfo.php';
 require_once 'common/database.php';
+require_once 'common/displayInfo.php';
+require_once 'common/displayRegistry.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/stationInfo.php';
@@ -22,14 +23,14 @@ function renderTable()
 {
    echo
 <<<HEREDOC
-   <table>
+   <table id="display-table">
       <tr>
-         <th>Display ID</th>
-         <th>MAC Address</th>
+         <th>ID</th>
+         <th>Description</th>
          <th>IP Address</th>
-         <th>Workstation</th>
          <th>Last Contact</th>
          <th>Status</th>
+         <th>Online</th>
          <th></th>
          <th></th>
       </tr>
@@ -45,32 +46,27 @@ HEREDOC;
       {
          $displayInfo = DisplayInfo::load($row["displayId"]);
 
-         $stationName = "Workstation Summary";
-         if ($displayInfo->stationId != StationInfo::UNKNOWN_STATION_ID)
-         {
-            $stationInfo = StationInfo::load($displayInfo->stationId);
-
-            if ($stationInfo)
-            {
-               $stationName = $stationInfo->name;
-            }
-         }
-
          $id = "display-" . $displayInfo->displayId;
+         
+         $dateTime = new DateTime($displayInfo->lastContact, new DateTimeZone('America/New_York'));
+         $formattedDateTime = $dateTime->format("m/d/Y h:i A");
+         
+         $displayStatus = $displayInfo->getDisplayStatus();
+         $displayStatusLabel = DisplayStatus::getLabel($displayStatus);
+         $displayStatusClass = DisplayStatus::getClass($displayStatus);
          $isOnline = $displayInfo->isOnline();
-         $status = $isOnline ? "Online" : "Offline";
          $ledClass = $isOnline ? "led-green" : "led-red";
 
          echo
 <<<HEREDOC
-         <tr>
-            <td>$displayInfo->displayId</td>
-            <td>$displayInfo->macAddress</td>
+         <tr id="$id">
+            <td>$displayInfo->uid</td>
+            <td>$displayInfo->name</td>
             <td>$displayInfo->ipAddress</td>
-            <td>$stationName</td>
-            <td>$displayInfo->lastContact</td>
-            <td id="$id"><div>$status</div><div class="$ledClass"></div></td>
-            <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); setStationId($displayInfo->stationId); showModal('config-modal');">Configure</button></div></td>
+            <td>$formattedDateTime</td>
+            <td class="$displayStatusClass">$displayStatusLabel</td>
+            <td><div class="display-led $ledClass"></div></td>
+            <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, '$displayInfo->name', $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -80,19 +76,19 @@ HEREDOC;
    echo "</table>";
 }
 
-function getOptions()
+function getPresentationOptions()
 {
-   $options = "<option value=\"0\">Workstation Summary</option>";
+   $options = "<option value=\"0\">None</option>";
 
    $database = FlexscreenDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
-      $result = $database->getStations();
+      $result = $database->getPresentations();
 
       while ($result && $row = $result->fetch_assoc())
       {
-         $options .= "<option value=\"{$row["stationId"]}\">{$row["name"]}</option>";
+         $options .= "<option value=\"{$row["presentationId"]}\">{$row["name"]}</option>";
       }
    }
 
@@ -109,42 +105,116 @@ function deleteDisplay($displayId)
    }
 }
 
-function updateDisplay($displayId, $stationId)
+function updateDisplay($displayId, $name, $presentationId, $enabled)
 {
-   $diplayInfo = DisplayInfo::load($displayId);
-   $diplayInfo->stationId = $stationId;
+   $displayInfo = DisplayInfo::load($displayId);
+   $displayInfo->name = $name;
+   $displayInfo->presentationId = $presentationId;
+   $displayInfo->enabled = $enabled;
 
    $database = FlexscreenDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
-      $database->updateDisplay($diplayInfo);
+      $database->updateDisplay($displayInfo);
    }
+}
+
+function getParams()
+{
+   static $params = null;
+   
+   if (!$params)
+   {
+      $params = Params::parse();
+   }
+   
+   return ($params);
+}
+
+function getUid()
+{
+   $uid = "";
+   
+   $params = getParams();
+   
+   if ($params->keyExists("uid"))
+   {
+      $uid = $params->get("uid");
+   }
+   
+   return ($uid);
+}
+
+$displayAdded = false;
+
+function showAddSuccess()
+{
+   global $displayAdded;
+   
+   $params = getParams();
+   
+   return (($params->get("action") == "add") &&
+           ($displayAdded == true));
+}
+
+function showAddFailure()
+{
+   global $displayAdded;
+   
+   $params = getParams();
+   
+   return (($params->get("action") == "add") &&
+           ($displayAdded == false));
 }
 
 // *****************************************************************************
 //                              Action handling
 
-$params = Params::parse();
+$params = getParams();
 
 switch ($params->get("action"))
 {
    case "delete":
+   {
+      $displayInfo = DisplayInfo::load($params->get("displayId"));
+      
+      if ($displayInfo)
       {
-         deleteDisplay($params->get("displayId"));
-         break;
+         // Remove the display from the domain database.
+         deleteDisplay($displayInfo->displayId);
+         
+         // Remove from the global registry.
+         DisplayRegistry::unregister($displayInfo->uid);
       }
+      break;
+   }
 
    case "update":
+   {
+      updateDisplay($params->getInt("displayId"), $params->get("name"), $params->getInt("presentationId"), $params->getBool("enabled"));
+      break;
+   }
+   
+   case "add":
+   {
+      $uid = getUid();
+      $subdomain = CustomerInfo::getSubdomain();
+
+      if (($uid != "") &&
+          ($subdomain != "") &&
+          (DisplayRegistry::isRegistered($uid)))
       {
-         updateDisplay($params->get("displayId"), $params->get("stationId"));
-         break;
+         DisplayRegistry::associateWithSubdomain($uid, $subdomain);
+         $displayAdded = true;
       }
+      break;
+   }
 
    default:
-      {
-         break;
-      }
+   {
+      break;
+   }
 }
 
 ?>
@@ -179,21 +249,68 @@ switch ($params->get("action"))
    
    <?php include 'common/menu.php';?>
 
-   <div class="flex-horizontal main">
-      <?php renderTable();?>
+   <div class="main vertical">
+      <div class="flex-vertical" style="align-items: flex-end;">
+         <button class="config-button" onclick="showModal('add-modal');">Add Display</button>
+         <br>   
+         <?php renderTable();?>
+      </div>
    </div>
 
 </div>
 
 <!--  Modal dialogs -->
 
+<div id="add-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+
+      <div class="flex-vertical input-block">
+         To add a new Factory Stats display to your system:
+         <ul>
+            <li>Connect power and HDMI connections</li>
+            <li>Connect Ethernet connection or setup Wifi using Berry Lan app</li>
+            <li>Wait for configuration screen to load</li>
+            <li>Enter the six digit display ID</li>          
+         </ul>
+      </div>
+      
+      <div class="flex-vertical input-block">
+         <label>Display ID</label>
+         <input type="text" form="config-form" name="uid"> 
+      </div>
+      
+      <div class="flex-horizontal">
+         <button class="config-button" type="submit" form="config-form" onclick="setAction('add')">Add</button>
+      </div>
+   </div>
+</div>
+
 <div id="config-modal" class="modal">
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
-      <label>Associated workstation</label>
-      <select id="station-id-input" form="config-form" name="stationId">
-         <?php echo getOptions();?>
-      </select>
+      
+      <div class="flex-vertical input-block">
+         <label>Description</label>
+         <input id="name-input" type="text" form="config-form" name="name">
+      </div>
+      
+      <div class="flex-vertical input-block">
+         <label>Presentation</label>
+         <div class="flex-horizontal">
+            <select id="presentation-id-input" form="config-form" name="presentationId" oninput="onPresentationIdChanged(parseInt(this.value))">
+               <?php echo getPresentationOptions();?>
+            </select>
+            &nbsp;
+            <button id="edit-presentation-button" class="config-button small">Edit</button>
+         </div>
+      </div>
+      
+      <div class="flex-horizontal input-block">
+         <label>Enabled</label>
+         <input id="enabled-input" type="checkbox" form="config-form" name="enabled">
+      </div>
+      
       <div class="flex-horizontal">
          <button class="config-button" type="submit" form="config-form" onclick="setAction('update')">Save</button>
       </div>
@@ -203,11 +320,27 @@ switch ($params->get("action"))
 <div id="confirm-delete-modal" class="modal">
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
-      <p>Really delete button?</p>
+      <p>Really delete display?</p>
       <button class="config-button" type="submit" form="config-form" onclick="setAction('delete')">Confirm</button>
    </div>
 </div>
 
+<div id="add-success-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Factory Stats display <b><?php echo getUid(); ?></b> is registered with <?php echo $_SERVER['HTTP_HOST'] ?></p>
+   </div>
+</div>
+
+<div id="add-failure-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Factory Stats display <b><?php echo getUid(); ?></b> could not be registered with <?php echo $_SERVER['HTTP_HOST'] ?>.</p>
+      <p>Please make sure your device is powered on and connected to the Internet.</p>
+   </div>
+</div>
+
+<script src="script/common.js<?php echo versionQuery();?>"></script>
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
 <script src="script/modal.js<?php echo versionQuery();?>"></script>
 <script src="script/displayConfig.js<?php echo versionQuery();?>"></script>
@@ -220,10 +353,30 @@ switch ($params->get("action"))
       input.value = displayId;
    }
 
-   function setStationId(stationId)
+   function setDisplayConfig(displayId, name, presentationId, enabled)
    {
-      var input = document.getElementById('station-id-input');
-      input.value = stationId;
+      setDisplayId(displayId);
+      
+      document.getElementById('name-input').value = name;
+      document.getElementById('presentation-id-input').value = presentationId;
+      document.getElementById('enabled-input').checked = enabled;
+      
+      // Hide the edit presentation button for unconfigured displays.
+      onPresentationIdChanged(presentationId);
+   }
+   
+   function onPresentationIdChanged(presentationId)
+   {
+      // Hide the edit presentation button for unconfigured displays.
+      if (presentationId != 0)
+      {
+         show("edit-presentation-button", "block");
+         document.getElementById('edit-presentation-button').onclick = function(){document.location = "slideConfig.php?action=edit&presentationId=" + presentationId};
+      }
+      else
+      {
+         hide("edit-presentation-button");     
+      }
    }
 
    function setAction(action)
@@ -234,6 +387,16 @@ switch ($params->get("action"))
 
    // Start a 10 second timer to update the display status LEDs.
    setInterval(function(){updateDisplayStatus();}, 10000);
+   
+   // Show add display success/failure modal dialogs, if necessary.
+   if (<?php echo showAddSuccess() ? "true" : "false";?>)
+   {
+      showModal("add-success-modal");
+   }
+   else if (<?php echo showAddFailure() ?  "true" : "false"; ?>)
+   {
+      showModal("add-failure-modal");
+   }
 </script>
 
 </body>

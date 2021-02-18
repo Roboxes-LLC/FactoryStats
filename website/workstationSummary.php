@@ -12,6 +12,8 @@ Time::init();
 
 session_start();
 
+Authentication::authenticate();
+
 if (!(Authentication::isAuthenticated() &&
       Authentication::checkPermissions(Permission::WORKSTATION_SUMMARY)))
 {
@@ -50,7 +52,7 @@ function renderStationSummary($stationId, $shiftId)
       echo 
 <<<HEREDOC
       <div class="flex-horizontal" style="justify-content: flex-start;">
-         <div class="medium-stat station-id-div">{$stationInfo->getLabel()}</div>
+         <div class="station-label">{$stationInfo->getLabel()}</div>
          <!--div class="flex-horizontal hardware-button-led"></div-->
       </div>
 
@@ -85,13 +87,6 @@ HEREDOC;
    <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/workstationSummary.css<?php echo versionQuery();?>"/>
-   
-   <style>
-      .station-summary-div {
-         color: white;
-         border: 1px solid white;
-      }   
-   </style>
    
 </head>
 

@@ -14,7 +14,9 @@ class Permission
    const DISPLAY_CONFIG      = 8;
    const BREAK_CONFIG        = 9;
    const UPDATE_COUNT        = 10;
-   const LAST                = 11;
+   const PRESENTATION_CONFIG = 11;
+   const SENSOR_CONFIG       = 11;
+   const LAST                = 13;
    
    const NO_PERMISSIONS = 0x0000;
    const ALL_PERMISSIONS = 0xFFFF;
@@ -40,6 +42,8 @@ class Permission
                   new Permission(Permission::DISPLAY_CONFIG,      "Display Config"),
                   new Permission(Permission::BREAK_CONFIG,        "Break Config"),
                   new Permission(Permission::UPDATE_COUNT,        "Can update product counts"),
+                  new Permission(Permission::PRESENTATION_CONFIG, "Can create presentations"),
+                  new Permission(Permission::SENSOR_CONFIG,       "Sensor Config"),
             );
       }
       
