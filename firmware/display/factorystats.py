@@ -33,9 +33,6 @@ print("Read MAC address: '%s'" % MAC_ADDRESS)
 # "Random" UID
 UID = MAC_ADDRESS.upper().replace(":", "")[-6:]
 
-# ping parameters
-PARAMS = {'uid':UID, 'ipAddress':IP_ADDRESS, 'macAddress':MAC_ADDRESS}
-
 # presentation (JSON string)
 PRESENTATION = ""
 
@@ -46,14 +43,29 @@ PING_RATE = INIT_PING_RATE
 # Global variable tracking server availability.
 SERVER_AVAILABLE = True
 
+def updateIpAddress():
+   global IP_ADDRESS
+   IP_ADDRESS = os.popen(GET_IP).read()
+
 def getUrl(server):
    return ("http://" + SERVER + "/api/display/")
+   
+def getParams():
+   global UID
+   global IP_ADDRESS
+   global MAC_ADDRESS
+   
+   # Reaquire IP address, as it may have changed since the script loaded.
+   updateIpAddress()
+   
+   return ({'uid':UID, 'ipAddress':IP_ADDRESS, 'macAddress':MAC_ADDRESS})
 
 def pingServer():
+   global URL
    global SERVER_AVAILABLE
    
    try:
-      status = requests.get(url = URL, params = PARAMS)
+      status = requests.get(url = URL, params = getParams())
 
       if (SERVER_AVAILABLE == False):
          SERVER_AVAILABLE = True

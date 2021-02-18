@@ -486,6 +486,80 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
+   public function getSensor($sensorId)
+   {
+      $query = "SELECT * from sensor WHERE sensorId = \"$sensorId\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getSensors()
+   {
+      $query = "SELECT * from sensor ORDER BY uid ASC;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function getSensorByUid($uid)
+   {
+      $query = "SELECT * from sensor WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   public function sensorExists($uid)
+   {
+      $query = "SELECT sensorId from sensors WHERE uid = \"$uid\";";
+      
+      $result = $this->query($query);
+      
+      return ($result && ($result->num_rows > 0));
+   }
+   
+   public function newSensor($sensorInfo)
+   {
+      $lastContact = Time::toMySqlDate($sensorInfo->lastContact);
+      
+      $enabled = ($sensorInfo->enabled ? "true" : "false");
+      
+      $query =
+      "INSERT INTO sensor (uid, ipAddress, name, sensorType, stationId, lastContact, enabled) " .
+      "VALUES ('$sensorInfo->uid', '$sensorInfo->ipAddress', '$sensorInfo->name', '$sensorInfo->sensorType', '$sensorInfo->stationId', '$lastContact', $enabled);";
+      
+      $this->query($query);
+   }
+   
+   public function updateSensor($sensorInfo)
+   {
+      $lastContact = Time::toMySqlDate($sensorInfo->lastContact);
+      
+      $enabled = ($sensorInfo->enabled ? "true" : "false");
+      
+      $query =
+      "UPDATE sensor " .
+      "SET uid = \"$sensorInfo->uid\", ipAddress = \"$sensorInfo->ipAddress\", name = \"$sensorInfo->name\", sensorType = \"$sensorInfo->sensorType\", stationId = \"$sensorInfo->stationId\", lastContact = \"$lastContact\", enabled = $enabled " .
+      "WHERE sensorId = $sensorInfo->sensorId;";
+      
+      $this->query($query);
+   }
+   
+   public function deleteSensor($sensorId)
+   {
+      $query = "DELETE FROM sensor WHERE sensorId = $sensorId;";
+      
+      $result = $this->query($query);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   
    public function getStation($stationId)
    {
       $query = "SELECT * from station WHERE stationId = \"$stationId\";";

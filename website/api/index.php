@@ -7,6 +7,7 @@ require_once '../common/displayInfo.php';
 require_once '../common/displayRegistry.php';
 require_once '../common/presentationInfo.php';
 require_once '../common/root.php';
+require_once '../common/sensorInfo.php';
 require_once '../common/stationInfo.php';
 require_once '../common/shiftInfo.php';
 require_once '../common/time.php';
@@ -146,6 +147,115 @@ $router->add("buttonStatus", function($params) {
             $buttonStatus->recentlyPressed = $buttonInfo->recentlyPressed();         
 
             $result->buttonStatuses[] = $buttonStatus;
+         }
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "No database connection";
+   }
+   
+   echo json_encode($result);
+});
+
+$router->add("sensor", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   
+   if (isset($params["uid"]))
+   {
+      $uid = $params["uid"];
+      
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $queryResult = $database->getSensorByUid($uid);
+         
+         $sensorInfo = null;
+         
+         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         {
+            // Load an existing sensor.
+            $sensorInfo = SensorInfo::load($row["sensorId"]);
+         }
+         else
+         {
+            // Register a new sensor.
+            $sensorInfo = new SensorInfo();
+            
+            $sensorInfo->uid = $uid;
+            
+            $database->newSensor($sensorInfo);
+         }
+         
+         if ($sensorInfo)
+         {
+            // Set IP address, if provided.
+            if (isset($params["ipAddress"]))
+            {
+               $sensorInfo->ipAddress = $params["ipAddress"];
+            }
+            
+            // Update last contact.
+            $sensorInfo->lastContact = Time::now("Y-m-d H:i:s");
+            
+            // Update sensor config in the database.
+            $database->updateSensor($sensorInfo);
+            
+            // Handle sensor update.
+            $sensorInfo->handleSensorUpdate($params, $result);
+            
+            $result->success = true;
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "Failed to handle the sensor update";
+         }
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
+      }
+   }
+   
+   echo json_encode($result);
+});
+
+$router->add("sensorStatus", function($params) {
+   $result = new stdClass();
+   
+   $database = FlexscreenDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $result->success = true;
+      $result->sensorStatuses = array();
+      
+      $dbaseResult = $database->getSensors();
+      
+      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      {
+         $sensorInfo = SensorInfo::load(intval($row["sensorId"]));
+         
+         if ($sensorInfo)
+         {
+            $status = $sensorInfo->getSensorStatus();
+            $dateTime = new DateTime($sensorInfo->lastContact, new DateTimeZone('America/New_York'));
+            $formattedDateTime = $dateTime->format("m/d/Y h:i A");
+            
+            $sensorStatus = new stdClass();
+            
+            $sensorStatus->sensorId = $sensorInfo->sensorId;
+            $sensorStatus->lastContact = $formattedDateTime;
+            $sensorStatus->sensorStatus = $status;
+            $sensorStatus->sensorStatusLabel = SensorStatus::getLabel($status);
+            $sensorStatus->sensorStatusClass = SensorStatus::getClass($status);
+            
+            $result->sensorStatuses[] = $sensorStatus;
          }
       }
    }

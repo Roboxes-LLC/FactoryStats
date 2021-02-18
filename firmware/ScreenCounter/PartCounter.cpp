@@ -119,7 +119,8 @@ bool PartCounter::sendCount()
          message->set("url", serverUrl);
       }
                
-      message->set("macAddress", macAddress);
+      message->set("uid", uid);
+      message->set("ipAddress", getIpAddress());
       message->set("count", batchCount);
 
       success = Messaging::send(message);
@@ -137,12 +138,25 @@ bool PartCounter::sendCount()
    return (success);
 }
 
-void PartCounter::getMacAddress(
-   char macAddress[18])
+String PartCounter::getUid()
 {
-   // Get the MAC address.
-   unsigned char mac[6] = {0, 0, 0, 0, 0, 0};
-   WifiBoard::getBoard()->getMacAddress(mac);
+   String uid = "";
 
-   sprintf(macAddress, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+   WifiBoard* board = WifiBoard::getBoard();
+   
+   if (board)
+   {
+      // Get the MAC address.
+      unsigned char mac[6] = {0, 0, 0, 0, 0, 0};
+      WifiBoard::getBoard()->getMacAddress(mac);
+      
+      // Last six hex digits of MAC address.
+      unsigned char uidStr[7];
+      sprintf(uidStr, "%02X%02X%02X", mac[3], mac[4], mac[5]);
+      uid[6] = 0;  // Null terminate.
+      
+      uid = String(uidStr);
+   }
+   
+   return (uid);   
 }
