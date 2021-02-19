@@ -1125,6 +1125,14 @@ class FlexscreenDatabase extends MySqlDatabase
       $this->query($query);
    }
    
+   public function updateSlideOrder($slideId, $slideIndex)
+   {
+      $query =
+      "UPDATE slide SET slideIndex = \"$slideIndex\" WHERE slideId = $slideId;";
+      
+      $this->query($query);
+   }
+   
    public function deleteSlide($slideId)
    {
       $query = "DELETE FROM slide WHERE slideId = $slideId;";

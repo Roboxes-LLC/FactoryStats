@@ -112,6 +112,7 @@ table {
 
 table, th, td {
    color: white;
+   background-color: black;
    border: 1px solid white;
    text-align: center;
 }
@@ -464,4 +465,14 @@ tr.total td, tr.total th {
 
 .thumbnail {
    width: 50px;
+}
+
+td.draghandle {
+   cursor: move;
+   user-select: none;
+}
+
+.placeholder {
+	border: 1px dashed #14a3db;
+	margin: 3px 3px 3px 3px;
 }
