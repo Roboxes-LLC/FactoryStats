@@ -1,14 +1,15 @@
 #include "Adapter/HttpClientAdapter.hpp"
 #include "Board/WifiBoard.hpp"
-#include "Connection/Connection.hpp"
+#include "Connection/ConnectionManager.hpp"
 #include "Logger/Logger.hpp"
+#include "Messaging/Address.hpp"
 #include "Messaging/Messaging.hpp"
 #include "ConfigPage.hpp"
-#include "ConnectionManager.hpp"
 #include "Diagnostics.hpp"
 #include "Display.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
+#include "Version.hpp"
 
 static const int SPLASH_TIME = 5000;  // 5 seconds
 
@@ -281,26 +282,33 @@ bool ShopSensor::sendUpdate()
       message->setMessageId("sensor");
       message->setSource(getId());
       message->setDestination(adapterId);
+      message->setTransaction(uid);
       
-      String url = getRequestUrl();
+      // Specify HTTP parameters.
+      message->set(HttpClientAdapter::REQUEST_TYPE, HttpClientAdapter::POST);
+      message->set(HttpClientAdapter::ENCODING, HttpClientAdapter::JSON_ENCODING);
+      message->set("subdomain", "flexscreentest");  // TODO: For local testing.  Remove.
+
+      String url = getRequestUrl("sensor");
       if (url != "")
       {
          message->set("url", url);
       } 
 
       message->set("uid", uid);
-      //message->set("ipAddress", getIpAddress());  // TODO: url encode
+      message->set("version", VERSION);
+      message->set("ipAddress", getIpAddress());
       message->set("count", count);
 
       success = Messaging::send(message);
 
       if (success)
       {
-         Logger::logDebug(F("ShopSensor::sendUpdate: Sent count [%d] to server."), count);
+         Logger::logDebug(F("ShopServer::sendUpdate: Sent count [%d] to server for sensor [%s]."), count, uid);
       }
       else
       {
-         Logger::logWarning(F("ShopSensor::sendUpdate: Failed to send count [%d] to server."), count);
+         Logger::logWarning(F("ShopSensor::sendUpdate: Failed to send count [%d] to server for sensor [%s]."), count, uid);
       }
    }
    
@@ -311,7 +319,7 @@ void ShopSensor::onServerResponse(MessagePtr message)
 {
    int responseCode =  message->getInt(HttpClientAdapter::RESPONSE_CODE);
    
-   Logger::logDebug(F("ShopSensor::onServerReponse: Server response: %d"), responseCode);
+   Logger::logDebug(F("ShopSensor::onServerResponse: Got server response for client [%s]: %d."), uid, responseCode);
    
    Display* display = getDisplay();
    if (display)
@@ -368,7 +376,8 @@ String ShopSensor::getUid()
    return (uid);   
 }
 
-String ShopSensor::getRequestUrl()
+String ShopSensor::getRequestUrl(
+   const String& apiMessageId)
 {
    String url = "";
    
@@ -376,7 +385,7 @@ String ShopSensor::getRequestUrl()
    
    if (server != "")
    {
-      url = server + "/api/";
+      url = server + "/api/" + apiMessageId + "/";
    }
 
    return (url);

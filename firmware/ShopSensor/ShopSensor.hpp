@@ -1,11 +1,14 @@
 #pragma once
 
+#include "Connection/ConnectionManager.hpp"
 #include "Messaging/Adapter.hpp"
 #include "Messaging/Component.hpp"
 #include "Messaging/ComponentFactory.hpp"
 #include "Timer/Timer.hpp"
 #include "Timer/TimerListener.hpp"
 #include "WebServer/WebpageServer.hpp"
+
+#include "Display.hpp"
 
 // Component names
 const String LIMIT_SWITCH = "limitSwitch";
@@ -59,10 +62,10 @@ protected:
    void onButtonLongPress(
       const String& buttonId);
 
-   void onServerResponse(
+   virtual void onServerResponse(
       MessagePtr message);      
       
-   bool sendUpdate();
+   virtual bool sendUpdate();
       
    static bool isConnected();
    
@@ -70,9 +73,10 @@ protected:
    
    static String getUid();
    
-   static String getRequestUrl();
+   static String getRequestUrl(
+      const String& apiMessageId);
 
-private:
+   // **************************************************************************
 
    // Subcomponents
 

@@ -197,6 +197,12 @@ $router->add("sensor", function($params) {
             {
                $sensorInfo->ipAddress = $params["ipAddress"];
             }
+
+            // Set software version, if provided.
+            if (isset($params["version"]))
+            {
+               $sensorInfo->version = $params["version"];
+            }
             
             // Update last contact.
             $sensorInfo->lastContact = Time::now("Y-m-d H:i:s");

@@ -1,10 +1,13 @@
+// Uncomment to build for M5Stick-C Plus
+//#define M5STICKCPLUS
+
 #include <Robox.h>
 
-#include "ConnectionManager.hpp"
 #include "Diagnostics.hpp"
 #include "Display.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
+#include "ShopServer.hpp"
 
 // *****************************************************************************
 //                                  Arduino

@@ -30,9 +30,24 @@ class Params extends ArrayObject
       }
       else if ($_SERVER["REQUEST_METHOD"] === "POST")
       {
-         foreach ($_POST as $key => $value)
+         if ($_SERVER["CONTENT_TYPE"] == "application/json")
          {
-            $params[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+            $json = file_get_contents('php://input');
+
+            if ($data = json_decode($json))
+            {
+               foreach ($data as $key => $value)
+               {
+                  $params[$key] = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
+               }
+            }
+         }
+         else
+         {
+            foreach ($_POST as $key => $value)
+            {
+               $params[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+            }
          }
       }
       

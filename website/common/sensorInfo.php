@@ -55,6 +55,7 @@ class SensorInfo
    public $sensorId;
    public $uid;  // last 4 digbits of MAC address
    public $ipAddress;
+   public $version;
    public $name;
    public $sensorType;
    public $stationId;
@@ -66,6 +67,7 @@ class SensorInfo
       $this->sensorId = SensorInfo::UNKNOWN_SENSOR_ID;
       $this->uid = "";
       $this->ipAddress = "";
+      $this->version = "";
       $this->name = "";
       $this->sensorType = SensorType::UNKNOWN;
       $this->stationId = StationInfo::UNKNOWN_STATION_ID;
@@ -90,6 +92,7 @@ class SensorInfo
             $sensorInfo->sensorId = intval($row['sensorId']);
             $sensorInfo->uid = $row['uid'];
             $sensorInfo->ipAddress = $row['ipAddress'];
+            $sensorInfo->version = $row['version'];
             $sensorInfo->name = $row['name'];
             $sensorInfo->sensorType = intval($row['sensorType']);
             $sensorInfo->stationId = intval($row['stationId']);
@@ -209,6 +212,7 @@ if (isset($_GET["buttonId"]))
       echo "buttonId: " .          $buttonInfo->buttonId .         "<br/>";
       echo "uid: " .               $buttonInfo->uid .              "<br/>";
       echo "ipAddress: " .         $buttonInfo->ipAddress .        "<br/>";
+      echo "version: " .           $buttonInfo->version .          "<br/>";
       echo "name: " .              $buttonInfo->name .             "<br/>";
       echo "stationId: " .         $buttonInfo->stationId .        "<br/>";
       echo "clickAction: " .       $buttonInfo->buttonActions[0] . "<br/>";

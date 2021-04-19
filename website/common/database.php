@@ -529,8 +529,8 @@ class FlexscreenDatabase extends MySqlDatabase
       $enabled = ($sensorInfo->enabled ? "true" : "false");
       
       $query =
-      "INSERT INTO sensor (uid, ipAddress, name, sensorType, stationId, lastContact, enabled) " .
-      "VALUES ('$sensorInfo->uid', '$sensorInfo->ipAddress', '$sensorInfo->name', '$sensorInfo->sensorType', '$sensorInfo->stationId', '$lastContact', $enabled);";
+      "INSERT INTO sensor (uid, ipAddress, version, name, sensorType, stationId, lastContact, enabled) " .
+      "VALUES ('$sensorInfo->uid', '$sensorInfo->ipAddress', '$sensorInfo->version', '$sensorInfo->name', '$sensorInfo->sensorType', '$sensorInfo->stationId', '$lastContact', $enabled);";
       
       $this->query($query);
    }
@@ -543,7 +543,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "UPDATE sensor " .
-      "SET uid = \"$sensorInfo->uid\", ipAddress = \"$sensorInfo->ipAddress\", name = \"$sensorInfo->name\", sensorType = \"$sensorInfo->sensorType\", stationId = \"$sensorInfo->stationId\", lastContact = \"$lastContact\", enabled = $enabled " .
+      "SET uid = \"$sensorInfo->uid\", ipAddress = \"$sensorInfo->ipAddress\", version = \"$sensorInfo->version\", name = \"$sensorInfo->name\", sensorType = \"$sensorInfo->sensorType\", stationId = \"$sensorInfo->stationId\", lastContact = \"$lastContact\", enabled = $enabled " .
       "WHERE sensorId = $sensorInfo->sensorId;";
       
       $this->query($query);
@@ -571,7 +571,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getStations()
    {
-      $query = "SELECT * from station;";
+      $query = "SELECT * from station ORDER BY name ASC;";
       
       $result = $this->query($query);
       
