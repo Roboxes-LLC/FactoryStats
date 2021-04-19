@@ -92,8 +92,9 @@ function renderTable()
 {
    echo
 <<<HEREDOC
-   <table>
+   <table id="slide-table">
       <tr>
+         <th class="draghandle"></th>
          <th>Content</th>
          <th>Duration</th>
          <th>Enabled</th>
@@ -114,7 +115,8 @@ HEREDOC;
          
          echo
 <<<HEREDOC
-         <tr>
+         <tr data-slide-id="$slideInfo->slideId">
+            <td class="draggable draghandle"><i class="material-icons icon-button">drag_indicator</i></td>
             <td>$content</td>
             <td>$slideInfo->duration</td>
             <td>$enabled</td>
@@ -444,6 +446,7 @@ switch (getParams()->get("action"))
 <script src="script/modal.js<?php echo versionQuery();?>"></script>
 <script src="script/common.js<?php echo versionQuery();?>"></script>
 <script src="script/presentationConfig.js<?php echo versionQuery();?>"></script>
+<script src="script/draggable.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
 
@@ -577,11 +580,38 @@ switch (getParams()->get("action"))
       input.value = action;
    }
    
+   function onReordered()
+   {
+      var slideIndexes = {};
+      var slideCount = 0; 
+      var index = 0;
+      
+      document.getElementById("slide-table").querySelectorAll('tr').forEach(function(item) {
+         if (index > 0)  // skip header
+         {
+            slideIndexes[item.getAttribute("data-slide-id")] = (index - 1);
+            slideCount++;
+         }
+         
+         index++;
+      });
+      
+      if (slideCount > 0)
+      {
+         updateSlideOrder(slideIndexes);
+      }
+   }
+   
    var presentationInfo = null;
 
    // Load and store the current config for all slides associated with the presentation. 
    getPresentation(<?php echo getPresentationId(); ?>, 
                    function(newPresentationInfo) {presentationInfo = newPresentationInfo;});
+                   
+   // Setup draggable slides.
+   var draggable = new Draggable(document.getElementById("slide-table"), onReordered);
+   draggable.setup();
+   
 </script>
 
 </body>

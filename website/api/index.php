@@ -733,5 +733,40 @@ $router->add("presentation", function($params) {
    echo json_encode($result);
 });
 
+$router->add("slideOrder", function($params) {
+   $result = new stdClass();
+   
+   // An associative array of slide ids to slide indexes.
+   $json = stripslashes(html_entity_decode($params->get("slides")));
+   $slides = json_decode($json);
+   
+   if ($slides)
+   {
+      $database = FlexscreenDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         foreach ($slides as $slideId => $slideIndex)
+         {
+            $database->updateSlideOrder(intval($slideId), $slideIndex);
+         }
+         
+         $result->success = true;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>
