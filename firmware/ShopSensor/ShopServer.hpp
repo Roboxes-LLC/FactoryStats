@@ -11,8 +11,10 @@ public:
    ShopServer(
       const String& id,
       const int& updatePeriod,
+      const int& pingPeriod,
       const String& connectionId,
       const String& displayId,
+      const String& powerId,
       const String& adapterId,
       const String& clientAdapterId);
 

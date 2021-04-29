@@ -6,11 +6,13 @@
 ShopServer::ShopServer(
    const String& id,
    const int& updatePeriod,
+   const int& pingPeriod,
    const String& connectionId,
    const String& displayId,
+   const String& powerId,
    const String& adapterId,
    const String& clientAdapterId) :
-      ShopSensor(id, updatePeriod, connectionId, displayId, adapterId),
+      ShopSensor(id, updatePeriod, pingPeriod, connectionId, displayId, powerId, adapterId),
       clientAdapterId(clientAdapterId)
 {
 

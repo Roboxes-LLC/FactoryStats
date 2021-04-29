@@ -39,6 +39,19 @@ function updateSensorStatus()
                      row.cells[6].className = "";
                      row.cells[6].innerHTML = sensorStatus.sensorStatusLabel;
                      row.cells[6].classList.add(sensorStatus.sensorStatusClass);
+                     
+                     // LED indicator.         
+                     var ledDiv = row.cells[7].querySelector('.display-led');     
+                     ledDiv.classList.remove("led-green");     
+                     ledDiv.classList.remove("led-red");
+                     if (sensorStatus.isOnline)
+                     {
+                        ledDiv.classList.add("led-green");
+                     }
+                     else
+                     {
+                        ledDiv.classList.add("led-red");                     
+                     }
                   }
                }
             }     

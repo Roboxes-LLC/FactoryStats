@@ -19,6 +19,7 @@ public:
       SERVER,
       COUNT,
       INFO,
+      POWER,
       DISPLAY_MODE_LAST      
    };
    
@@ -77,6 +78,11 @@ public:
       const int& upTime,
       const int& freeMemory);      
       
+   void updatePower(
+      const int& batteryLevel,
+      const bool& isUsbPower,
+      const bool& isCharging);      
+      
    void redraw();
    
 private:
@@ -93,6 +99,30 @@ private:
    
    void drawInfo();
    
+   void drawPower();
+   
+   void drawBattery(
+      const int& x,
+      const int& y,
+      const float& scale,
+      const int& color,
+      const int& batteryLevel);
+      
+   void setPen(
+      const int& x, 
+      const int& y);
+   
+   void lineTo(
+      const int& x, 
+      const int& y,
+      const float& scale,
+      const int& color);
+   
+   void moveTo(
+      const int& x, 
+      const int& y,
+      const float& scale);      
+      
    // ********************************************************************
    
    DisplayMode mode;
@@ -150,6 +180,19 @@ private:
    int upTime;  // seconds
    
    int freeMemory;
+   
+   // Power
+   
+   int batteryLevel;
+   
+   bool isUsbPower;
+   
+   bool isCharging;
+   
+   // Pen
+   
+   int penX;
+   int penY;
 };
 
 REGISTER(Display, Display)

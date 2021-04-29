@@ -46,6 +46,7 @@ function updateDisplayStatus()
                      // LED indicator.         
                      var ledDiv = row.cells[5].querySelector('.display-led');     
                      ledDiv.classList.remove("led-green");     
+                     ledDiv.classList.remove("led-red");
                      if (displayStatus.isOnline)
                      {
                         ledDiv.classList.add("led-green");

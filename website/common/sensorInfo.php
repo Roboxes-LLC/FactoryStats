@@ -50,7 +50,7 @@ class SensorInfo
 {
    const UNKNOWN_SENSOR_ID = 0;
    
-   const ONLINE_THRESHOLD = 20;  // seconds
+   const ONLINE_THRESHOLD = 300;  // seconds (i.e. 5 minutes)
    
    public $sensorId;
    public $uid;  // last 4 digbits of MAC address
@@ -114,9 +114,10 @@ class SensorInfo
       // Determine the interval between the supplied date and the current time.
       $interval = $lastContact->diff($now);
       
-      if (($interval->days == 0) && ($interval->i == 0))
+      if (($interval->days == 0) && ($interval->h == 0))  // Note: Adjust if threshold is >= 1 hour
       {
-         $isOnline = ($interval->s <= SensorInfo::ONLINE_THRESHOLD);
+         $seconds = (($interval->i * 60) + ($interval->s)); 
+         $isOnline = ($seconds <= SensorInfo::ONLINE_THRESHOLD);
       }
       
       return ($isOnline);

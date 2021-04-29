@@ -260,6 +260,8 @@ $router->add("sensorStatus", function($params) {
             $sensorStatus->sensorStatus = $status;
             $sensorStatus->sensorStatusLabel = SensorStatus::getLabel($status);
             $sensorStatus->sensorStatusClass = SensorStatus::getClass($status);
+            $sensorStatus->isOnline = $sensorInfo->isOnline();
+            $sensorStatus->ledClass = $sensorInfo->isOnline() ? "led-green" : "led-red";
             
             $result->sensorStatuses[] = $sensorStatus;
          }
@@ -427,7 +429,6 @@ $router->add("displayStatus", function($params) {
          $displayStatus->displayStatusLabel = DisplayStatus::getLabel($status);
          $displayStatus->displayStatusClass = DisplayStatus::getClass($status);
          $displayStatus->isOnline = $displayInfo->isOnline();
-
          $displayStatus->ledClass = $displayStatus->isOnline ? "led-green" : "led-red";
          
          $result->displayStatuses[] = $displayStatus;

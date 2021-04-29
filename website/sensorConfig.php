@@ -31,6 +31,7 @@ function renderTable()
          <th>IP Address</th>
          <th>Firmware</th>
          <th>Status</th>
+         <th>Online</th>
          <th></th>
          <th></th>
       </tr>
@@ -67,6 +68,8 @@ HEREDOC;
          $sensorStatus = $sensorInfo->getSensorStatus();
          $sensorStatusLabel = SensorStatus::getLabel($sensorStatus);
          $sensorStatusClass = SensorStatus::getClass($sensorStatus);
+         $isOnline = $sensorInfo->isOnline();
+         $ledClass = $isOnline ? "led-green" : "led-red";
          
          echo 
 <<<HEREDOC
@@ -78,6 +81,7 @@ HEREDOC;
             <td>$sensorInfo->ipAddress</td>
             <td>$sensorInfo->version</td>
             <td class="$sensorStatusClass">$sensorStatusLabel</td>
+            <td><div class="display-led $ledClass"></div></td>
             <td><button class="config-button" onclick="setSensorId($sensorInfo->sensorId); setSensorConfig($sensorInfo->sensorId, $sensorInfo->sensorType, $sensorInfo->stationId, $enabled); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setSensorId($sensorInfo->sensorId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>

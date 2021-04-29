@@ -9,6 +9,7 @@
 #include "WebServer/WebpageServer.hpp"
 
 #include "Display.hpp"
+#include "Power.hpp"
 
 // Component names
 const String LIMIT_SWITCH = "limitSwitch";
@@ -24,8 +25,10 @@ public:
    ShopSensor(
       const String& id,
       const int& updatePeriod,
+      const int& pingPeriod,
       const String& connectionId,
       const String& displayId,
+      const String& powerId,
       const String& adapterId);
       
    // Constructor.
@@ -51,6 +54,8 @@ protected:
 
    Display* getDisplay();
    
+   Power* getPower();
+   
    Adapter* getAdapter();
    
    void onConnectionUpdate(
@@ -63,6 +68,9 @@ protected:
       const String& buttonId);
 
    virtual void onServerResponse(
+      MessagePtr message);      
+      
+   virtual void onPowerInfo(
       MessagePtr message);      
       
    virtual bool sendUpdate();
@@ -88,11 +96,18 @@ protected:
    
    String uid;
    
+   // The period (in milliseconds) between server updates.
+   // Note: Only updated if count > 0.
    int updatePeriod;
+   
+   // The period (in update counts) between mandatory server updates. 
+   int pingPeriod;
    
    String connectionId;
    
    String displayId;
+   
+   String powerId;
    
    String adapterId;
    
@@ -101,6 +116,8 @@ protected:
    int count;
    
    int totalCount;
+   
+   long updateCount;
 };
 
 REGISTER(ShopSensor, ShopSensor)
