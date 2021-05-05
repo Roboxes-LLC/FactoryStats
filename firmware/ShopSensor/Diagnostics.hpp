@@ -2,11 +2,11 @@
 
 #include <RFC.h>
 
+#include "Connection/ConnectionManager.hpp"
 #include "Messaging/Component.hpp"
 #include "Messaging/ComponentFactory.hpp"
 #include "Timer/Timer.hpp"
 #include "Timer/TimerListener.hpp"
-#include "ConnectionManager.hpp"
 #include "Display.hpp"
 
 class Diagnostics : public Component, TimerListener

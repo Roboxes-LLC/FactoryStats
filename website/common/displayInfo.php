@@ -92,9 +92,10 @@ class DisplayInfo
       // Determine the interval between the supplied date and the current time.
       $interval = $lastContact->diff($now);
       
-      if (($interval->days == 0) && ($interval->i == 0))
+      if (($interval->days == 0) && ($interval->h == 0))  // Note: Adjust if threshold is >= 1 hour
       {
-         $isOnline = ($interval->s <= DisplayInfo::ONLINE_THRESHOLD);
+         $seconds = (($interval->i * 60) + ($interval->s));
+         $isOnline = ($seconds <= SensorInfo::ONLINE_THRESHOLD);
       }
 
       return ($isOnline);

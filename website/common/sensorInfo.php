@@ -50,11 +50,12 @@ class SensorInfo
 {
    const UNKNOWN_SENSOR_ID = 0;
    
-   const ONLINE_THRESHOLD = 20;  // seconds
+   const ONLINE_THRESHOLD = 300;  // seconds (i.e. 5 minutes)
    
    public $sensorId;
    public $uid;  // last 4 digbits of MAC address
    public $ipAddress;
+   public $version;
    public $name;
    public $sensorType;
    public $stationId;
@@ -66,6 +67,7 @@ class SensorInfo
       $this->sensorId = SensorInfo::UNKNOWN_SENSOR_ID;
       $this->uid = "";
       $this->ipAddress = "";
+      $this->version = "";
       $this->name = "";
       $this->sensorType = SensorType::UNKNOWN;
       $this->stationId = StationInfo::UNKNOWN_STATION_ID;
@@ -90,6 +92,7 @@ class SensorInfo
             $sensorInfo->sensorId = intval($row['sensorId']);
             $sensorInfo->uid = $row['uid'];
             $sensorInfo->ipAddress = $row['ipAddress'];
+            $sensorInfo->version = $row['version'];
             $sensorInfo->name = $row['name'];
             $sensorInfo->sensorType = intval($row['sensorType']);
             $sensorInfo->stationId = intval($row['stationId']);
@@ -111,9 +114,10 @@ class SensorInfo
       // Determine the interval between the supplied date and the current time.
       $interval = $lastContact->diff($now);
       
-      if (($interval->days == 0) && ($interval->i == 0))
+      if (($interval->days == 0) && ($interval->h == 0))  // Note: Adjust if threshold is >= 1 hour
       {
-         $isOnline = ($interval->s <= SensorInfo::ONLINE_THRESHOLD);
+         $seconds = (($interval->i * 60) + ($interval->s)); 
+         $isOnline = ($seconds <= SensorInfo::ONLINE_THRESHOLD);
       }
       
       return ($isOnline);
@@ -209,6 +213,7 @@ if (isset($_GET["buttonId"]))
       echo "buttonId: " .          $buttonInfo->buttonId .         "<br/>";
       echo "uid: " .               $buttonInfo->uid .              "<br/>";
       echo "ipAddress: " .         $buttonInfo->ipAddress .        "<br/>";
+      echo "version: " .           $buttonInfo->version .          "<br/>";
       echo "name: " .              $buttonInfo->name .             "<br/>";
       echo "stationId: " .         $buttonInfo->stationId .        "<br/>";
       echo "clickAction: " .       $buttonInfo->buttonActions[0] . "<br/>";
