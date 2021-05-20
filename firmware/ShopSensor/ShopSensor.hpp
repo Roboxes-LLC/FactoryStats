@@ -58,6 +58,12 @@ protected:
    
    Adapter* getAdapter();
    
+   void setDisplayMode(
+      const Display::DisplayMode& displayMode,
+      const int& duration = 0);
+      
+   void toggledDisplayMode();      
+         
    void onConnectionUpdate(
       MessagePtr message);
 
@@ -89,6 +95,8 @@ protected:
    // Subcomponents
 
    Timer* updateTimer;
+   
+   Timer* displayTimer;
    
    WebpageServer* webServer;
    

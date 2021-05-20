@@ -1,10 +1,5 @@
-#ifdef M5STICKC_PLUS
-#include <M5StickCPlus.h>
-#else
-#include <M5StickC.h>
-#endif
-
 #include "Display.hpp"
+#include "M5Defs.hpp"
 
 // For reference:
 /*
@@ -29,7 +24,7 @@ static const int DEFAULT_HIGHLIGHT_COLOR = WHITE;
 static const int FONT_SMALL = 2;
 static const int FONT_MEDIUM = 3;
 static const int FONT_LARGE = 4;
-static const int FONT_XLARGE = 5
+static const int FONT_XLARGE = 5;
 #else
 static const int FONT_SMALL = 1;
 static const int FONT_MEDIUM = 2;
@@ -521,9 +516,15 @@ void Display::drawInfo()
 
 void Display::drawPower()
 {
+#ifdef M5STICKC
    static const int BATTERY_X = 35;
    static const int BATTERY_Y = 20;
-   static const float BATTERY_SCALE = 4.5; 
+   static const float BATTERY_SCALE = 4.5;
+#else  // M5STICKC_PLUS
+   static const int BATTERY_X = 55;
+   static const int BATTERY_Y = 35;
+   static const float BATTERY_SCALE = 7.0;
+#endif   
 
    M5.Lcd.fillScreen(backgroundColor);
 

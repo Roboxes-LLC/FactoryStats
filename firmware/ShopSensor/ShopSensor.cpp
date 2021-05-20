@@ -12,7 +12,7 @@
 #include "ShopSensor.hpp"
 #include "Version.hpp"
 
-static const int SPLASH_TIME = 5000;  // 5 seconds
+static const int DISPLAY_TIME = 5000;  // 5 seconds
 
 // ************************************************
 //                     Public
@@ -27,6 +27,7 @@ ShopSensor::ShopSensor(
    const String& adapterId) :
       Component(id),
       updateTimer(0),
+      displayTimer(0),
       webServer(0),
       updatePeriod(updatePeriod),
       pingPeriod(pingPeriod),
@@ -44,6 +45,7 @@ ShopSensor::ShopSensor(
    MessagePtr message) :
       Component(message),
       updateTimer(0),
+      displayTimer(0),
       webServer(0),
       updatePeriod(message->getInt("updatePeriod")),
       pingPeriod(message->getInt("pingPeriod")),
@@ -78,19 +80,8 @@ void ShopSensor::setup()
       
       display->updateServer(server, false);
 
-      // Show the splash screen.      
-      display->setMode(Display::SPLASH);
-      
-      Timer* timer = Timer::newTimer(
-         "splash",
-         SPLASH_TIME,
-         Timer::ONE_SHOT,
-         this);
-         
-      if (timer)
-      {
-         timer->start();
-      }
+      // Show the splash screen (temporarily).
+      setDisplayMode(Display::SPLASH, DISPLAY_TIME);
    }
       
    Messaging::subscribe(this, ConnectionManager::CONNECTION);
@@ -183,10 +174,12 @@ void ShopSensor::timeout(
       
       updateCount++;
    }
-   else if (timer->getId() == "splash")
+   else if (timer == displayTimer)
    {
+      displayTimer = 0;
+      
       Display* display = getDisplay();
-      if (display && (display->getMode() == Display::SPLASH))
+      if (display)
       {
          ConnectionManager* connection = getConnection();
          if (connection && connection->isWifiConnected())
@@ -256,6 +249,61 @@ Adapter* ShopSensor::getAdapter()
    return (adapter);   
 }
 
+void ShopSensor::setDisplayMode(
+   const Display::DisplayMode& displayMode,
+   const int& duration)
+{
+   Display* display = getDisplay();
+   if (display)
+   {
+      // Don't update the display while the splash screen is being displayed.
+      bool isSplash = (displayTimer && (display->getMode() == Display::SPLASH));
+      
+      if (!isSplash)
+      {
+         display->setMode(displayMode);
+         
+         // Cancel any running display timer.
+         if (displayTimer)
+         {
+            Timer::freeTimer(displayTimer);
+            displayTimer = 0;
+         }      
+         
+         if (duration > 0)
+         {
+            displayTimer = Timer::newTimer(
+               getId() + ".display",
+               duration,
+               Timer::ONE_SHOT,
+               this);
+               
+            if (displayTimer)
+            {
+               displayTimer->start();
+            }
+         }
+      }
+   }
+}
+
+void ShopSensor::toggledDisplayMode()
+{
+   // Cancel any running display timer.
+   if (displayTimer)
+   {
+      Timer::freeTimer(displayTimer);
+      displayTimer = 0;
+   }
+   
+   // Toggle display mode.
+   Display* display = getDisplay();
+   if (display)
+   {
+      display->toggleMode();
+   }
+}
+
 void ShopSensor::onConnectionUpdate(
    MessagePtr message)
 {
@@ -272,6 +320,8 @@ void ShopSensor::onConnectionUpdate(
          connection->isAPRunning(),
          connection->getIpAddress(),
          connection->getAPIpAddress());
+         
+      setDisplayMode(Display::CONNECTION, DISPLAY_TIME);
 
       static bool isWebServerRunning = false;
       if ((connection->isWifiConnected() || connection->isAPRunning()) && webServer && !isWebServerRunning)
@@ -294,18 +344,14 @@ void ShopSensor::onButtonUp(
       Display* display = getDisplay();
       if (display)
       {
-         display->setMode(Display::COUNT);
          display->updateCount(totalCount, count);
+      
+         setDisplayMode(Display::COUNT, DISPLAY_TIME);
       }
    }
    else if (buttonId == BUTTON_B)
    {
-     // Toggle display mode.
-     Display* display = getDisplay();
-     if (display)
-     {
-        display->toggleMode();
-     }
+      toggledDisplayMode();
    }
 }
 
@@ -321,6 +367,8 @@ void ShopSensor::onPowerInfo(
    if (message->getMessageId() == Power::POWER_SOURCE)
    {
       bool isUsbPower = message->getBool("isUsbPower");
+      
+      setDisplayMode(Display::POWER, DISPLAY_TIME);
       
       if (!isUsbPower && Robox::getProperties().getBool("requireUsbPower"))
       {
