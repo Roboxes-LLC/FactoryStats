@@ -3,6 +3,7 @@
 require_once 'common/breakDescription.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
+require_once 'common/demo.php';
 require_once 'common/displayInfo.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
@@ -26,44 +27,66 @@ if (!(Authentication::isAuthenticated() &&
 
 function getStationId()
 {
-   $stationId = "";
+   static $stationId = null;
    
-   if (isset($_GET["stationId"]))
+   if (!$stationId)
    {
-      $stationId = $_GET["stationId"];
-   }
-   else if (isset($_GET["displayId"]))
-   {
-      $displayId = $_GET["displayId"];
-      
-      $displayInfo = DisplayInfo::load($displayId);
-      if ($displayInfo)
+      $stationId = StationInfo::UNKNOWN_STATION_ID;
+   
+      if (isset($_GET["stationId"]))
       {
-         $stationId = $displayInfo->stationId;
+         $stationId = $_GET["stationId"];
       }
-   }
-   else if (isset($_GET["macAddress"]))
-   {
-      $macAddress = $_GET["macAddress"];
-      
-      $displayId = DisplayInfo::getDisplayIdFromMac($macAddress);
-
-      $displayInfo = DisplayInfo::load($displayId);
-      
-      if ($displayInfo)
+      else if (isset($_GET["displayId"]))
       {
-         $stationId = $displayInfo->stationId;
+         $displayId = $_GET["displayId"];
+         
+         $displayInfo = DisplayInfo::load($displayId);
+         if ($displayInfo)
+         {
+            $stationId = $displayInfo->stationId;
+         }
+      }
+      else if (isset($_GET["macAddress"]))
+      {
+         $macAddress = $_GET["macAddress"];
+         
+         $displayId = DisplayInfo::getDisplayIdFromMac($macAddress);
+   
+         $displayInfo = DisplayInfo::load($displayId);
+         
+         if ($displayInfo)
+         {
+            $stationId = $displayInfo->stationId;
+         }
       }
    }
    
    return ($stationId);
 }
 
-function getStationLabel($stationId)
+function getStationInfo()
 {
-    $label = "";
+   static $stationInfo = null;
    
-   $stationInfo = StationInfo::load($stationId);
+   if (!$stationInfo)
+   {
+      $stationId = getStationId();
+      
+      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+      {
+         $stationInfo = StationInfo::load($stationId);
+      }
+   }
+   
+   return ($stationInfo);
+}
+
+function getStationLabel()
+{
+   $label = "";
+   
+   $stationInfo = getStationInfo();
    
    if ($stationInfo)
    {
@@ -73,11 +96,11 @@ function getStationLabel($stationId)
    return ($label);
 }
 
-function getCycleTime($stationId)
+function getCycleTime()
 {
    $cycleTime = 0;
    
-   $stationInfo = StationInfo::load($stationId);
+   $stationInfo = getStationInfo();
    
    if ($stationInfo)
    {
@@ -85,6 +108,34 @@ function getCycleTime($stationId)
    }
    
    return ($cycleTime);
+}
+
+function getObjectName()
+{
+   $objectName = "widget";
+   
+   $stationInfo = getStationInfo();
+   
+   if ($stationInfo)
+   {
+      $objectName = $stationInfo->objectName;
+   }
+   
+   return ($objectName);
+}
+
+function getObjectNamePlural()
+{
+   $objectNamePlural = "widgets";
+   
+   $stationInfo = getStationInfo();
+   
+   if ($stationInfo)
+   {
+      $objectNamePlural = $stationInfo->getObjectNamePlural();
+   }
+   
+   return ($objectNamePlural);
 }
 
 function getCountButtons()
@@ -141,9 +192,12 @@ HEREDOC;
 
 $stationId = getStationId();
 
-$stationLabel = getStationLabel($stationId);
+$stationLabel = getStationLabel();
 
-$cycleTime = getCycleTime($stationId);
+$cycleTime = getCycleTime();
+
+$objectName = getObjectName();
+$objectNamePlural = getObjectNamePlural();
 
 ?>
 
@@ -193,12 +247,12 @@ $cycleTime = getCycleTime($stationId);
             
             <br>
             
-            <div class="stat-label">Average time between screens</div>
+            <div class="stat-label">Average time between <?php echo $objectNamePlural; ?></div>
             <div id="average-count-time-div" class="large-stat"></div>
             
             <br>
             
-            <div id="elapsed-time-label" class="stat-label">Time since last screen</div>
+            <div id="elapsed-time-label" class="stat-label">Time since last <?php echo $objectName; ?></div>
             <div id="break-time-label" class="stat-label">Paused</div>
             <div id="elapsed-time-div" class="large-stat"></div>
             <!-- div id="break-description"></div-->
@@ -212,7 +266,7 @@ $cycleTime = getCycleTime($stationId);
                <?php if (!isKioskMode()) {getCountButtons();}?>
                
                <div class="flex-vertical" style="margin-left: 50px;">
-                  <div class="stat-label">Today's screen count</div>
+                  <div class="stat-label">Today's <?php echo $objectName; ?> count</div>
                   <div id="count-div" class="urgent-stat large-stat"></div>
                </div>
                
@@ -220,7 +274,10 @@ $cycleTime = getCycleTime($stationId);
             
             <div id="hourly-count-chart-div" style="margin-top: 50px;"></div>
             
-            <div id="first-entry-div"></div>
+            <div class="flex-horizontal first-entry">
+               <div>Time of first <?php echo $objectName; ?>:&nbsp&nbsp</div>
+               <div id="first-entry-div"></div>
+            </div>
             
          </div>
          
@@ -278,6 +335,30 @@ $cycleTime = getCycleTime($stationId);
          <?php echo getShiftHours(); ?>
       };
    </script>
+   
+<?php
+   if (Demo::isDemoSite() && !Demo::showedInstructions(Permission::WORKSTATION))
+   {
+      Demo::setShowedInstructions(Permission::WORKSTATION, true);
+      
+      $versionQuery = versionQuery();
+      
+      echo
+<<<HEREDOC
+   <div id="demo-modal" class="modal">
+      <div class="flex-vertical modal-content demo-modal-content">
+         <div id="close" class="close">&times;</div>
+         <p class="demo-modal-title">Workstation page</p>         
+         <p>This is the main interface for counting completed products at each physical workstation. Besides being able to update product counts, a line worker can use a number of other statistics to monitor their pace throughout he day.</p>
+         <p>Press the large '+' button in increment the count at this station.  Station counts can also be decremented or paused from here.</p>
+      </div>
+   </div>
+
+   <script src="script/modal.js$versionQuery"></script>
+   <script>showModal("demo-modal");</script>
+HEREDOC;
+   }
+?>   
 
 </body>
 

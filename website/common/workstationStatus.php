@@ -173,10 +173,11 @@ class WorkstationStatus
 }
 
 /*
-if (isset($_GET["stationId"]))
+if (isset($_GET["stationId"]) && isset($_GET["shiftiD"]))
 {
-   $stationId = $_GET["stationId"];
-   $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, Time::now("Y-m-d H:i:s"));
+   $stationId = intval($_GET["stationId"]);
+   $shiftId = intval($_GET["stationId"]);
+   $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
  
    if ($workstationStatus)
    {
@@ -195,7 +196,7 @@ if (isset($_GET["stationId"]))
       echo "averageCountTime: " .     $workstationStatus->averageCountTime .     "<br/>";
       echo "hardwareButtonStatus: " . $workstationStatus->hardwareButtonStatus->lastContact . "<br/>";
       echo "cycleTimeStatus: " .      CycleTimeStatus::getClassLabel($workstationStatus->cycleTimeStatus) . "<br/>";
-      echo "isOnBreak" .              ($workstationStatus-isOnBreak ? "true" : "false") . "<br/>";
+      echo "isOnBreak" .              ($workstationStatus->isOnBreak ? "true" : "false") . "<br/>";
    }
 }
 */

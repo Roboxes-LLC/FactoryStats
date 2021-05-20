@@ -1,6 +1,7 @@
 <?php
 
 require_once 'common/authentication.php';
+require_once 'common/demo.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/version.php';
@@ -95,6 +96,11 @@ if (Authentication::isAuthenticated())
    }
 }
 
+if (Demo::isDemoSite())
+{
+   Demo::generateData();
+}
+
 ?>
 
 <html>
@@ -103,13 +109,14 @@ if (Authentication::isAuthenticated())
 
    <meta name="viewport" content="width=device-width, initial-scale=1">
    
-   <title>Flexscreen Counter</title>
+   <title>Factory Stats</title>
    
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
    <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    
 </head>
 
@@ -141,8 +148,30 @@ if (Authentication::isAuthenticated())
 </div>
 
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
-<script>
-</script>
+
+<?php
+   if (Demo::isDemoSite() && (getAction() == ""))
+   {
+      Demo::setShowedInstructions(Permission::UNKNOWN, true);
+      
+      $versionQuery = versionQuery();
+      
+      echo
+<<<HEREDOC
+   <div id="demo-modal" class="modal">
+      <div class="flex-vertical modal-content demo-modal-content">
+         <div id="close" class="close">&times;</div>
+         <p class="demo-modal-title">Factory Stats demo</p>         
+         <p>Welcome!  Thank you for evaluating Factory Stats, a simple but effective solution for gathering and presenting real-time production data.</p>
+         <p>To get started, simply press the login button.  Or login as "admin" (password: "admin") to unlock all options.</p>
+      </div>
+   </div>
+
+   <script src="script/modal.js$versionQuery"></script>
+   <script>showModal("demo-modal");</script>
+HEREDOC;
+   }
+?>
 
 </body>
 

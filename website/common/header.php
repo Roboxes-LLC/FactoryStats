@@ -8,7 +8,7 @@ require_once 'shiftInfo.php';
 
 class Header
 {
-   public static function getHtml($includeShiftIdInput)
+   public static function getHtml($includeShiftIdInput = false, $includeStationFilterInput = false)
    {
       global $ROOT;
       
@@ -22,7 +22,22 @@ class Header
          
          $shiftIdInput = 
 <<<HEREDOC
-         <select id="shift-id-input" name="shiftId" onchange="onShiftSelectionUpdate(); storeInSession('shiftId', this.value); update();">$shiftOptions</select>
+            <select id="shift-id-input" class="header-input" name="shiftId" onchange="onShiftSelectionUpdate(); storeInSession('shiftId', this.value); update();">$shiftOptions</select>
+HEREDOC;
+      }
+      
+      $stationFilterInput = "";
+      if ($includeStationFilterInput)
+      {
+         // Retrieve any station filter that is currently selected.
+         $stationFilter = Header::getStationFilter();
+         
+         $stationFilterOptions = StationFilter::getOptions($stationFilter);
+         
+         
+         $stationFilterInput =
+<<<HEREDOC
+         <select id="station-filter-input" class="header-input" name="stationFilter" onchange="storeInSession('stationFilter', this.value); update();">$stationFilterOptions</select>
 HEREDOC;
       }
       
@@ -32,7 +47,7 @@ HEREDOC;
 <<<HEREDOC
       <div class="flex-horizontal header">
          <div class="flex-horizontal" style="width:33%; justify-content:flex-start; margin-left: 20px;">
-            $shiftIdInput
+            <div class="flex-horizontal">$shiftIdInput $stationFilterInput</div>
             &nbsp;
             <!-- TODO: Include a visual indicator of the current shift -->
             <!--i id="am-indicator" class="material-icons" style="color: yellow; font-size: 35px;">wb_sunny</i>
@@ -68,9 +83,23 @@ HEREDOC;
       return ($html);
    }
    
-   public static function render($includeShiftIdInput)
+   public static function render($includeShiftIdInput = false, $includeStationFilterInput = false)
    {
-      echo (Header::getHtml($includeShiftIdInput));
+      echo (Header::getHtml($includeShiftIdInput, $includeStationFilterInput));
+   }
+   
+   private static function getStationFilter()
+   {
+      $stationFilter = StationFilter::ALL_STATIONS;
+      
+      $params = Params::parse();
+      
+      if ($params->keyExists("stationFilter"))
+      {
+         $stationFilter = $params->getInt("stationFilter");
+      }
+      
+      return ($stationFilter);
    }
 }
 

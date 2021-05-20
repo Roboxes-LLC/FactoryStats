@@ -33,7 +33,10 @@ function updateWorkstation(stationInfo)
    
    if (element)
    {
-      element.innerHTML = stationInfo.updateTime;
+      if (stationInfo.updateTime != null)
+      {
+         element.innerHTML = stationInfo.updateTime;   
+      }
    }
 }
 
@@ -43,19 +46,13 @@ function setStationId(stationId)
    input.setAttribute('value', stationId);
 }
 
-function setStationInfo(name, label, description, cycleTime)
+function setStationInfo(name, label, objectName, cycleTime, hideOnSummary)
 {
-   var input = document.getElementById('station-name-input');
-   input.setAttribute('value', name);
-   
-   input = document.getElementById('station-label-input');
-   input.setAttribute('value', label);
-
-   input = document.getElementById('station-description-input');
-   input.setAttribute('value', description);
-
-   input = document.getElementById('station-cycle-time-input');
-   input.setAttribute('value', cycleTime);
+   document.getElementById('station-name-input').value = name;
+   document.getElementById('station-label-input').value = label;
+   document.getElementById('object-name-input').value = objectName;
+   document.getElementById('station-cycle-time-input').value = cycleTime;
+   document.getElementById('hide-on-summary-input').checked = hideOnSummary;
 }
 
 function setAction(action)

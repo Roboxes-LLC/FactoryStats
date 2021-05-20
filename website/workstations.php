@@ -154,7 +154,16 @@ HEREDOC;
 
 function getStationPanel($stationId, $chartSize)
 {
-   $stationLabel = getStationLabel($stationId);
+   $stationLabel = "<unknown>";
+   $objectName = "widget";
+
+   $stationInfo = StationInfo::load($stationId);
+   
+   if ($stationInfo)
+   {
+      $stationLabel = $stationInfo->getLabel();
+      $objectName = $stationInfo->objectName;
+   }
    
    $html =
 <<<HEREDOC
@@ -167,17 +176,17 @@ function getStationPanel($stationId, $chartSize)
          <div class="stats-panel">   
          
             <div class="grid-item count flex-vertical">
-               <div class="stat-label">Today's screen count</div>
+               <div class="stat-label">Today's $objectName count</div>
                <div id="count-div-$stationId" class="urgent-stat large-stat"></div>
             </div>
                
             <div class="grid-item flex-vertical">
-               <div class="stat-label">First screen</div>
+               <div class="stat-label">First $objectName</div>
                <div id="first-entry-time-div-$stationId" class="small-stat"></div>
             </div>
       
             <div class="grid-item flex-vertical">
-               <div class="stat-label">Last screen</div>
+               <div class="stat-label">Last $objectName</div>
                <div id="last-entry-time-div-$stationId" class="small-stat"></div>
             </div>
                

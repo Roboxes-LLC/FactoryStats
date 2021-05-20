@@ -1,6 +1,7 @@
 <?php
 
 require_once 'common/database.php';
+require_once 'common/demo.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
@@ -31,7 +32,12 @@ function renderStationSummaries($shiftId)
    {
       $stationId = $row["stationId"];
       
-      renderStationSummary($stationId, $shiftId);
+      $hideOnSummary = filter_var($row["hideOnSummary"], FILTER_VALIDATE_BOOLEAN);
+
+      if (!$hideOnSummary)
+      {
+         renderStationSummary($stationId, $shiftId);
+      }
    }
    
    echo "</div>";
@@ -47,6 +53,9 @@ function renderStationSummary($stationId, $shiftId)
    
    $workstationStatus = WorkstationStatus::getWorkstationStatus($stationId, $shiftId);
    
+   $objectName = $stationInfo->objectName;
+   $objectNamePlural = $stationInfo->getObjectNamePlural();
+   
    if ($stationInfo && $workstationStatus)
    {
       echo 
@@ -57,14 +66,14 @@ function renderStationSummary($stationId, $shiftId)
       </div>
 
       <div class="flex-vertical">
-         <div class="stat-label">Today's screen count</div>
+         <div class="stat-label">Today's $objectName count</div>
          <div class="large-stat urgent-stat count-div"></div>
       </div>
       
-      <div class="stat-label">Average time between screens</div>
+      <div class="stat-label">Average time between $objectNamePlural</div>
       <div class="medium-stat average-count-time-div"></div>
       
-      <div class="stat-label">Time of last screen</div>
+      <div class="stat-label">Time of last $objectName</div>
       <div class="medium-stat update-time-div"></div>
 HEREDOC;
    }
@@ -86,6 +95,7 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/workstationSummary.css<?php echo versionQuery();?>"/>
    
 </head>
@@ -94,7 +104,7 @@ HEREDOC;
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php Header::render(true);?>
+   <?php Header::render(true, true);?>
    
    <?php if (!isKioskMode()) {include 'common/menu.php';}?>
    
@@ -104,6 +114,7 @@ HEREDOC;
 
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
 <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"" . versionQuery() . "></script>";}?>
+<script src="script/common.js<?php echo versionQuery();?>"></script>
 <script src="script/workstationSummary.js<?php echo versionQuery();?>"></script>
 <script>
    // Set menu selection.
@@ -112,6 +123,38 @@ HEREDOC;
    // Start a five-second timer to update the count/hourly count div.
    setInterval(function(){update();}, 5000);
 </script>
+
+<?php
+   if (Demo::isDemoSite() && !Demo::showedInstructions(Permission::WORKSTATION_SUMMARY))
+   {
+      Demo::setShowedInstructions(Permission::WORKSTATION_SUMMARY, true);
+      
+      $versionQuery = versionQuery();
+      
+      echo
+<<<HEREDOC
+   <script src="script/demo.js$versionQuery"></script>
+   <script>
+      var demo = new Demo();
+      demo.startSimulation();
+   </script>
+   
+   <div id="demo-modal" class="modal">
+      <div class="flex-vertical modal-content demo-modal-content">
+         <div id="close" class="close">&times;</div>
+         <p class="demo-modal-title">Workstation Summary page</p>         
+         <p>Counts from every workstation are summarized in real-time here. No matter where you are in the world, as long as you have an Internet connected screen, you can see exactly how your floor is operating.</p>
+         <p>Click on an individual station to get an even more detailed look at the data.</p>
+         <p>Note: Real-time data is simulated here for demonstration purposes.</p>
+      </div>
+   </div>
+
+   <script src="script/modal.js$versionQuery"></script>
+   <script>showModal("demo-modal");</script>
+HEREDOC;
+   }
+?>
+
 
 </body>
 

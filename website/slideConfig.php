@@ -167,6 +167,7 @@ function addSlide(
    $url,
    $image,
    $shiftId,
+   $stationFilter,
    $stationIds)
 {
    $slideInfo = new SlideInfo();
@@ -180,6 +181,7 @@ function addSlide(
    $slideInfo->url = $url;
    $slideInfo->image = $image;
    $slideInfo->shiftId = $shiftId;
+   $slideInfo->stationFilter = $stationFilter;
    $slideInfo->stationIds = $stationIds;
    
    $database = FlexscreenDatabase::getInstance();
@@ -199,6 +201,7 @@ function updateSlide(
    $url,
    $image,
    $shiftId,
+   $stationFilter,
    $stationIds)
 {
    $slideInfo = SlideInfo::load($slideId);
@@ -213,6 +216,7 @@ function updateSlide(
       $slideInfo->url = $url;
       $slideInfo->image = $image;
       $slideInfo->shiftId = $shiftId;
+      $slideInfo->stationFilter = $stationFilter;
       $slideInfo->stationIds = $stationIds;
 
       $database = FlexscreenDatabase::getInstance();
@@ -265,10 +269,11 @@ switch (getParams()->get("action"))
             $params->get("url"),
             $imageFile,
             $params->getInt("shift"),
-               array($params->getInt("station1"),
-                     $params->getInt("station2"),
-                     $params->getInt("station3"),
-                     $params->getInt("station4")));
+            $params->getInt("stationFilter"),
+            array($params->getInt("station1"),
+                  $params->getInt("station2"),
+                  $params->getInt("station3"),
+                  $params->getInt("station4")));
       }
       else
       {
@@ -281,6 +286,7 @@ switch (getParams()->get("action"))
             $params->get("url"),
             $imageFile,
             $params->getInt("shift"),
+            $params->getInt("stationFilter"),
             array($params->getInt("station1"),
                   $params->getInt("station2"),
                   $params->getInt("station3"),
@@ -393,6 +399,15 @@ switch (getParams()->get("action"))
          </div>
       </div>
       
+      <div id="workstation-summary-slide-params">
+         <div class="flex-vertical input-block">
+            <label>State</label>
+            <select id="station-filter-input" form="config-form" name="stationFilter">
+               <?php echo StationFilter::getOptions(StationFilter::UNKNOWN); ?>
+            </select>
+         </div>
+      </div>      
+      
       <div id="workstation-slide-params">
          <div class="flex-horizontal input-block">
             <label>Stations</label>
@@ -484,6 +499,7 @@ switch (getParams()->get("action"))
                document.getElementById('image-input').value = slideInfo.image;
                document.getElementById('image-thumbnail').src = "<?php echo CustomerInfo::getSlideImagesFolder(); ?>/" + slideInfo.image;
                document.getElementById('shift-input').value = slideInfo.shiftId;
+               document.getElementById('station-filter-input').value = slideInfo.stationFilter;
                
                for (var i = 0; i < <?php echo SlideInfo::MAX_STATION_IDS; ?>; i++)
                {
@@ -515,6 +531,7 @@ switch (getParams()->get("action"))
       document.getElementById('url-input').value = "";
       document.getElementById('image-thumbnail').src = "<?php echo $IMAGES_DIR; ?>/no-image-icon-6.png";
       document.getElementById('shift-input').value = <?php echo ShiftInfo::UNKNOWN_SHIFT_ID; ?>;
+      document.getElementById('station-filter-input').value = <?php echo StationFilter::UNKNOWN; ?>;
       
       for (var i = 0; i < <?php echo SlideInfo::MAX_STATION_IDS?>; i++)
       {
@@ -538,6 +555,7 @@ switch (getParams()->get("action"))
       hide("url-slide-params");
       hide("image-slide-params");
       hide("shift-based-slide-params");
+      hide("workstation-summary-slide-params");
       hide("workstation-slide-params");
       
       switch (slideType)
@@ -557,6 +575,7 @@ switch (getParams()->get("action"))
          case <?php echo SlideType::WORKSTATION_SUMMARY_PAGE ?>:
          {
             show("shift-based-slide-params", "block");
+            show("workstation-summary-slide-params", "block");
             break;
          }
          

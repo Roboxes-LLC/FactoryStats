@@ -3,6 +3,7 @@
 require_once 'common/breakInfo.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
+require_once 'common/demo.php';
 require_once 'common/header.php';
 require_once 'common/params.php';
 require_once 'common/shiftInfo.php';
@@ -374,10 +375,10 @@ function renderDailyCountsTable()
          <th>Workstation</th>
          <th>Shift</th>
          <th>Date</th>
-         <th>Screen Count</th>
-         <th>First Screen</th>
-         <th>Last Screen</th>
-         <th>Average Time Between Screens</th>
+         <th>Count</th>
+         <th>First Update</th>
+         <th>Last Update</th>
+         <th>Average Time Between Updates</th>
       </tr>
 HEREDOC;
 
@@ -483,7 +484,7 @@ function renderHourlyCountsTable()
          <th>Shift</th>
          <th>Date</th>
          <th>Hour</th>
-         <th>Screen Count</th>
+         <th>Count</th>
       </tr>
 HEREDOC;
     
@@ -756,7 +757,7 @@ if ($params->keyExists("action") &&
    {
       case Table::DAILY_COUNTS:
       {
-         $header = array("Workstation", "Shift", "Date", "Screen Count", "First Screen", "Last Screen", "Average Time Between Screens");
+         $header = array("Workstation", "Shift", "Date", "Count", "First Update", "Last Update", "Average Time Between Updates");
          $data = getDailyCountData();
          $filename = "dailyCounts.csv";
          break;
@@ -801,6 +802,7 @@ if ($params->keyExists("action") &&
    <!--  Material Design Lite -->
    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
    
+   <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
    
@@ -844,6 +846,35 @@ if ($params->keyExists("action") &&
 <script>
    setMenuSelection(MenuItem.PRODUCTION_HISTORY);
 </script>
+
+<?php
+   if (Demo::isDemoSite() && !Demo::showedInstructions(Permission::PRODUCTION_HISTORY))
+   {
+      Demo::setShowedInstructions(Permission::PRODUCTION_HISTORY, true);
+      
+      $versionQuery = versionQuery();
+      
+      echo
+<<<HEREDOC
+   <script src="script/demo.js$versionQuery"></script>
+   <script>
+      var demo = new Demo();
+      demo.startSimulation();
+   </script>
+   
+   <div id="demo-modal" class="modal">
+      <div class="flex-vertical modal-content demo-modal-content">
+         <div id="close" class="close">&times;</div>
+         <p class="demo-modal-title">Production History page</p>         
+         <p>The real power of Factory Stats comes with the aggregation of data over time. By drilling down into each day's product counts you can spots trends, track downtime, and maximize your facility's potential.</p>         <p>We're continually exploring new and exciting ways to report on your data, and you always have the option to download the numbers into Excel for more detailed analysis.</p>
+      </div>
+   </div>
+
+   <script src="script/modal.js$versionQuery"></script>
+   <script>showModal("demo-modal");</script>
+HEREDOC;
+   }
+?>
 
 </body>
 
