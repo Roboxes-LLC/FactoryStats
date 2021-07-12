@@ -4,7 +4,7 @@ function setUserId(userId)
    input.setAttribute('value', userId);
 }
 
-function setUserInfo(userId, employeeNumber, firstName, lastName, username, password, role, email, authToken)
+function setUserInfo(userId, employeeNumber, firstName, lastName, username, role, email, authToken)
 {
    var input = document.getElementById('user-id-input');
    input.setAttribute('value', userId);
@@ -20,9 +20,6 @@ function setUserInfo(userId, employeeNumber, firstName, lastName, username, pass
 
    input = document.getElementById('username-input');
    input.setAttribute('value', username);
-   
-   input = document.getElementById('password-input');
-   input.setAttribute('value', password);
 
    input = document.getElementById('role-input');
    input.value = role;
@@ -30,8 +27,10 @@ function setUserInfo(userId, employeeNumber, firstName, lastName, username, pass
    input = document.getElementById('email-input');
    input.setAttribute('value', email);
    
+   /*
    input = document.getElementById('auth-token-input');
    input.setAttribute('value', authToken);
+   */
 }
 
 function setAction(action)

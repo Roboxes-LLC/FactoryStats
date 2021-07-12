@@ -32,13 +32,6 @@ function getUsername()
    return ($params->get("username"));
 }
 
-function getPassword()
-{
-   $params = getParams();
-   
-   return ($params->get("password"));
-}
-
 function redirect($url)
 {
    unset($_SESSION["redirect"]);

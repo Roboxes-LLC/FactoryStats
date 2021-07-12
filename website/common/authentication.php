@@ -52,15 +52,7 @@ class Authentication
       
       if ($params->keyExists("username") && $params->keyExists("password"))
       {
-         // TODO: Temporary measure, until customer is ready for full authentication.
-         if ($params->get("username") == "")
-         {
-            $result = Authentication::authenticateUser("operator", "1234");            
-         }
-         else
-         {
-            $result = Authentication::authenticateUser($params->get("username"), $params->get("password"));            
-         }
+         $result = Authentication::authenticateUser($params->get("username"), $params->get("password"));            
       }
       else if ($params->keyExists("authToken"))
       {
@@ -80,7 +72,7 @@ class Authentication
       {
          $result = AuthenticationResult::INVALID_USERNAME;
       }
-      else if ($password != $user->password)
+      else if (!password_verify($password, $user->passwordHash))
       {
          $result = AuthenticationResult::INVALID_PASSWORD;
       }

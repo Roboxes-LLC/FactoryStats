@@ -298,9 +298,9 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $query =
       "INSERT INTO user " .
-      "(employeeNumber, username, password, roles, permissions, firstName, lastName, email, authToken, assignedStations) " .
+      "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, authToken, assignedStations) " .
       "VALUES " .
-      "('$userInfo->employeeNumber', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->permissions', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->email', '$userInfo->authToken', '$userInfo->assignedStations');";
+      "('$userInfo->employeeNumber', '$userInfo->username', '$userInfo->passwordHash', '$userInfo->roles', '$userInfo->permissions', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->email', '$userInfo->authToken', '$userInfo->assignedStations');";
 
       $result = $this->query($query);
       
@@ -311,7 +311,7 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $query =
       "UPDATE user " .
-      "SET employeeNumber = '$userInfo->employeeNumber', username = '$userInfo->username', password = '$userInfo->password', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations' " .
+      "SET employeeNumber = '$userInfo->employeeNumber', username = '$userInfo->username', passwordHash = '$userInfo->passwordHash', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations' " .
       "WHERE userId = '$userInfo->userId';";
 
       $result = $this->query($query);

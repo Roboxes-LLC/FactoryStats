@@ -125,20 +125,25 @@ HEREDOC;
 </script>
 
 <?php
-   if (Demo::isDemoSite() && !Demo::showedInstructions(Permission::WORKSTATION_SUMMARY))
+   if (Demo::isDemoSite())
    {
-      Demo::setShowedInstructions(Permission::WORKSTATION_SUMMARY, true);
-      
       $versionQuery = versionQuery();
       
-      echo
+      echo 
 <<<HEREDOC
    <script src="script/demo.js$versionQuery"></script>
    <script>
       var demo = new Demo();
       demo.startSimulation();
    </script>
-   
+HEREDOC;
+
+      if (!Demo::showedInstructions(Permission::WORKSTATION_SUMMARY))
+      {
+         Demo::setShowedInstructions(Permission::WORKSTATION_SUMMARY, true);
+         
+         echo
+<<<HEREDOC
    <div id="demo-modal" class="modal">
       <div class="flex-vertical modal-content demo-modal-content">
          <div id="close" class="close">&times;</div>
@@ -152,6 +157,7 @@ HEREDOC;
    <script src="script/modal.js$versionQuery"></script>
    <script>showModal("demo-modal");</script>
 HEREDOC;
+      }
    }
 ?>
 
