@@ -26,29 +26,39 @@ class CustomerInfo
    
    public static function getSubdomain()
    {
+      global $SUBDOMAIN;
+      
       static $subdomain = null;
       
-      $params = Params::parse();
-      
-      if ($subdomain == null)
+      // Allow spoofing of subdomain using $SUBDOMAIN variable defined in root.php.
+      if (isset($SUBDOMAIN))
       {
-         // Allow spoofing of subdomain for testing.
-         if ($params->keyExists("subdomain"))
+         $subdomain = $SUBDOMAIN;
+      }
+      else 
+      {
+         $params = Params::parse();
+         
+         if ($subdomain == null)
          {
-            $subdomain = $params["subdomain"];
-         }
-         // Otherwise, parse the domain from the HTTP request.
-         else
-         {
-            $tokens = explode('.', $_SERVER['HTTP_HOST']);
-            
-            if (count($tokens) >= 3)
+            // Allow spoofing of subdomain for testing.
+            if ($params->keyExists("subdomain"))
             {
-               $subdomain = $tokens[0];
+               $subdomain = $params["subdomain"];
             }
+            // Otherwise, parse the domain from the HTTP request.
             else
             {
-               $subdomain = "flexscreentest";  // Default to test domain
+               $tokens = explode('.', $_SERVER['HTTP_HOST']);
+               
+               if (count($tokens) >= 3)
+               {
+                  $subdomain = $tokens[0];
+               }
+               else
+               {
+                  $subdomain = "flexscreentest";  // Default to test domain
+               }
             }
          }
       }

@@ -134,7 +134,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function isDisplayRegistered($uid)
    {
-      $query = "SELECT * FROM display WHERE uid = \"$uid\";";
+      $query = "SELECT * FROM displayregistry WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
@@ -143,7 +143,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function registerDisplay($uid)
    {
-      $query = "INSERT INTO display (uid, subdomain) VALUES (\"$uid\", \"\");";
+      $query = "INSERT INTO displayregistry (uid, subdomain) VALUES (\"$uid\", \"\");";
       
       $result = $this->query($query);
       
@@ -152,7 +152,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function uregisterDisplay($uid)
    {
-      $query = "DELETE FROM display WHERE uid = \"$uid\";";
+      $query = "DELETE FROM displayregistry WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
@@ -161,7 +161,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function associateDisplayWithSubdomain($uid, $subdomain)
    {
-      $query = "UPDATE display SET subdomain = '$subdomain' WHERE uid = '$uid';";
+      $query = "UPDATE displayregistry SET subdomain = '$subdomain' WHERE uid = '$uid';";
       
       $result = $this->query($query);
       
@@ -172,7 +172,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    {
       $domain = "";
       
-      $query = "SELECT * FROM display WHERE uid = '$uid';";
+      $query = "SELECT * FROM displayregistry WHERE uid = '$uid';";
       
       $result = $this->query($query);
       
