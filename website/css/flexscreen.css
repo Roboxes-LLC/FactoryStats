@@ -364,18 +364,18 @@ body {
 .config-button:hover {
    cursor: pointer;
 }
-   
-#shift-id-input, #am-pm-selection-input {
+
+.header-input {
    background-color: #14a3db;
    border: none;
    color: white;
    padding: 10px 15px;
    font-size: 16px;
    border-radius: 4px;
-   margin: 5px;   
+   margin: 5px;	
 }
 
-#shift-id-input option, #am-pm-selection-input option {
+.header-input option {
    background-color: white;
    color: #14a3db;
 }
@@ -452,7 +452,7 @@ Screen = B/w 768px to 1024px
    display: none;
 }
 
-#first-entry-div {
+.first-entry {
 	color: white;
    font-size: 18px;
    margin-top: 10px;

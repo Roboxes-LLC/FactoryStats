@@ -1,3 +1,3 @@
 #pragma once;
 
-static const String VERSION = "v1.03";
+static const String VERSION = "v1.04";

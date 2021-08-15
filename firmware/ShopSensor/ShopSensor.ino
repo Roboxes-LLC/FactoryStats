@@ -1,17 +1,8 @@
-// Uncomment to build for M5Stick-C or M5Stick-C Plus
-#define M5STICKC
-//#define M5STICKCPLUS
-
-#ifdef M5STICKC_PLUS
-#include <M5StickCPlus.h>
-#else
-#include <M5StickC.h>
-#endif
-
 #include <Robox.h>
 
 #include "Diagnostics.hpp"
 #include "Display.hpp"
+#include "M5Defs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
@@ -23,7 +14,7 @@
 
 void setup()
 {
-#ifdef M5STICKC || M5STICKC_PLUS
+#if defined(M5STICKC) || defined(M5STICKC_PLUS)
    M5.begin();
    M5.Lcd.fillScreen(WHITE);
 #endif

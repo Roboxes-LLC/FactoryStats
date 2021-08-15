@@ -134,7 +134,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function isDisplayRegistered($uid)
    {
-      $query = "SELECT * FROM display WHERE uid = \"$uid\";";
+      $query = "SELECT * FROM displayregistry WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
@@ -143,7 +143,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function registerDisplay($uid)
    {
-      $query = "INSERT INTO display (uid, subdomain) VALUES (\"$uid\", \"\");";
+      $query = "INSERT INTO displayregistry (uid, subdomain) VALUES (\"$uid\", \"\");";
       
       $result = $this->query($query);
       
@@ -152,7 +152,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function uregisterDisplay($uid)
    {
-      $query = "DELETE FROM display WHERE uid = \"$uid\";";
+      $query = "DELETE FROM displayregistry WHERE uid = \"$uid\";";
       
       $result = $this->query($query);
       
@@ -161,7 +161,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function associateDisplayWithSubdomain($uid, $subdomain)
    {
-      $query = "UPDATE display SET subdomain = '$subdomain' WHERE uid = '$uid';";
+      $query = "UPDATE displayregistry SET subdomain = '$subdomain' WHERE uid = '$uid';";
       
       $result = $this->query($query);
       
@@ -172,7 +172,7 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    {
       $domain = "";
       
-      $query = "SELECT * FROM display WHERE uid = '$uid';";
+      $query = "SELECT * FROM displayregistry WHERE uid = '$uid';";
       
       $result = $this->query($query);
       
@@ -214,27 +214,30 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getUser($userId)
    {
-      $query = "SELECT * FROM user WHERE userId = \"$userId\";";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("SELECT * FROM user WHERE userId = ?");
+      }
       
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getUserByEmployeeNumberName($employeeNumber)
-   {
-      $query = "SELECT * FROM user WHERE employeeNumber = \"$employeeNumber\";";
-      
-      $result = $this->query($query);
+      $statement->bind_param("i", $userId);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
    
    public function getUserByName($username)
    {
-      $query = "SELECT * FROM user WHERE username = \"$username\";";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("SELECT * FROM user WHERE username = ?");
+      }
       
-      $result = $this->query($query);
+      $statement->bind_param("s", $username);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
@@ -296,34 +299,72 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function newUser($userInfo)
    {
-      $query =
-      "INSERT INTO user " .
-      "(employeeNumber, username, password, roles, permissions, firstName, lastName, email, authToken, assignedStations) " .
-      "VALUES " .
-      "('$userInfo->employeeNumber', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->permissions', '$userInfo->firstName', '$userInfo->lastName', '$userInfo->email', '$userInfo->authToken', '$userInfo->assignedStations');";
-
-      $result = $this->query($query);
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare(
+            "INSERT INTO user " . 
+            "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, assignedStations) " .
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      }
+      
+      $statement->bind_param(
+         "issiisssi", 
+         $userInfo->employeeNumber,
+         $userInfo->username,
+         $userInfo->passwordHash,
+         $userInfo->roles,
+         $userInfo->permissions,
+         $userInfo->firstName,
+         $userInfo->lastName,
+         $userInfo->email,
+         $userInfo->assignedStations);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
    
    public function updateUser($userInfo)
    {
-      $query =
-      "UPDATE user " .
-      "SET employeeNumber = '$userInfo->employeeNumber', username = '$userInfo->username', password = '$userInfo->password', roles = '$userInfo->roles', permissions = '$userInfo->permissions', firstName = '$userInfo->firstName', lastName = '$userInfo->lastName', email = '$userInfo->email', authToken = '$userInfo->authToken', assignedStations = '$userInfo->assignedStations' " .
-      "WHERE userId = '$userInfo->userId';";
-
-      $result = $this->query($query);
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare(
+            "UPDATE user " .
+            "SET employeeNumber = ?, username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, assignedStations = ? " .
+            "WHERE userId = ?");
+      }
+      
+      $statement->bind_param(
+         "issiisssii",
+         $userInfo->employeeNumber,
+         $userInfo->username,
+         $userInfo->passwordHash,
+         $userInfo->roles,
+         $userInfo->permissions,
+         $userInfo->firstName,
+         $userInfo->lastName,
+         $userInfo->email,
+         $userInfo->assignedStations,
+         $userInfo->userId);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
    
    public function deleteUser($userId)
    {
-      $query = "DELETE FROM user WHERE userId = '$userId';";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("DELETE FROM user WHERE userId = ?");
+      }
       
-      $result = $this->query($query);
+      $statement->bind_param("i", $userId);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
@@ -591,25 +632,29 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       
-      $query = "INSERT INTO station (name, label, description, cycleTime, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', '$stationInfo->cycleTime', $now');";
+      $query = "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->objectName', '$stationInfo->cycleTime', '$stationInfo->hideOnSummary', $now');";
 
       $this->query($query);
    }
    
    public function addStation($stationInfo)
    {
+      $hideOnSummary = ($stationInfo->hideOnSummary ? "true" : "false");
+      
       $query =
-      "INSERT INTO station (name, label, description, cycleTime) " .
-      "VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', '$stationInfo->cycleTime');";
+      "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary) " .
+      "VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->objectName', '$stationInfo->cycleTime', $hideOnSummary);";
 
       $this->query($query);
    }
    
    public function updateStation($stationInfo)
    {
+      $hideOnSummary = ($stationInfo->hideOnSummary ? "true" : "false");
+      
       $query =
       "UPDATE station " .
-      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", description = \"$stationInfo->description\", cycleTime = $stationInfo->cycleTime " .
+      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", objectName = \"$stationInfo->objectName\", cycleTime = $stationInfo->cycleTime, hideOnSummary = $hideOnSummary " .
       "WHERE stationId = $stationInfo->stationId;";
 
       $this->query($query);
@@ -881,9 +926,15 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function getBreakDescription($breakDescriptionId)
    {
-      $query = "SELECT * from breakdescription WHERE breakDescriptionId = \"$breakDescriptionId\";";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("SELECT * from breakdescription WHERE breakDescriptionId = ?");
+      }
       
-      $result = $this->query($query);
+      $statement->bind_param("i", $breakDescriptionId);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
@@ -899,50 +950,58 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function newBreakDescription($breakDescription)
    {
-      $query =
-      "INSERT INTO breakdescription (code, description) " .
-      "VALUES ('$breakDescription->code', '$breakDescription->description');";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare(
+            "INSERT INTO breakdescription (code, description) VALUES (?, ?)");
+      }
       
-      $this->query($query);
+      $statement->bind_param("ss", $breakDescription->code, $breakDescription->description);
+      $statement->execute();
    }
    
    public function updateBreakDescription($breakDescription)
    {
-      $query =
-      "UPDATE breakdescription " .
-      "SET code = \"$breakDescription->code\", description = \"$breakDescription->description\" " .
-      "WHERE breakDescriptionId = $breakDescription->breakDescriptionId;";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare(
+            "UPDATE breakdescription SET code = ?, description = ? WHERE breakDescriptionId = ?");
+      }
       
-      $this->query($query);
+      $statement->bind_param("ssi", $breakDescription->code, $breakDescription->description, $breakDescription->breakDescriptionId);
+      $statement->execute();
    }
    
    public function deleteBreakDescription($breakDescriptionId)
    {
-      $query = "DELETE FROM breakdescription WHERE breakDescriptionId = $breakDescriptionId;";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("DELETE FROM breakdescription WHERE breakDescriptionId = ?");
+      }
       
-      $result = $this->query($query);
+      $statement->bind_param("i", $breakDescriptionId);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
    
-   // **************************************************************************
-   
-   public function getSettings()
-   {
-      $query = "SELECT * from settings;";
-
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-       
    // **************************************************************************
 
    public function getShift($shiftId)
    {
-      $query = "SELECT * from shift WHERE shiftId = \"$shiftId\";";
-
-      $result = $this->query($query);
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("SELECT * from shift WHERE shiftId = ?");
+      }
+      
+      $statement->bind_param("i", $shiftId);
+      $statement->execute();
+      $result = $statement->get_result();
       
       return ($result);
    }
@@ -958,31 +1017,40 @@ class FlexscreenDatabase extends MySqlDatabase
 
    public function newShift($shiftInfo)
    {
-      $query =
-      "INSERT INTO shift (shiftName, startTime, endTime) " .
-      "VALUES ('$shiftInfo->shiftName', '$shiftInfo->startTime', '$shiftInfo->endTime');";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare(
+            "INSERT INTO shift (shiftName, startTime, endTime) VALUES (?, ?, ?)");
+      }
       
-      $this->query($query);
+      $statement->bind_param("sss", $shiftInfo->shiftName, $shiftInfo->startTime, $shiftInfo->endTime);
+      $statement->execute();
    }
 
    public function updateShift($shiftInfo)
    {
-      $query =
-      "UPDATE shift " .
-      "SET shiftName = \"$shiftInfo->shiftName\", startTime = \"$shiftInfo->startTime\", endTime = \"$shiftInfo->endTime\" WHERE shiftId = $shiftInfo->shiftId;";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare(
+            "UPDATE shift SET shiftName = ?, startTime = ?, endTime = ? WHERE shiftId = ?");
+      }
       
-      $this->query($query);
+      $statement->bind_param("sssi", $shiftInfo->shiftName, $shiftInfo->startTime, $shiftInfo->endTime, $shiftInfo->shiftId);
+      $statement->execute();
    }
 
    public function deleteShift($shiftId)
    {
-      $query = "DELETE FROM shift WHERE shiftId = $shiftId;";
+      static $statement = null;
+      if (!$statement)
+      {
+         $statement = $this->getConnection()->prepare("DELETE FROM shift WHERE shiftId = ?");
+      }
       
-      $this->query($query);
-      
-      $query = "DELETE FROM screencount WHERE shiftId = $shiftId;";
-      
-      $this->query($query);
+      $statement->bind_param("i", $shiftId);
+      $statement->execute();
    }
 
    // **************************************************************************
@@ -1107,8 +1175,8 @@ class FlexscreenDatabase extends MySqlDatabase
       $enabled = ($slideInfo->enabled ? "true" : "false");
       
       $query =
-      "INSERT INTO slide (presentationId, slideType, slideIndex, duration, enabled, reloadInterval, url, image, shiftId, stationId1, stationId2, stationId3, stationId4) " .
-      "VALUES ('$slideInfo->presentationId', '$slideInfo->slideType', '$slideInfo->slideIndex', '$slideInfo->duration', $enabled, '$slideInfo->reloadInterval', '$slideInfo->url', '$slideInfo->image', '$slideInfo->shiftId', '{$slideInfo->stationIds[0]}', '{$slideInfo->stationIds[1]}', '{$slideInfo->stationIds[2]}', '{$slideInfo->stationIds[3]}');";
+      "INSERT INTO slide (presentationId, slideType, slideIndex, duration, enabled, reloadInterval, url, image, shiftId, stationFilter, stationId1, stationId2, stationId3, stationId4) " .
+      "VALUES ('$slideInfo->presentationId', '$slideInfo->slideType', '$slideInfo->slideIndex', '$slideInfo->duration', $enabled, '$slideInfo->reloadInterval', '$slideInfo->url', '$slideInfo->image', '$slideInfo->shiftId', '$slideInfo->stationFilter', '{$slideInfo->stationIds[0]}', '{$slideInfo->stationIds[1]}', '{$slideInfo->stationIds[2]}', '{$slideInfo->stationIds[3]}');";
 
       $this->query($query);
    }
@@ -1119,7 +1187,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $query =
       "UPDATE slide " .
-      "SET presentationId = \"$slideInfo->presentationId\", slideType = \"$slideInfo->slideType\", slideIndex = \"$slideInfo->slideIndex\", duration = \"$slideInfo->duration\", enabled = $enabled, reloadInterval = \"$slideInfo->reloadInterval\", url = \"$slideInfo->url\", image = \"$slideInfo->image\", shiftId = \"$slideInfo->shiftId\", stationId1 = \"{$slideInfo->stationIds[0]}\", stationId2 = \"{$slideInfo->stationIds[1]}\", stationId3 = \"{$slideInfo->stationIds[2]}\", stationId4 = \"{$slideInfo->stationIds[3]}\" " .
+      "SET presentationId = \"$slideInfo->presentationId\", slideType = \"$slideInfo->slideType\", slideIndex = \"$slideInfo->slideIndex\", duration = \"$slideInfo->duration\", enabled = $enabled, reloadInterval = \"$slideInfo->reloadInterval\", url = \"$slideInfo->url\", image = \"$slideInfo->image\", shiftId = \"$slideInfo->shiftId\", stationFilter = \"$slideInfo->stationFilter\", stationId1 = \"{$slideInfo->stationIds[0]}\", stationId2 = \"{$slideInfo->stationIds[1]}\", stationId3 = \"{$slideInfo->stationIds[2]}\", stationId4 = \"{$slideInfo->stationIds[3]}\" " .
       "WHERE slideId = $slideInfo->slideId;";
 
       $this->query($query);

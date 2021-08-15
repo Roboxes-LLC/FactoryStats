@@ -197,7 +197,7 @@ Screen = B/w 768px to 1024px
    .header {
       border-width: 0.5em;
    }
-   #shift-id-input {
+   .header-input {
       font-size: 7em;
    }
    

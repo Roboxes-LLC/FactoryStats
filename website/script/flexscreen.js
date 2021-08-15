@@ -496,6 +496,6 @@ function updateFirstEntry(firstEntry)
       var timeString = date.toLocaleTimeString("en-US", {hour: 'numeric', minute: 'numeric'});
       
       var element = document.getElementById("first-entry-div");
-      element.innerHTML = "Time of first screen:&nbsp&nbsp" + timeString;
+      element.innerHTML = timeString;
    }
 }

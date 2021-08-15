@@ -25,8 +25,9 @@ function renderTable()
       <tr>
          <th>Workstation</th>
          <th>Label</th>
-         <th>Description</th>
+         <th>Object Name</th>
          <th>Cycle Time (s)</th>
+         <th>Hidden</th>
          <th>Last Update</th>
          <th></th>
          <th></th>
@@ -44,16 +45,20 @@ HEREDOC;
          $stationId = $row["stationId"];
          
          $stationInfo = StationInfo::load($stationId);
+         
+         $hideOnSummary = $stationInfo->hideOnSummary ? "true" : "false";
+         $hideOnSummarySymbol = $stationInfo->hideOnSummary ? "&#x2714;" : "";  // Heavy check
 
          echo 
 <<<HEREDOC
          <tr>
             <td>$stationInfo->name</td>
             <td>$stationInfo->label</td>
-            <td>$stationInfo->description</td>
+            <td>"$stationInfo->objectName"</td>
             <td>$stationInfo->cycleTime</td>
+            <td>$hideOnSummarySymbol</td>
             <td id="station-$stationId-update-time"></td>
-            <td><button class="config-button" onclick="setStationId($stationInfo->stationId); setStationInfo('$stationInfo->name', '$stationInfo->label', '$stationInfo->description', $stationInfo->cycleTime); showModal('config-station-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setStationId($stationInfo->stationId); setStationInfo('$stationInfo->name', '$stationInfo->label', '$stationInfo->objectName', $stationInfo->cycleTime, $hideOnSummary); showModal('config-station-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setStationId($stationInfo->stationId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -63,13 +68,14 @@ HEREDOC;
    echo "</table>";
 }
 
-function addStation($name, $label, $description, $cycleTime)
+function addStation($name, $label, $objectName, $cycleTime, $hideOnSummary)
 {
    $stationInfo = new StationInfo();
    $stationInfo->name = $name;
    $stationInfo->label = $label;
-   $stationInfo->description = $description;
+   $stationInfo->objectName = $objectName;
    $stationInfo->cycleTime = is_numeric($cycleTime) ? intval($cycleTime) : 0;
+   $stationInfo->hideOnSummary = $hideOnSummary;
    
    $database = FlexscreenDatabase::getInstance();
    
@@ -89,14 +95,15 @@ function deleteStation($stationId)
    }
 }
 
-function updateStation($stationId, $name, $label, $description, $cycleTime)
+function updateStation($stationId, $name, $label, $objectName, $cycleTime, $hideOnSummary)
 {
    $stationInfo = StationInfo::load($stationId);
    $stationInfo->stationId = $stationId;
    $stationInfo->name = $name;
    $stationInfo->label = $label;
-   $stationInfo->description = $description;
-   $stationInfo->cycleTime = $cycleTime;
+   $stationInfo->objectName = $objectName;
+   $stationInfo->cycleTime = is_numeric($cycleTime) ? intval($cycleTime) : 0;
+   $stationInfo->hideOnSummary = $hideOnSummary;
    
    $database = FlexscreenDatabase::getInstance();
    
@@ -123,18 +130,20 @@ switch ($params->get("action"))
    {
       if (is_numeric($params->get("stationId")))
       {
-         updateStation($params->get("stationId"), 
+         updateStation($params->getInt("stationId"), 
                        $params->get("name"),
                        $params->get("label"),
-                       $params->get("description"),
-                       $params->get("cycleTime"));
+                       $params->get("objectName"),
+                       $params->getInt("cycleTime"),
+                       $params->getBool("hideOnSummary"));
       }
       else
       {
          addStation($params->get("name"),
                     $params->get("label"),
-                    $params->get("description"),
-                    $params->get("cycleTime"));
+                    $params->get("objectName"),
+                    $params->getInt("cycleTime"),
+                    $params->getBool("hideOnSummary"));
       }
       break;
    }
@@ -185,7 +194,7 @@ switch ($params->get("action"))
      
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
-         <button class="config-button" onclick="setStationInfo('', '', '', 0); showModal('config-station-modal');">New Station</button>
+         <button class="config-button" onclick="setStationInfo('', '', '', 0, false); showModal('config-station-modal');">New Station</button>
          <br>
          <?php renderTable();?>
       </div>
@@ -198,14 +207,32 @@ switch ($params->get("action"))
 <div id="config-station-modal" class="modal">
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
-      <label>Station name</label>
-      <input id="station-name-input" type="text" form="config-form" name="name"></input>
-      <label>Station label</label>
-      <input id="station-label-input" type="text" form="config-form" name="label"></input>
-      <label>Station description</label>
-      <input id="station-description-input" type="text" form="config-form" name="description"></input>
-      <label>Cycle time</label>
-      <input id="station-cycle-time-input" type="number" form="config-form" name="cycleTime"></input>
+      
+      <div class="flex-vertical input-block">
+         <label>Station name</label>
+         <input id="station-name-input" type="text" form="config-form" name="name"></input>
+      </div>
+
+      <div class="flex-vertical input-block">
+         <label>Station label</label>
+         <input id="station-label-input" type="text" form="config-form" name="label"></input>
+      </div>
+      
+      <div class="flex-vertical input-block">      
+         <label>Object Name</label>
+         <input id="object-name-input" type="text" form="config-form" name="objectName"></input>
+      </div>
+      
+      <div class="flex-vertical input-block">
+         <label>Cycle time</label>
+         <input id="station-cycle-time-input" type="number" form="config-form" name="cycleTime"></input>
+      </div>
+      
+      <div class="flex-horizontal input-block">
+         <label>Hide on summary</label>
+         <input id="hide-on-summary-input" type="checkbox" form="config-form" name="hideOnSummary">
+      </div>
+      
       <div class="flex-horizontal">
          <button class="config-button" type="submit" form="config-form" onclick="setAction('update')">Save</button>
       </div>

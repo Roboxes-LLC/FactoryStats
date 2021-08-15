@@ -49,6 +49,9 @@ class SlideInfo
    // Page options
    public $shiftId;
    
+   // Workstation summary options
+   public $stationFilter;
+   
    // Workstation page options
    public $stationIds;   
    
@@ -62,7 +65,8 @@ class SlideInfo
       $this->reloadInterval = SlideInfo::DEFAULT_RELOAD_INTERVAL;
       $this->url = "";
       $this->image = "";
-      $this->shiftIds = ShiftInfo::UNKNOWN_SHIFT_ID;
+      $this->shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+      $this->stationFilter = StationFilter::UNKNOWN;
       $this->stationIds = array(StationInfo::UNKNOWN_STATION_ID, StationInfo::UNKNOWN_STATION_ID, StationInfo::UNKNOWN_STATION_ID, StationInfo::UNKNOWN_STATION_ID);
    }
    
@@ -78,6 +82,7 @@ class SlideInfo
       $this->url = $row['url'];
       $this->image = $row['image'];
       $this->shiftId = intval($row['shiftId']);
+      $this->stationFilter = intval($row['stationFilter']);
       
       for ($i = 0; $i < SlideInfo::MAX_STATION_IDS; $i++)
       {
@@ -141,6 +146,11 @@ class SlideInfo
             if ($this->shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
             {
                $url .= "&shiftId=" . $this->shiftId;
+            }
+            
+            if ($this->stationFilter != StationFilter::UNKNOWN)
+            {
+               $url .= "&stationFilter=" . $this->stationFilter;
             }
             
             // TODO: Better solution for this!
@@ -264,6 +274,7 @@ if (isset($_GET["slideId"]))
       echo "url: " .              $slideInfo->url .                            "<br/>";
       echo "image: " .            $slideInfo->image .                          "<br/>";
       echo "shiftId: " .          $slideInfo->shiftId .                        "<br/>";
+      echo "stationFilter: " .    $slideInfo->stationFilter .                  "<br/>";
       echo "stationIds: [";
 
       foreach ($slideInfo->stationIds as $stationId)

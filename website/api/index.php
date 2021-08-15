@@ -484,22 +484,27 @@ $router->add("update", function($params) {
        ($stationId != ShiftInfo::UNKNOWN_SHIFT_ID) &&
        isset($params["count"]))
    {
-      if (BreakInfo::getCurrentBreak($stationId, $shiftId))
+      $count = $params->getInt("count");
+      
+      if ($count != 0)
       {
-         BreakInfo::endBreak($stationId, $shiftId);
+         if (BreakInfo::getCurrentBreak($stationId, $shiftId))
+         {
+            BreakInfo::endBreak($stationId, $shiftId);
+         }
+   
+         updateCount($stationId, $shiftId, $count);
       }
-
-      updateCount($stationId, $shiftId, $params->get("count"));
 
       $now = Time::now("Y-m-d H:i:s");
       $startDateTime = Time::startOfDay($now);
       $endDateTime = Time::endOfDay($now);
 
-      $count = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
+      $totalCount = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
 
       $result->stationId = $stationId;
       $result->shiftId = $shiftId;
-      $result->count = $count;
+      $result->count = $totalCount;
    }
 
    echo json_encode($result);
@@ -657,8 +662,11 @@ $router->add("stationInfoSummary", function($params) {
 
       if ($stationInfo)
       {
-         $dateTime = new DateTime($stationInfo->updateTime, new DateTimeZone('America/New_York'));
-         $stationInfo->updateTime = $dateTime->format("m-d-Y h:i a");
+         if ($stationInfo->updateTime)
+         {
+            $dateTime = new DateTime($stationInfo->updateTime, new DateTimeZone('America/New_York'));
+            $stationInfo->updateTime = $dateTime->format("m-d-Y h:i a");
+         }
 
          $result->stationInfoSummary[] = $stationInfo;
       }

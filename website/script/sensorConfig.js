@@ -34,6 +34,12 @@ function updateSensorStatus()
                   {
                      // Last contact.
                      row.cells[3].innerHTML = sensorStatus.lastContact;
+
+                     // IP address
+                     row.cells[4].innerHTML = sensorStatus.ipAddress;
+                                  
+                     // Version        
+                     row.cells[5].innerHTML = sensorStatus.version;
                      
                      // Sensor status.
                      row.cells[6].className = "";

@@ -23,7 +23,7 @@ body {
    padding-bottom: 5px;
 }
 
-#shift-id-input, #am-pm-selection-input {
+.header-input {
    background-color: #14a3db;
    border: none;
    color: white;
@@ -33,7 +33,7 @@ body {
    margin: 5px;   
 }
 
-#shift-id-input option, #am-pm-selection-input option {
+.header-input option {
    background-color: white;
    color: #14a3db;
 }	
@@ -127,7 +127,7 @@ body {
    .header {
       border-width: 2px;
    }
-   #shift-id-input {
+   .header-input {
       font-size: 2em;
    }   
    
@@ -229,7 +229,7 @@ body {
    .header {
       border-width: 2px;
    }
-   #shift-id-input {
+   .header-input {
       font-size: 2em;
    }   
    
@@ -338,7 +338,7 @@ body {
    .header {
       border-width: 0.5em;
    }
-   #shift-id-input {
+   .header-input {
       font-size: 7em;
    }
    

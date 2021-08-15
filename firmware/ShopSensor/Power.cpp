@@ -1,10 +1,5 @@
-#ifdef M5STICKC_PLUS
-#include <M5StickCPlus.h>
-#else
-#include <M5StickC.h>
-#endif
-
 #include "Logger/Logger.hpp"
+#include "M5Defs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
 
@@ -128,12 +123,24 @@ void Power::powerOff()
 
 void Power::update()
 {
-   float batVoltage = M5.Axp.GetBatVoltage();
-   batteryLevel = ( batVoltage < 3.2 ) ? 0 : ( batVoltage - 3.2 ) * 100;
-
    isUsbPowerSource = (M5.Axp.GetIusbinData() > 0);
    
-   isBatteryCharging = M5.Axp.GetBatteryChargingStatus();
+   if (isUsbPowerSource)
+   {
+      isBatteryCharging = (M5.Axp.GetBatChargeCurrent() > 0);
+      
+      batteryLevel = 0;  // TODO: How to determine when charging? 
+   }
+   else
+   {
+      isBatteryCharging = false;
+      
+      int prevBatteryLevel = batteryLevel; 
+      
+      float batVoltage = M5.Axp.GetBatVoltage();
+      batteryLevel = (batVoltage < 3.2) ? 0 : ( batVoltage - 3.2 ) * 100;
+      batteryLevel = (prevBatteryLevel == 0) ? batteryLevel : min(prevBatteryLevel, batteryLevel);  // Smooth out fluctuations on discharge. 
+   }
    
    Display* display = getDisplay();
    if (display)

@@ -14,10 +14,12 @@ class UserInfo
    
    const NO_ASSIGNED_STATIONS = 0;
    
+   const DUMMY_PASSWORD = "DUMMYPASSWORD";
+   
    public $userId;
    public $employeeNumber;
    public $username;
-   public $password;
+   public $passwordHash;
    public $firstName;
    public $lastName;
    public $roles;
@@ -31,7 +33,7 @@ class UserInfo
       $this->userId = UserInfo::UNKNOWN_USER_ID;
       $this->employeeNumber = UserInfo::UNKNOWN_EMPLOYEE_NUMBER;
       $this->username = null;
-      $this->password = null;
+      $this->passwordHash = null;
       $this->firstName = null;
       $this->roles = Role::UNKNOWN;
       $this->permissions = Permission::NO_PERMISSIONS;
@@ -189,7 +191,7 @@ class UserInfo
       $this->userId = intval($row['userId']);
       $this->employeeNumber = intval($row['employeeNumber']);
       $this->username = $row['username'];
-      $this->password = $row['password'];
+      $this->passwordHash = $row['passwordHash'];
       $this->roles = intval($row['roles']);
       $this->permissions = intval($row['permissions']);
       $this->firstName = $row['firstName'];
@@ -219,7 +221,7 @@ if ($userInfo)
    echo "userId: " .           $userInfo->userId .           "<br/>";
    echo "employeeNumber: " .   $userInfo->employeeNumber .   "<br/>";
    echo "username: " .         $userInfo->username .         "<br/>";
-   echo "password: " .         $userInfo->password .         "<br/>";
+   echo "passwordHash: " .     $userInfo->passwordHash .     "<br/>";
    echo "roles: " .            $userInfo->roles .            "<br/>";
    echo "permissions: " .      $userInfo->permissions .      "<br/>";
    echo "firstName: " .        $userInfo->firstName .        "<br/>";
@@ -233,6 +235,33 @@ if ($userInfo)
 else
 {
    echo "No user found.";
+}
+*/
+
+/*
+//
+// Script for replacing passwords with password hashes.
+//
+
+$database = FlexscreenDatabase::getInstance();
+
+if ($database && $database->isConnected())
+{
+   $users = $database->getUsers();
+   
+   foreach ($users as $user)
+   {
+      $userId = $user["userId"];
+
+      $password = $user["password"];
+      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+      
+      $query = "UPDATE user SET passwordHash = '$passwordHash' WHERE userId = '$userId';";
+      
+      $database->query($query);
+      
+      echo "User [$userId]: $password -> $passwordHash<br>";
+   }
 }
 */
 

@@ -2,6 +2,41 @@
 require_once 'database.php';
 require_once 'time.php';
 
+abstract class StationFilter
+{
+   const UNKNOWN = 0;
+   const FIRST = 1;
+   const ALL_STATIONS = StationFilter::FIRST;
+   const ACTIVE_STATIONS = 2;
+   const IDLE_STATIONS = 3;
+   const LAST = 4;
+   const COUNT = StationFilter::LAST - StationFilter::FIRST;
+   
+   public static $values = array(StationFilter::ALL_STATIONS, StationFilter::ACTIVE_STATIONS, StationFilter::IDLE_STATIONS);
+   
+   public static function getLabel($stationFilter)
+   {
+      $labels = array("---", "All Stations", "Active Stations", "Idle Stations");
+      
+      return ($labels[$stationFilter]);
+   }
+   
+   public static function getOptions($selectedStationFilter)
+   {
+      $html = "";
+      
+      foreach (StationFilter::$values as $stationFilter)
+      {
+         $selected = ($selectedStationFilter == $stationFilter) ? "selected" : "";
+         $label = StationFilter::getLabel($stationFilter);
+         
+         $html .= "<option value=\"$stationFilter\" $selected>$label</option>";
+      }
+      
+      return ($html);
+   }
+}
+
 class StationInfo
 {
    const UNKNOWN_STATION_ID = 0;
@@ -10,12 +45,25 @@ class StationInfo
    
    const MAX_STATION_ID = 64;   
    
-   public $stationId = StationInfo::UNKNOWN_STATION_ID;
+   public $stationId;
    public $name;
    public $label;
-   public $description;
+   public $objectName;
    public $cycleTime;
+   public $hideOnSummary;
+   
    public $updateTime;
+   
+   public function __construct()
+   {
+      $this->stationId = StationInfo::UNKNOWN_STATION_ID;
+      $this->name = "";
+      $this->label = "";
+      $this->objectName = "";
+      $this->cycleTime = 0;
+      $this->hideOnSummary = false;
+      $this->updateTime = null;
+   }
 
    public static function load($stationId)
    {
@@ -34,9 +82,13 @@ class StationInfo
             $stationInfo->stationId = intval($row['stationId']);
             $stationInfo->name = $row['name'];
             $stationInfo->label = $row['label'];
-            $stationInfo->description = $row['description'];
+            $stationInfo->objectName = $row['objectName'];
             $stationInfo->cycleTime = intval($row['cycleTime']);
-            $stationInfo->updateTime = Time::fromMySqlDate($row['updateTime'], "Y-m-d H:i:s");
+            $stationInfo->hideOnSummary = filter_var($row["hideOnSummary"], FILTER_VALIDATE_BOOLEAN);
+            if ($row['updateTime'])
+            {
+               $stationInfo->updateTime = Time::fromMySqlDate($row['updateTime'], "Y-m-d H:i:s");
+            }
          }
       }
       
@@ -48,6 +100,29 @@ class StationInfo
       $label = ($this->label != "") ? $this->label : $this->name;
 
       return ($label);
+   }
+   
+   public function getObjectNamePlural()
+   {
+      $pluralName = "";
+      
+      if ($this->objectName != "")
+      {
+         if (StationInfo::str_ends_with($this->objectName, "s") ||
+             StationInfo::str_ends_with($this->objectName, "sh") ||
+             StationInfo::str_ends_with($this->objectName, "ch") ||
+             StationInfo::str_ends_with($this->objectName, "x") ||
+             StationInfo::str_ends_with($this->objectName, "z"))
+         {
+            $pluralName = $this->objectName . "es";
+         }
+         else
+         {
+            $pluralName = $this->objectName . "s";
+         }
+      }
+      
+      return ($pluralName);
    }
    
    public static function getStationOptions($selectedStationId, $includeNoStationOption)
@@ -83,27 +158,36 @@ class StationInfo
       
       return ($html);
    }
+   
+   // Remove if upgrading to PHP 8.
+   private function str_ends_with($haystack, $needle)
+   {
+      $length = strlen($needle);
+      return $length > 0 ? substr($haystack, -$length) === $needle : true;
+   }
 }
 
 /*
- if (isset($_GET["stationId"]))
- {
-    $stationId = $_GET["stationId"];
-    $stationInfo = StationInfo::load($stationId);
+if (isset($_GET["stationId"]))
+{
+   $stationId = $_GET["stationId"];
+   $stationInfo = StationInfo::load($stationId);
     
-    if ($stationInfo)
-    {
-       echo "stationId: " .   $stationInfo->stationId .   "<br/>";
-       echo "name: " .        $stationInfo->name .        "<br/>";
-       echo "label: " .       $stationInfo->label .       "<br/>";
-       echo "description: " . $stationInfo->description . "<br/>";
-       echo "cycleTime: " .   $stationInfo->cycleTime .   "<br/>";
-       echo "updateTime: "  . $stationInfo->updateTime .  "<br/>";
-    }
-    else
-    {
-       echo "No station info found.";
-    }
- }
- */
+   if ($stationInfo)
+   {
+      echo "stationId: " .        $stationInfo->stationId .     "<br/>";
+      echo "name: " .             $stationInfo->name .          "<br/>";
+      echo "label: " .            $stationInfo->label .         "<br/>";
+      echo "objectName: " .       $stationInfo->objectName .    "<br/>";
+      echo "objectNamePlural: " . $stationInfo->getObjectNamePlural() . "<br/>";
+      echo "cycleTime: " .        $stationInfo->cycleTime .     "<br/>";
+      echo "hideOnSummary: " .    $stationInfo->hideOnSummary . "<br/>";
+      echo "updateTime: "  .      $stationInfo->updateTime .    "<br/>";
+   }
+   else
+   {
+      echo "No station info found.";
+   }
+}
+*/
 ?>

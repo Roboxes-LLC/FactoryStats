@@ -43,3 +43,15 @@
 .modal .input-block {
 	margin-bottom: 10px;
 }
+
+.demo-modal-content {
+   width: 300px; 
+   background-image: url("../images/demo-background-300-x-300.jpg");
+   background-size: cover;
+   color: white;
+}
+
+.demo-modal-title {
+	font-size: 18pt;
+	color: yellow;
+}

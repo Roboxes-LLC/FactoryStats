@@ -33,9 +33,9 @@ class HourlyStatsChart
    {
       var chartOptions = {
          legend: 'none',
-         title: 'Screen Counts By Hour',
+         title: 'Counts By Hour',
          hAxis: {
-            title: 'Screen Counts By Hour',
+            title: 'Counts By Hour',
             titleTextStyle:
             {
                color: 'white'

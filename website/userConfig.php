@@ -60,7 +60,7 @@ HEREDOC;
             <td>$userInfo->username</td>
             <td>$roleName</td>
             <td>$userInfo->email</td>
-            <td><button class="config-button" onclick="setUserInfo($userInfo->userId, $userInfo->employeeNumber, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->password', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setUserInfo($userInfo->userId, $userInfo->employeeNumber, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -96,7 +96,7 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
    $userInfo->firstName = $firstName;
    $userInfo->lastName = $lastName;
    $userInfo->username = $username;
-   $userInfo->password = $password;   
+   $userInfo->passwordHash = password_hash($password, PASSWORD_DEFAULT);
    $userInfo->roles = $role;
    if ($roleDetails)
    {
@@ -132,9 +132,14 @@ function updateUser($userId, $employeeNumber, $firstName, $lastName, $username, 
       $userInfo->firstName = $firstName;
       $userInfo->lastName = $lastName;
       $userInfo->username = $username;
-      $userInfo->password = $password;      
       $userInfo->roles = $role;
       $userInfo->email = $email;
+
+      // Updated password, if changed.
+      if ($password != UserInfo::DUMMY_PASSWORD)
+      {
+         $userInfo->passwordHash = password_hash($password, PASSWORD_DEFAULT);
+      }
       
       $database = FlexscreenDatabase::getInstance();
       
@@ -253,7 +258,7 @@ switch ($params->get("action"))
       <label>Username</label>
       <input id="username-input" type="text" form="config-form" name="updatedUsername" value="">
       <label>Password</label>
-      <input id="password-input" type="password" form="config-form" name="updatedPassword" value="">      
+      <input id="password-input" type="password" form="config-form" name="updatedPassword" value="<?php echo UserInfo::DUMMY_PASSWORD ?>">      
       <label>Role</label>
       <select id="role-input" form="config-form" name="role">
          <?php echo getRoleOptions();?>
