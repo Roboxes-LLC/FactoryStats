@@ -130,5 +130,3 @@ class Demo
       return ($result && ($database->countResults($result) > 0));
    }
 }
-
-Demo::generateData();
