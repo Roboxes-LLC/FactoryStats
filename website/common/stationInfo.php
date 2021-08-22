@@ -69,13 +69,13 @@ class StationInfo
    {
       $stationInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getStation($stationId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $stationInfo= new StationInfo();
             
@@ -139,13 +139,13 @@ class StationInfo
          $html = "<option style=\"display:none\">";         
       }
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getStations();
          
-         while ($result && ($row = $result->fetch_assoc()))
+         foreach ($result as $row)
          {
             $stationId = intval($row["stationId"]);
             $stationName = $row["name"];

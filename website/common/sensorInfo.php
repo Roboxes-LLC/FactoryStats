@@ -79,13 +79,13 @@ class SensorInfo
    {
       $sensorInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getSensor($sensorId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $sensorInfo= new SensorInfo();
             
@@ -140,7 +140,7 @@ class SensorInfo
                   {
                      $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
                      
-                     FlexscreenDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
+                     FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
                   }
                   
                   $result->ackedCount = $count;
@@ -170,7 +170,7 @@ class SensorInfo
       {
          $evaluationTimes = $shiftInfo->getEvaluationTimes($now, $now);
       
-         $count = FlexscreenDatabase::getInstance()->getCount(
+         $count = FactoryStatsDatabase::getInstance()->getCount(
             $this->stationId,
             $shiftId,
             $evaluationTimes->startDateTime,

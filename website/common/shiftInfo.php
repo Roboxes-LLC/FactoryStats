@@ -15,17 +15,25 @@ class ShiftInfo
    public $startTime;
    public $endTime;
    
+   public function __construct()
+   {
+      $this->shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+      $this->shiftName = "";
+      $this->startTime = null;
+      $this->endTime = null;
+   }
+   
    public static function load($shiftId)
    {
       $shiftInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getShift($shiftId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $shiftInfo= new ShiftInfo();
             
@@ -43,7 +51,7 @@ class ShiftInfo
    {
       $shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -54,7 +62,7 @@ class ShiftInfo
          $now = new DateTime(Time::now("Y-m-d H:i:s"));
          $now->setDate(0, 0, 0);
          
-         while ($result && ($row = $result->fetch_assoc()))
+         foreach ($result as $row)
          {
             $shiftInfo = ShiftInfo::load($row["shiftId"]);
             
@@ -112,13 +120,13 @@ class ShiftInfo
          $html .= "<option value=\"" . ShiftInfo::UNKNOWN_SHIFT_ID . "\" $selected>All shifts</option>";
       }
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getShifts();
          
-         while ($result && ($row = $result->fetch_assoc()))
+         foreach ($result as $row)
          {
             $shiftId = $row["shiftId"];
             $shiftInfo = ShiftInfo::load($shiftId);

@@ -32,13 +32,13 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getShifts();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $shiftInfo = ShiftInfo::load($row["shiftId"]);
          
@@ -72,7 +72,7 @@ function addShift($shiftName, $startTime, $endTime)
    $shiftInfo->startTime = $startTime;
    $shiftInfo->endTime = $endTime;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -82,7 +82,7 @@ function addShift($shiftName, $startTime, $endTime)
 
 function deleteShift($shiftId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -97,7 +97,7 @@ function updateShift($shiftId, $shiftName, $startTime, $endTime)
    $shiftInfo->startTime = $startTime;
    $shiftInfo->endTime = $endTime;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {

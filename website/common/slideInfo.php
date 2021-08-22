@@ -58,6 +58,7 @@ class SlideInfo
    public function __construct()
    {
       $this->slideId = SlideInfo::UNKNOWN_SLIDE_ID;
+      $this->presentationId =  PresentationInfo::UNKNOWN_PRESENTATION_ID;
       $this->slideType = SlideType::UNKNOWN;
       $this->slideIndex = 0;
       $this->duration = 0;
@@ -96,13 +97,13 @@ class SlideInfo
    {
       $slideInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getSlide($slideId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $slideInfo = new SlideInfo();
             

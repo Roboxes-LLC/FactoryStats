@@ -22,13 +22,13 @@ class PresentationInfo
    {
       $presentationInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getPresentation($presentationId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $presentationInfo = new PresentationInfo();
             
@@ -37,7 +37,7 @@ class PresentationInfo
             
             $result = $database->getSlidesForPresentation($presentationId);
             
-            while ($result && ($row = $result->fetch_assoc()))
+            foreach ($result as $row)
             {
                $slideInfo = new SlideInfo;
                $slideInfo->initializeFromDatabaseRow($row);

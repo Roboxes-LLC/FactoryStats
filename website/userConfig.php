@@ -33,13 +33,13 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getUsers();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $userInfo = UserInfo::load(intval($row["userId"]));
          
@@ -104,7 +104,7 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
    }
    $userInfo->email = $email;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -114,7 +114,7 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
 
 function deleteUser($userId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -141,7 +141,7 @@ function updateUser($userId, $employeeNumber, $firstName, $lastName, $username, 
          $userInfo->passwordHash = password_hash($password, PASSWORD_DEFAULT);
       }
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {

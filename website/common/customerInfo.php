@@ -111,13 +111,13 @@ class CustomerInfo
    {
       $customerInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = getCustomerFromSubdomain(CustomerInfo::getSubdomain());
          
-         if ($result && ($row = $result->fetch_assoc()))  // Assume only one match.
+         if ($result && ($row = $result[0]))  // Assume only one match.
          {
             $customerInfo = new CustomerInfo();
             $customerInfo->initializeFromDatabaseRow($row);
@@ -131,13 +131,13 @@ class CustomerInfo
    {
       $customerInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getCustomer($customerId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $customerInfo = new CustomerInfo();
             

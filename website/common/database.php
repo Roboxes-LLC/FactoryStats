@@ -1,7 +1,17 @@
 <?php
 
+require_once 'breakInfo.php';
+require_once 'buttonInfo.php';
+require_once 'databaseDefs.php';
 require_once 'databaseKey.php';
+require_once 'displayInfo.php';
+require_once 'displayRegistry.php';
+require_once 'roles.php';
+require_once 'sensorInfo.php';
+require_once 'shiftInfo.php';
+require_once 'slideInfo.php';
 require_once 'time.php';
+require_once 'userInfo.php';
 
 interface Database
 {
@@ -11,105 +21,119 @@ interface Database
 
    public function isConnected();
 
-   public function query(
-      $query);
+   public function query($query);
+   
+   public function countResults($result);
+   
+   public function rowsAffected();
+   
+   public function lastInsertId();
 }
 
-class MySqlDatabase implements Database
+class PDODatabase implements Database
 {
-   function __construct(
+   public function __construct(
+      $databaseType,
       $server,
       $user,
       $password,
       $database)
    {
+      $this->databaseType = $databaseType;
       $this->server = $server;
       $this->user = $user;
       $this->password = $password;
       $this->database = $database;
+      
+      $this->isConnected = false;
+      $this->pdo = null;
    }
-
+   
    public function connect()
    {
-      // Create connection
-      $this->connection = new mysqli($this->server, $this->user, $this->password, $this->database);
-
-      // Check connection
-      if ($this->connection->connect_error)
+      try
       {
-         // TODO?
-      }
-      else
-      {
+         $this->pdo = new PDO($this->getDSN(), $this->user, $this->password, $this->getOptions());
+         
          $this->isConnected = true;
       }
-   }
-
-   public function disconnect()
-   {
-      if ($this->isConnected())
+      catch (PDOException $exception)
       {
-         $this->connection->close();
+         throw new PDOException($exception->getMessage(), (int)$exception->getCode());
+         
+         // TODO: Database error handling.
+         echo "Database error: " . $exception->getMessage() . ", code(" . (int)$exception->getCode() . ")";
       }
    }
-
+   
+   public function disconnect()
+   {
+      $this->pdo = null;
+      $this->isConnected = false;
+   }
+   
    public function isConnected()
    {
       return ($this->isConnected);
    }
-
-   public function query(
-      $query)
+   
+   public function query($query)
    {
-      $result = NULL;
-
+      $result = null;
+      
       if ($this->isConnected())
       {
-         $result = $this->connection->query($query);
+         $result = $this->pdo->query($query);
       }
-
+      
       return ($result);
    }
-
-   public static function countResults($result)
+   
+   public function countResults($result)
    {
-      return (mysqli_num_rows($result));
+      return (count($result));
    }
-
+   
    public function rowsAffected()
    {
-      return(mysqli_affected_rows($this->connection));
+      return($this->pdo->rowCount());
    }
-
+   
    public function lastInsertId()
    {
-      return (mysqli_insert_id($this->connection));
+      return ($this->pdo->lastInsertId());
    }
-
-   public function lastQuery()
+   
+   private function getDSN()
    {
-      return ($this->connection->last_query());
-   }
+      $dsn = DatabaseType::getConnectString($this->databaseType, $this->server, $this->database);     
 
-   protected function getConnection()
+      return ($dsn);
+   }
+   
+   private function getOptions()
    {
-      return ($this->connection);
+      $dsn = DatabaseType::getOptions($this->databaseType);
+      
+      return ($dsn);
    }
-
-   private $server = "";
-
-   private $user = "";
-
-   private $password = "";
-
-   private $database = "";
-
-   private $connection;
-
-   private $isConnected = false;
+   
+   protected $databaseType;
+   
+   protected $server;
+   
+   protected $user;
+   
+   protected $password;
+   
+   protected $database;
+   
+   protected $isConnected;
+   
+   protected $pdo;
 }
 
-class FactoryStatsGlobalDatabase extends MySqlDatabase
+class FactoryStatsGlobalDatabase extends PDODatabase
 {
    public static function getInstance()
    {
@@ -125,45 +149,45 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    
    public function __construct()
    {
-      global $SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE;
+      global $DATABASE_TYPE, $GLOBAL_SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE;
       
-      parent::__construct($SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE);
+      parent::__construct($DATABASE_TYPE, $GLOBAL_SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE);
    }
    
    // **************************************************************************
    
    public function isDisplayRegistered($uid)
    {
-      $query = "SELECT * FROM displayregistry WHERE uid = \"$uid\";";
+      $statement = $this->pdo->prepare("SELECT * FROM displayregistry WHERE uid = ?;");
       
-      $result = $this->query($query);
+      $result = $statement->execute([$uid]) ? $statement->fetchAll() : null;
       
-      return (FactoryStatsGlobalDatabase::countResults($result) == 1);
+      return ($result && (count($result) == 1));
    }
    
    public function registerDisplay($uid)
    {
-      $query = "INSERT INTO displayregistry (uid, subdomain) VALUES (\"$uid\", \"\");";
+      $statement = $this->pdo->prepare("INSERT INTO displayregistry (uid, subdomain) VALUES (?, ?);");
       
-      $result = $this->query($query);
+      $result = $statement->execute([$uid, DisplayRegistry::UNKNOWN_SUBDOMAIN]);
       
       return ($result);
    }
    
    public function uregisterDisplay($uid)
    {
-      $query = "DELETE FROM displayregistry WHERE uid = \"$uid\";";
+      $statement = $this->pdo->prepare("DELETE FROM displayregistry WHERE uid = ?;");
       
-      $result = $this->query($query);
+      $result = $statement->execute([$uid]);
       
       return ($result);
    }
    
    public function associateDisplayWithSubdomain($uid, $subdomain)
    {
-      $query = "UPDATE displayregistry SET subdomain = '$subdomain' WHERE uid = '$uid';";
+      $statement = $this->pdo->prepare("UPDATE displayregistry SET subdomain = ? WHERE uid = ?;");
       
-      $result = $this->query($query);
+      $result = $statement->execute([$subdomain, $uid]);
       
       return ($result);
    }
@@ -172,11 +196,11 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    {
       $domain = "";
       
-      $query = "SELECT * FROM displayregistry WHERE uid = '$uid';";
+      $statement = $this->pdo->prepare("SELECT * FROM displayregistry WHERE uid = ?;");
       
-      $result = $this->query($query);
+      $result = $statement->execute([$uid]) ? $statement->fetchAll() : null;
       
-      if ($result && ($row = $result->fetch_assoc()))
+      if ($result && ($row = $result[0]))
       {
          $domain = $row["subdomain"];
       }
@@ -185,17 +209,17 @@ class FactoryStatsGlobalDatabase extends MySqlDatabase
    }
    
    // **************************************************************************
-
+   
    private static $databaseInstance = null;
 }
 
-class FlexscreenDatabase extends MySqlDatabase
+class FactoryStatsDatabase extends PDODatabase
 {
    public static function getInstance()
    {
-      if (!FlexscreenDatabase::$databaseInstance)
+      if (!FactoryStatsDatabase::$databaseInstance)
       {
-         self::$databaseInstance = new FlexscreenDatabase();
+         self::$databaseInstance = new FactoryStatsDatabase();
          
          self::$databaseInstance->connect();
       }
@@ -205,626 +229,25 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function __construct()
    {
-      global $SERVER, $USER, $PASSWORD, $DATABASE;
+      global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE;
       
-      parent::__construct($SERVER, $USER, $PASSWORD, $DATABASE);
+      parent::__construct($DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE);
    }
    
    // **************************************************************************
-   
-   public function getUser($userId)
-   {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare("SELECT * FROM user WHERE userId = ?");
-      }
-      
-      $statement->bind_param("i", $userId);
-      $statement->execute();
-      $result = $statement->get_result();
-      
-      return ($result);
-   }
-   
-   public function getUserByName($username)
-   {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare("SELECT * FROM user WHERE username = ?");
-      }
-      
-      $statement->bind_param("s", $username);
-      $statement->execute();
-      $result = $statement->get_result();
-      
-      return ($result);
-   }
-   
-   public function getUsers()
-   {
-      $query = "SELECT * FROM user ORDER BY firstName ASC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getUsersByRole($role)
-   {
-      $roleClause = "";
-      if ($role != Role::UNKNOWN)
-      {
-         $roleClause = "WHERE roles = $role";
-      }
-      
-      $query = "SELECT * FROM user $roleClause ORDER BY firstName ASC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getUsersByRoles($roles)
-   {
-      $result = null;
-      
-      if (sizeof($roles) > 0)
-      {
-         $rolesClause = "roles in (";
-         
-         $count = 0;
-         foreach ($roles as $role)
-         {
-            $rolesClause .= "'$role'";
-            
-            $count++;
-            
-            if ($count < sizeof($roles))
-            {
-               $rolesClause .= ", ";
-            }
-         }
-         
-         $rolesClause .= ")";
-         
-         $query = "SELECT * FROM user WHERE $rolesClause ORDER BY firstName ASC;";
-         
-         $result = $this->query($query);
-      }
-      
-      return ($result);
-   }
-   
-   public function newUser($userInfo)
-   {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare(
-            "INSERT INTO user " . 
-            "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, assignedStations) " .
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-      }
-      
-      $statement->bind_param(
-         "issiisssi", 
-         $userInfo->employeeNumber,
-         $userInfo->username,
-         $userInfo->passwordHash,
-         $userInfo->roles,
-         $userInfo->permissions,
-         $userInfo->firstName,
-         $userInfo->lastName,
-         $userInfo->email,
-         $userInfo->assignedStations);
-      $statement->execute();
-      $result = $statement->get_result();
-      
-      return ($result);
-   }
-   
-   public function updateUser($userInfo)
-   {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare(
-            "UPDATE user " .
-            "SET employeeNumber = ?, username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, assignedStations = ? " .
-            "WHERE userId = ?");
-      }
-      
-      $statement->bind_param(
-         "issiisssii",
-         $userInfo->employeeNumber,
-         $userInfo->username,
-         $userInfo->passwordHash,
-         $userInfo->roles,
-         $userInfo->permissions,
-         $userInfo->firstName,
-         $userInfo->lastName,
-         $userInfo->email,
-         $userInfo->assignedStations,
-         $userInfo->userId);
-      $statement->execute();
-      $result = $statement->get_result();
-      
-      return ($result);
-   }
-   
-   public function deleteUser($userId)
-   {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare("DELETE FROM user WHERE userId = ?");
-      }
-      
-      $statement->bind_param("i", $userId);
-      $statement->execute();
-      $result = $statement->get_result();
-      
-      return ($result);
-   }
-   
-   // **************************************************************************
-   
-   public function getDisplay($displayId)
-   {
-      $query = "SELECT * from display WHERE displayId = \"$displayId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getDisplays()
-   {
-      $query = "SELECT * from display ORDER BY uid DESC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getDisplayByUid($uid)
-   {
-      $query = "SELECT * from display WHERE uid = \"$uid\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function newDisplay($displayInfo)
-   {
-      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
-      
-      $enabled = ($displayInfo->enabled ? "true" : "false");
-      
-      $query =
-      "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact, enabled) " .
-      "VALUES ('$displayInfo->uid', '$displayInfo->ipAddress', '$displayInfo->name', '$displayInfo->presentationId', '$lastContact', $enabled);";
-
-      $this->query($query);
-   }
-   
-   public function updateDisplay($displayInfo)
-   {
-      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
-      
-      $enabled = ($displayInfo->enabled ? "true" : "false");
-      
-      $query =
-      "UPDATE display " .
-      "SET uid = \"$displayInfo->uid\", ipAddress = \"$displayInfo->ipAddress\", name = \"$displayInfo->name\", presentationId = \"$displayInfo->presentationId\", lastContact = \"$lastContact\", enabled = $enabled " .
-      "WHERE displayId = $displayInfo->displayId;";
-
-      $this->query($query);
-   }
-   
-   public function deleteDisplay($displayId)
-   {
-      $query = "DELETE FROM display WHERE displayId = $displayId;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   // **************************************************************************
-   
-   public function getButton($buttonId)
-   {
-      $query = "SELECT * from button WHERE buttonId = \"$buttonId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getButtons()
-   {
-      $query = "SELECT * from button ORDER BY uid ASC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getButtonsForStation($stationId)
-   {
-      $query = "SELECT * from button WHERE stationId = \"$stationId\" ORDER BY lastContact DESC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getButtonByUid($uid)
-   {
-      $query = "SELECT * from button WHERE uid = \"$uid\";";
-
-      $result = $this->query($query);
-     
-      return ($result);
-   }
-   
-   public function buttonExists($uid)
-   {
-      $query = "SELECT buttonId from button WHERE uid = \"$uid\";";
-      
-      $result = $this->query($query);
-      
-      return ($result && ($result->num_rows > 0));
-   }
-   
-   public function newButton($buttonInfo)
-   {
-      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
-      
-      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
-      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
-      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
-      
-      $enabled = ($buttonInfo->enabled ? "true" : "false");
-      
-      $query =
-      "INSERT INTO button (uid, ipAddress, name, stationId, clickAction, doubleClickAction, holdAction, lastContact, enabled) " .
-      "VALUES ('$buttonInfo->uid', '$buttonInfo->ipAddress', '$buttonInfo->name', '$buttonInfo->stationId', '$clickAction', '$doubleClickAction', '$holdAction', '$lastContact', $enabled);";
-
-      $this->query($query);
-   }
-   
-   public function updateButton($buttonInfo)
-   {
-      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
-      
-      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
-      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
-      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
-      
-      $enabled = ($buttonInfo->enabled ? "true" : "false");
-      
-      $query =
-      "UPDATE button " .
-      "SET uid = \"$buttonInfo->uid\", ipAddress = \"$buttonInfo->ipAddress\", name = \"$buttonInfo->name\", stationId = \"$buttonInfo->stationId\", clickAction = \"$clickAction\", doubleClickAction = \"$doubleClickAction\", holdAction = \"$holdAction\", lastContact = \"$lastContact\", enabled = $enabled " .
-      "WHERE buttonId = $buttonInfo->buttonId;";
-
-      $this->query($query);
-   }
-   
-   public function deleteButton($buttonId)
-   {
-      $query = "DELETE FROM button WHERE buttonId = $buttonId;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   // **************************************************************************
-   
-   public function getSensor($sensorId)
-   {
-      $query = "SELECT * from sensor WHERE sensorId = \"$sensorId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getSensors()
-   {
-      $query = "SELECT * from sensor ORDER BY uid ASC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getSensorByUid($uid)
-   {
-      $query = "SELECT * from sensor WHERE uid = \"$uid\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function sensorExists($uid)
-   {
-      $query = "SELECT sensorId from sensors WHERE uid = \"$uid\";";
-      
-      $result = $this->query($query);
-      
-      return ($result && ($result->num_rows > 0));
-   }
-   
-   public function newSensor($sensorInfo)
-   {
-      $lastContact = Time::toMySqlDate($sensorInfo->lastContact);
-      
-      $enabled = ($sensorInfo->enabled ? "true" : "false");
-      
-      $query =
-      "INSERT INTO sensor (uid, ipAddress, version, name, sensorType, stationId, lastContact, enabled) " .
-      "VALUES ('$sensorInfo->uid', '$sensorInfo->ipAddress', '$sensorInfo->version', '$sensorInfo->name', '$sensorInfo->sensorType', '$sensorInfo->stationId', '$lastContact', $enabled);";
-      
-      $this->query($query);
-   }
-   
-   public function updateSensor($sensorInfo)
-   {
-      $lastContact = Time::toMySqlDate($sensorInfo->lastContact);
-      
-      $enabled = ($sensorInfo->enabled ? "true" : "false");
-      
-      $query =
-      "UPDATE sensor " .
-      "SET uid = \"$sensorInfo->uid\", ipAddress = \"$sensorInfo->ipAddress\", version = \"$sensorInfo->version\", name = \"$sensorInfo->name\", sensorType = \"$sensorInfo->sensorType\", stationId = \"$sensorInfo->stationId\", lastContact = \"$lastContact\", enabled = $enabled " .
-      "WHERE sensorId = $sensorInfo->sensorId;";
-      
-      $this->query($query);
-   }
-   
-   public function deleteSensor($sensorId)
-   {
-      $query = "DELETE FROM sensor WHERE sensorId = $sensorId;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   // **************************************************************************
-   
-   public function getStation($stationId)
-   {
-      $query = "SELECT * from station WHERE stationId = \"$stationId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getStations()
-   {
-      $query = "SELECT * from station ORDER BY name ASC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   } 
-   
-   public function stationExists($stationId)
-   {
-      $query = "SELECT stationId from station WHERE stationId = \"$stationId\";";
-
-      $result = $this->query($query);
-      
-      return ($result && ($result->num_rows > 0));
-   }
-   
-   public function newStation($stationInfo)
-   {
-      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
-      
-      $query = "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary, updateTime) VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->objectName', '$stationInfo->cycleTime', '$stationInfo->hideOnSummary', $now');";
-
-      $this->query($query);
-   }
-   
-   public function addStation($stationInfo)
-   {
-      $hideOnSummary = ($stationInfo->hideOnSummary ? "true" : "false");
-      
-      $query =
-      "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary) " .
-      "VALUES ('$stationInfo->name', '$stationInfo->label', '$stationInfo->objectName', '$stationInfo->cycleTime', $hideOnSummary);";
-
-      $this->query($query);
-   }
-   
-   public function updateStation($stationInfo)
-   {
-      $hideOnSummary = ($stationInfo->hideOnSummary ? "true" : "false");
-      
-      $query =
-      "UPDATE station " .
-      "SET name = \"$stationInfo->name\", label = \"$stationInfo->label\", objectName = \"$stationInfo->objectName\", cycleTime = $stationInfo->cycleTime, hideOnSummary = $hideOnSummary " .
-      "WHERE stationId = $stationInfo->stationId;";
-
-      $this->query($query);
-   }
-   
-   public function deleteStation($stationId)
-   {
-      $query = "DELETE FROM station WHERE stationId = $stationId;";
-      
-      $this->query($query);
-      
-      $query = "DELETE FROM screencount WHERE stationId = $stationId;";
-      
-      $this->query($query);
-      
-      $query = "UPDATE button SET stationId = NULL WHERE stationId = $stationId;";
-      
-      $this->query($query);
-      
-      $query = "UPDATE display SET stationId = NULL WHERE stationId = $stationId;";
-      
-      $this->query($query);
-   }
-   
-   public function touchStation($stationId)
-   {
-      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
-
-      // Record last update time.
-      $query = "UPDATE station SET updateTime = \"$now\" WHERE stationId = \"$stationId\";";
-
-      $this->query($query);
-   }
-   
-   // **************************************************************************
-   
-   const ALL_SHIFTS = 0;
-
-   public function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
-   {
-      $screenCount = 0;
-      
-      $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-      $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
-      $query = "SELECT SUM(count) FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "';";
-
-      $result = $this->query($query);
-      
-      if ($result && ($row = $result->fetch_assoc()))
-      {
-         $screenCount = intval($row['SUM(count)']);
-      }
-      
-      return ($screenCount);
-   }
-   
-   public function getHourlyCounts($stationId, $shiftId, $startDateTime, $endDateTime)
-   {
-       $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-       $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
-       $query = "SELECT stationId, shiftId, dateTime, count FROM screencount WHERE $stationClause $shiftClause dateTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, dateTime ASC;";
-
-       $result = $this->query($query);
-             
-       return ($result);
-   }
-   
-   public function updateCount($stationId, $shiftId, $screenCount)
-   {
-      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
-      $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
-      
-      // Calculate the time since the update (in seconds).
-      $countTime = FlexscreenDatabase::calculateCountTime($stationId);
-      
-      // Determine if we have an entry for this station/hour.
-      $query = "SELECT * from screencount WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime = \"$nowHour\";";
-
-      $result = $this->query($query);
-      
-      // New entry.
-      if ($result && ($result->num_rows == 0))
-      {
-         $query =
-         "INSERT INTO screencount " .
-         "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
-         "VALUES " .
-         "('$stationId', '$shiftId', '$nowHour', '$screenCount', '$countTime', '$now', '$now');";
-         
-         $this->query($query);
-      }
-      // Updated entry.
-      else
-      {
-         // Update counter count.
-         $query = 
-            "UPDATE screencount SET count = count + $screenCount, countTime = countTime + $countTime, lastEntry = \"$now\" " .
-            "WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime = \"$nowHour\";";
-
-         $this->query($query);
-      }
-      
-      // Store a new updateTime for this station.
-      $this->touchStation($stationId);
-   }
-   
-   public function getUpdateTime($stationId)
-   {
-      $updateTime = "";
-      
-      $query = "SELECT updateTime from station WHERE stationId = \"$stationId\";";
-
-      $result = $this->query($query);
-      
-      if ($result && ($row = $result->fetch_assoc()))
-      {
-         $updateTime = Time::fromMySqlDate($row["updateTime"], "Y-m-d H:i:s");
-      }
-      
-      return ($updateTime);
-   }
-   
-   public function getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime)
-   {
-      $firstEntry = null;
-      
-      $query = 
-         "SELECT firstEntry FROM screencount " . 
-         "WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime ASC LIMIT 1;";
-
-      $result = $this->query($query);
-      
-      if ($result && ($row = $result->fetch_assoc()) && $row["firstEntry"])
-      {
-         $firstEntry = Time::fromMySqlDate($row["firstEntry"], "Y-m-d H:i:s");
-      }
-      
-      return ($firstEntry);
-   }
-   
-   public function getLastEntry($stationId,  $shiftId, $startDateTime, $endDateTime)
-   {
-      $lastEntry = null;
-      
-      $query = 
-         "SELECT lastEntry FROM screencount " .
-         "WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND dateTime >= '" . Time::toMySqlDate($startDateTime) . "' AND dateTime < '" . Time::toMySqlDate($endDateTime) . "' ORDER BY dateTime DESC LIMIT 1;";
-
-      $result = $this->query($query);
-      
-      if ($result && ($row = $result->fetch_assoc()) && $row["lastEntry"])
-      {
-         $lastEntry = Time::fromMySqlDate($row["lastEntry"], "Y-m-d H:i:s");
-      }
-      
-      return ($lastEntry);
-   }
-   
-   // **************************************************************************
+   //                                   Break
    
    public function getCurrentBreakId($stationId, $shiftId)
    {
       $breakId = 0;
       
-      $query =
-      "SELECT breakId FROM break WHERE stationId = $stationId AND shiftId = $shiftId AND endTime IS NULL";
-
-      $result = $this->query($query);
+      $breakTable = DatabaseType::reservedName("break", $this->databaseType);
       
-      if ($result && ($row = $result->fetch_assoc()))
+      $statement = $this->pdo->prepare("SELECT breakId FROM $breakTable WHERE stationId = ? AND shiftId = ? AND endTime IS NULL;");
+      
+      $result = $statement->execute([$stationId, $shiftId]) ? $statement->fetchAll() : null;
+      
+      if ($result && ($row = $result[0]))
       {
          $breakId = $row["breakId"];
       }
@@ -839,57 +262,92 @@ class FlexscreenDatabase extends MySqlDatabase
    
    public function startBreak($stationId, $shiftId, $breakDescriptionId, $startDateTime)
    {
-      $success = false;
+      $result = false;
       
       if (!$this->isOnBreak($stationId, $shiftId))
       {
-         $query =
-         "INSERT INTO break " .
-         "(stationId, shiftId, breakDescriptionId, startTime) " .
-         "VALUES " .
-         "('$stationId', '$shiftId', '$breakDescriptionId', '" . Time::toMySqlDate($startDateTime) . "');";
+         $breakTable = DatabaseType::reservedName("break", $this->databaseType);
+         
+         $statement = $this->pdo->prepare(
+            "INSERT INTO $breakTable " .
+            "(stationId, shiftId, breakDescriptionId, startTime) " .
+            "VALUES " .
+            "(?, ?, ?, ?);");
 
-         $success = $this->query($query);
+         $result = $statement->execute(
+            [
+               $stationId,
+               $shiftId, 
+               $breakDescriptionId,
+               Time::toMySqlDate($startDateTime)
+            ]);
       }
       
-      return ($success);
+      return ($result);
    }
    
    public function endBreak($stationId, $shiftId, $endDateTime)
    {
-      $success = false;
+      $result = false;
       
       $breakId = $this->getCurrentBreakId($stationId, $shiftId);
       
-      if ($breakId != 0)
+      if ($breakId != BreakInfo::UNKNOWN_BREAK_ID)
       {
-         $query =
-         "UPDATE break " .
-         "SET endTime = \"" . Time::toMySqlDate($endDateTime) . "\" " .
-         "WHERE breakId = $breakId;";
+         $breakTable = DatabaseType::reservedName("break", $this->databaseType);
          
-         $success = $this->query($query);
+         $statement = $this->pdo->prepare("UPDATE $breakTable SET endTime = ? WHERE breakId = ?;");
+         
+         $result = $statement->execute(
+            [
+               Time::toMySqlDate($endDateTime),
+               $breakId
+            ]);
       }
       
-      return ($success);
+      return ($result);
    }
    
    public function getBreak($breakId)
    {
-      $query = "SELECT * from break WHERE breakId = \"$breakId\";";
+      $breakTable = DatabaseType::reservedName("break", $this->databaseType);
       
-      $result = $this->query($query);
+      $statement = $this->pdo->prepare("SELECT * from $breakTable WHERE breakId = ?;");
+      
+      $result = $statement->execute([$breakId]) ? $statement->fetchAll() : null;
       
       return ($result);
    }
    
    public function getBreaks($stationId, $shiftId, $startDateTime, $endDateTime)
    {
-      $stationClause = ($stationId == "ALL") ? "" : "stationId = \"$stationId\" AND";
-      $shiftClause = ($shiftId == FlexscreenDatabase::ALL_SHIFTS) ? "" : "shiftId = \"$shiftId\" AND";
-      $query = "SELECT * FROM break WHERE $stationClause $shiftClause startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY stationId ASC, startTime ASC;";
-
-      $result = $this->query($query);
+      $params = array();
+      
+      $stationClause = "";
+      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+      {
+         $stationClause = "stationId = ? AND";
+         $params[] = $stationId;
+      }
+      
+      $shiftClause = "";
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $shiftClause = "shiftId = ? AND";
+         $params[] = $shiftId;
+      }
+      
+      $breakTable = DatabaseType::reservedName("break", $this->databaseType);
+      
+      $statement = $this->pdo->prepare(
+         "SELECT * FROM $breakTable WHERE $stationClause $shiftClause " .
+         "startTime BETWEEN ? AND ? " .
+         "ORDER BY stationId ASC, startTime ASC;");
+      
+      $params[] = Time::toMySqlDate($startDateTime);
+      $params[] = Time::toMySqlDate($endDateTime);
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
       
       return ($result);
    }
@@ -898,13 +356,25 @@ class FlexscreenDatabase extends MySqlDatabase
    {
       $breakTime = 0;
       
-      $query = "SELECT * FROM break WHERE stationId = \"$stationId\" AND shiftId = \"$shiftId\" AND startTime BETWEEN '" . Time::toMySqlDate($startDateTime) . "' AND '" . Time::toMySqlDate($endDateTime) . "' ORDER BY startTime DESC;";
+      $breakTable = DatabaseType::reservedName("break", $this->databaseType);
 
-      $result = $this->query($query);
+      $statement = $this->pdo->prepare(
+         "SELECT * FROM $breakTable WHERE " .
+         "stationId = ? AND shiftId = ? AND " .
+         "startTime BETWEEN ? AND ? " .
+         "ORDER BY startTime DESC;");
+      
+      $result = $statement->execute(
+         [
+            $stationId,
+            $shiftId,
+            Time::toMySqlDate($startDateTime),
+            Time::toMySqlDate($endDateTime)
+         ]);
       
       $updateTime = getUpdateTime($stationId);
       
-      while ($result && ($row = $result->fetch_assoc()))
+      foreach ($result as $row)
       {
          // Only count complete breaks.
          $isCompleteBreak = ($row["endTime"] != null);
@@ -912,7 +382,7 @@ class FlexscreenDatabase extends MySqlDatabase
          // Don't count breaks that start *after* the last screen count.
          $startTime = Time::fromMySqlDate($row["startTime"], "Y-m-d H:i:s");
          $isValidBreak = (new DateTime($startTime) < new DateTime($updateTime));
-
+         
          if ($isCompleteBreak && $isValidBreak)
          {
             $breakTime += Time::differenceSeconds($row["startTime"], $row["endTime"]);
@@ -923,136 +393,1082 @@ class FlexscreenDatabase extends MySqlDatabase
    }
    
    // **************************************************************************
+   //                                   Count
+   
+   public function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
+   {
+      $screenCount = 0;
+      
+      $params = array();
+      
+      $stationClause = "";
+      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+      {
+         $stationClause = "stationId = ? AND";
+         $params[] = $stationId;
+      }
+            
+      $shiftClause = "";
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $shiftClause = "shiftId = ? AND";
+         $params[] = $shiftId;
+      }
+      
+      $params[] = Time::toMySqlDate($startDateTime);
+      $params[] = Time::toMySqlDate($endDateTime);
+      
+      $query = "SELECT SUM(count) AS countSum FROM count WHERE $stationClause $shiftClause dateTime BETWEEN ? AND ?;";
+      
+      $statement = $this->pdo->prepare($query);
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
+      
+      if ($result && ($row = $result[0]))
+      {
+         $screenCount = intval($row['countSum']);
+      }
+      
+      return ($screenCount);
+   }
+   
+   public function getHourlyCounts($stationId, $shiftId, $startDateTime, $endDateTime)
+   {
+      $params = array();
+      
+      $stationClause = "";
+      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+      {
+         $stationClause = "stationId = ? AND";
+         $params[] = $stationId;
+      }
+      
+      $shiftClause = "";
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $shiftClause = "shiftId = ? AND";
+         $params[] = $shiftId;
+      }
+      
+      $params[] = Time::toMySqlDate($startDateTime);
+      $params[] = Time::toMySqlDate($endDateTime);
+            
+      $statement = $this->pdo->prepare(
+         "SELECT stationId, shiftId, dateTime, count FROM count " .
+         "WHERE $stationClause $shiftClause dateTime BETWEEN ? AND ? " .
+         "ORDER BY stationId ASC, dateTime ASC;");
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function updateCount($stationId, $shiftId, $screenCount)
+   {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+      $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
+      
+      // Calculate the time since the update (in seconds).
+      $countTime = $this->calculateCountTime($stationId);
+      
+      // Determine if we have an entry for this station/hour.
+      $statement = $this->pdo->prepare(
+         "SELECT * from count " .
+         "WHERE stationId = ? AND shiftId = ? AND dateTime = ?;");
+
+      $result = $statement->execute([$stationId, $shiftId, $nowHour]) ? $statement->fetchAll() : null;
+
+      if (!$result || (count($result) == 0))
+      {
+         $statement = $this->pdo->prepare(
+            "INSERT INTO count " .
+            "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
+            "VALUES (?, ?, ?, ?, ?, ?, ?);");
+         
+         $result = $statement->execute(
+            [
+               $stationId,
+               $shiftId, 
+               $nowHour,
+               $screenCount,
+               $countTime,
+               $now,
+               $now
+            ]);
+      }
+      // Updated entry.
+      else
+      {
+         $statement = $this->pdo->prepare(
+            "UPDATE count SET " .
+            "count = count + ?, countTime = countTime + ?, lastEntry = ? " .
+            "WHERE stationId = ? AND shiftId = ? AND dateTime = ?;");
+         
+         $result = $statement->execute(
+            [
+               $screenCount,
+               $countTime,
+               $now,
+               $stationId,
+               $shiftId,
+               $nowHour
+            ]);
+      }
+      
+      // Store a new updateTime for this station.
+      $this->touchStation($stationId);
+   }
+   
+   public function getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime)
+   {
+      $firstEntry = null;
+      
+      $statement = $this->pdo->prepare(
+         "SELECT firstEntry FROM count " .
+         "WHERE stationId = ? AND shiftId = ? AND dateTime >= ? AND dateTime < ? " .
+         "ORDER BY dateTime ASC;");
+      
+      $result = $statement->execute(
+         [
+            $stationId,
+            $shiftId, 
+            $startDateTime, 
+            $endDateTime               
+         ]) ? $statement->fetchAll() : null;
+      
+      if ($result && ($row = $result[0]) && $row["firstEntry"])
+      {
+         $firstEntry = Time::fromMySqlDate($row["firstEntry"], "Y-m-d H:i:s");
+      }
+      
+      return ($firstEntry);
+   }
+   
+   public function getLastEntry($stationId,  $shiftId, $startDateTime, $endDateTime)
+   {
+      $lastEntry = null;
+      
+      $statement = $this->pdo->prepare(
+            "SELECT lastEntry FROM count " .
+            "WHERE stationId = ? AND shiftId = ? AND dateTime >= ? AND dateTime < ? " .
+            "ORDER BY dateTime ASC;");
+      
+      $result = $statement->execute(
+         [
+            $stationId, 
+            $shiftId,
+            $startDateTime,
+            $endDateTime               
+         ]) ? $statement->fetchAll() : null;
+      
+      if ($result && ($row = $result[0]) && $row["lastEntry"])
+      {
+         $lastEntry = Time::fromMySqlDate($row["lastEntry"], "Y-m-d H:i:s");
+      }
+      
+      return ($lastEntry);
+   }
+   
+   public function setHourlyCount($stationId, $shiftId, $dateTime, $count, $countTime)
+   {
+      $dateTime = Time::toMySqlDate($dateTime);
+      
+      $firstEntry = Time::toMySqlDate(Time::startOfHour($dateTime));
+      $lastEntry = Time::toMySqlDate(Time::endOfHour($dateTime));
+      
+      $statement = $this->pdo->prepare(
+         "INSERT INTO count " .
+         "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
+         "VALUES " .
+         "(?, ?, ?, ?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $stationId,
+            $shiftId,
+            $dateTime,
+            $count,
+            $countTime,
+            $firstEntry,
+            $lastEntry
+         ]);
+      
+      return ($result);
+   }
+   
+   public function hasCountEntry($stationId, $shiftId, $dateTime)
+   {
+      $dateTime = Time::toMySqlDate($dateTime);
+      
+      $statement = $this->pdo->prepare(
+            "SELECT * FROM count WHERE stationId = ? AND shiftId = ? AND dateTime = ?;");
+      
+      $result = $statement->execute(
+         [
+            $stationId,
+            $shiftId,
+            $dateTime
+         ]) ? $statement->fetchAll() : null;
+      
+      return ($result && (count($result) > 0));
+   }
+   
+   // **************************************************************************
+   //                              Break Description
    
    public function getBreakDescription($breakDescriptionId)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare("SELECT * from breakdescription WHERE breakDescriptionId = ?");
-      }
+      $statement = $this->pdo->prepare("SELECT * from breakdescription WHERE breakDescriptionId = ?;");
       
-      $statement->bind_param("i", $breakDescriptionId);
-      $statement->execute();
-      $result = $statement->get_result();
+      $result = $statement->execute([$breakDescriptionId]) ? $statement->fetchAll() : null;
       
       return ($result);
    }
    
    public function getBreakDescriptions()
    {
-      $query = "SELECT * FROM breakdescription;";
+      $statement = $this->pdo->prepare("SELECT * from breakdescription;");
       
-      $result = $this->query($query);
+      $result = $statement->execute() ? $statement->fetchAll() : null;
       
       return ($result);
+      
    }
    
    public function newBreakDescription($breakDescription)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare(
-            "INSERT INTO breakdescription (code, description) VALUES (?, ?)");
-      }
+      $statement = $this->pdo->prepare(
+         "INSERT INTO breakdescription (code, description) VALUES (?, ?)");
       
-      $statement->bind_param("ss", $breakDescription->code, $breakDescription->description);
-      $statement->execute();
+      $result = $statement->execute([$breakDescription->code, $breakDescription->description]);
+      
+      return ($result);
    }
    
    public function updateBreakDescription($breakDescription)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare(
-            "UPDATE breakdescription SET code = ?, description = ? WHERE breakDescriptionId = ?");
-      }
+      $statement = $this->pdo->prepare(
+         "UPDATE breakdescription SET code = ?, description = ? WHERE breakDescriptionId = ?");
       
-      $statement->bind_param("ssi", $breakDescription->code, $breakDescription->description, $breakDescription->breakDescriptionId);
-      $statement->execute();
+      $result = $statement->execute(
+         [
+            $breakDescription->code, 
+            $breakDescription->description, 
+            $breakDescription->breakDescriptionId
+         ]);
+      
+      return ($result);
    }
    
    public function deleteBreakDescription($breakDescriptionId)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare("DELETE FROM breakdescription WHERE breakDescriptionId = ?");
-      }
+      $statement = $this->pdo->prepare("DELETE FROM breakdescription WHERE breakDescriptionId = ?");
       
-      $statement->bind_param("i", $breakDescriptionId);
-      $statement->execute();
-      $result = $statement->get_result();
+      $result = $statement->execute([$breakDescriptionId]);
       
       return ($result);
    }
    
    // **************************************************************************
+   //                                   Button
+   
+   public function getButton($buttonId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from button WHERE buttonId = ?;");
+      
+      $result = $statement->execute([$buttonId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getButtons()
+   {
+      $statement = $this->pdo->prepare("SELECT * from button ORDER BY uid ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getButtonsForStation($stationId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from button WHERE stationId = ? ORDER BY lastContact DESC;");
+      
+      $result = $statement->execute([$stationId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getButtonByUid($uid)
+   {
+      $statement = $this->pdo->prepare("SELECT * from button WHERE uid = ?;");
+      
+      $result = $statement->execute([$uid]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function buttonExists($uid)
+   {
+      $statement = $this->pdo->prepare("SELECT buttonId from button WHERE uid = ?;");
+      
+      $result = $statement->execute([$uid]) ? $statement->fetchAll() : null;
+      
+      return ($result && (count($result) > 0));
+   }
+   
+   public function newButton($buttonInfo)
+   {
+      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
+      
+      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+      
+      $statement = $this->pdo->prepare(
+         "INSERT INTO button (uid, ipAddress, name, stationId, clickAction, doubleClickAction, holdAction, lastContact, enabled) " . 
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $buttonInfo->uid,
+            $buttonInfo->ipAddress,
+            $buttonInfo->name,
+            $buttonInfo->stationId,
+            $clickAction,
+            $doubleClickAction,
+            $holdAction,
+            $lastContact,
+            $buttonInfo->enabled
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updateButton($buttonInfo)
+   {
+      $lastContact = Time::toMySqlDate($buttonInfo->lastContact);
+      
+      $clickAction = $buttonInfo->getButtonAction(ButtonPress::SINGLE_CLICK);
+      $doubleClickAction = $buttonInfo->getButtonAction(ButtonPress::DOUBLE_CLICK);
+      $holdAction = $buttonInfo->getButtonAction(ButtonPress::HOLD);
+      
+      $statement = $this->pdo->prepare(
+         "UPDATE button " .
+         "SET uid = ?, ipAddress = ?, name = ?, stationId = ?, clickAction = ?, doubleClickAction = ?, " .
+         "holdAction = ?, lastContact = ?, enabled = ? " .
+         "WHERE buttonId = ?;");
+      
+      $result = $statement->execute(
+         [
+            $buttonInfo->uid,
+            $buttonInfo->ipAddress,
+            $buttonInfo->name,
+            $buttonInfo->stationId,
+            $clickAction,
+            $doubleClickAction,
+            $holdAction,
+            $lastContact,
+            $buttonInfo->enabled,
+            $buttonInfo->buttonId
+         ]);
 
+      return ($result);
+   }
+   
+   public function deleteButton($buttonId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM button WHERE buttonId = ?;");
+      
+      $result = $statement->execute([$buttonId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                Customer
+      
+   public function getCustomer($customerId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from customer WHERE customerId = ?;");
+      
+      $result = $statement->execute([$customerId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getCustomerFromSubdomain($subdomain)
+   {
+      $statement = $this->pdo->prepare("SELECT * from customer WHERE subdomain = ?;");
+      
+      $result = $statement->execute([$subdomain]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                  Display
+   
+   public function getDisplay($displayId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from display WHERE displayId = ?;");
+      
+      $result = $statement->execute([$displayId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getDisplays()
+   {
+      $statement = $this->pdo->prepare("SELECT * from display ORDER BY uid DESC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getDisplayByUid($uid)
+   {
+      $statement = $this->pdo->prepare("SELECT * from display WHERE uid = ?;");
+      
+      $result = $statement->execute([$uid]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function newDisplay($displayInfo)
+   {
+      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
+      
+      $statement = $this->pdo->prepare(
+         "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact, enabled) " .
+         "VALUES (?, ?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $displayInfo->uid,
+            $displayInfo->ipAddress,
+            $displayInfo->name,
+            $displayInfo->presentationId,
+            $lastContact,
+            $displayInfo->enabled ? 1 : 0
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updateDisplay($displayInfo)
+   {
+      $lastContact = Time::toMySqlDate($displayInfo->lastContact);
+      
+      $statement = $this->pdo->prepare(
+         "UPDATE display " .
+         "SET uid = ?, ipAddress = ?, name = ?, presentationId = ?, lastContact = ?, enabled = ? " .
+         "WHERE displayId = ?;");
+      
+      $result = $statement->execute(
+         [
+            $displayInfo->uid,
+            $displayInfo->ipAddress,
+            $displayInfo->name,
+            $displayInfo->presentationId,
+            $lastContact,
+            $displayInfo->enabled ? 1 : 0,
+            $displayInfo->displayId
+         ]);
+
+      return ($result);
+   }
+   
+   public function deleteDisplay($displayId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM display WHERE displayId = ?;");
+      
+      $result = $statement->execute([$displayId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                               Presentation
+   
+   public function getPresentations()
+   {
+      $statement = $this->pdo->prepare("SELECT * from presentation ORDER BY name ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getPresentation($presentationId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from presentation WHERE presentationId = ?;");
+      
+      $result = $statement->execute([$presentationId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function newPresentation($presentationInfo)
+   {
+      $statement = $this->pdo->prepare("INSERT INTO presentation (name) VALUES (?);");
+      
+      $result = $statement->execute([$presentationInfo->name]);
+      
+      return ($result);
+   }
+   
+   public function updatePresentation($presentationInfo)
+   {
+      $statement = $this->pdo->prepare("UPDATE presentation SET name = ? WHERE presentationId = ?;");
+      
+      $result = $statement->execute([$presentationInfo->name, $presentationInfo->presentationId]);
+      
+      return ($result);
+   }
+   
+   public function deletePresentation($presentationId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM presentation WHERE presentationId = ?;");
+      
+      $result = $statement->execute([$presentationId]);
+      
+      $statement = $this->pdo->prepare("DELETE FROM slide WHERE presentationId = ?;");
+      
+      $result &= $statement->execute([$presentationId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                   User
+   
+   public function getUser($userId)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE userId = ?;");
+      
+      $result = $statement->execute([$userId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUserByName($username)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE username = ?");
+
+      $result = $statement->execute([$username]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsers()
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable ORDER BY firstName ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsersByRole($role)
+   {
+      $params = array();
+      
+      $roleClause = "";
+      if ($role != Role::UNKNOWN)
+      {
+         $roleClause = "WHERE roles = ?";
+         $params[] = $role;
+      }
+      
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $query = "SELECT * FROM $userTable $roleClause ORDER BY firstName ASC;";
+      
+      $statement = $this->pdo->prepare($query);
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsersByRoles($roles)
+   {
+      $result = null;
+      
+      $params = array();
+      
+      if (sizeof($roles) > 0)
+      {
+         $rolesClause = "roles in (";
+         
+         $count = 0;
+         foreach ($roles as $role)
+         {
+            $rolesClause .= "?";
+            $params[] = $role;
+            
+            $count++;
+            
+            if ($count < sizeof($roles))
+            {
+               $rolesClause .= ", ";
+            }
+         }
+         
+         $rolesClause .= ")";
+         
+         $userTable = DatabaseType::reservedName("user", $this->databaseType);
+         
+         $query = "SELECT * FROM $userTable WHERE $rolesClause ORDER BY firstName ASC;";
+
+         $statement = $this->pdo->prepare($query);
+         
+         $result = $statement->execute($params) ? $statement->fetchAll() : false;
+      }
+      
+      return ($result);
+   }
+   
+   public function newUser($userInfo)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare(
+         "INSERT INTO $userTable " .
+         "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, assignedStations) " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      
+      $result = $statement->execute(
+         [
+            $userInfo->employeeNumber,
+            $userInfo->username,
+            $userInfo->passwordHash,
+            $userInfo->roles,
+            $userInfo->permissions,
+            $userInfo->firstName,
+            $userInfo->lastName,
+            $userInfo->email,
+            $userInfo->assignedStations
+         ]);
+
+      return ($result);
+   }
+   
+   public function updateUser($userInfo)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare(
+            "UPDATE $userTable " .
+            "SET employeeNumber = ?, username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, assignedStations = ? " .
+            "WHERE userId = ?");
+      
+      $result = $statement->execute(
+         [
+            $userInfo->employeeNumber,
+            $userInfo->username,
+            $userInfo->passwordHash,
+            $userInfo->roles,
+            $userInfo->permissions,
+            $userInfo->firstName,
+            $userInfo->lastName,
+            $userInfo->email,
+            $userInfo->assignedStations,
+            $userInfo->userId
+         ]);
+      
+      return ($result);
+   }
+   
+   public function deleteUser($userId)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("DELETE FROM $userTable WHERE userId = ?");
+      
+      $result = $statement->execute([$userId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                  Sensor
+   
+   public function getSensor($sensorId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from sensor WHERE sensorId = ?;");
+      
+      $result = $statement->execute([$sensorId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getSensors()
+   {
+      $statement = $this->pdo->prepare("SELECT * from sensor ORDER BY uid ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getSensorByUid($uid)
+   {
+      $statement = $this->pdo->prepare("SELECT * from sensor WHERE uid = ?;");
+      
+      $result = $statement->execute([$uid]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function sensorExists($uid)
+   {
+      $result = $this->getSensor($uid);
+      
+      return ($result && (count($result) > 0));
+   }
+   
+   public function newSensor($sensorInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "INSERT INTO sensor (uid, ipAddress, version, name, sensorType, stationId, lastContact, enabled) " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $sensorInfo->uid, 
+            $sensorInfo->ipAddress,
+            $sensorInfo->version,
+            $sensorInfo->name,
+            $sensorInfo->sensorType,
+            $sensorInfo->stationId, 
+            Time::toMySqlDate($sensorInfo->lastContact),
+            $sensorInfo->enabled
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updateSensor($sensorInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "UPDATE sensor " .
+         "SET uid = ?, ipAddress = ?, version = ?, name = ?, sensorType = ?, stationId = ?, lastContact = ?, enabled = ? " .
+         "WHERE sensorId = ?;");
+      
+      $result = $statement->execute(
+         [
+            $sensorInfo->uid,
+            $sensorInfo->ipAddress,
+            $sensorInfo->version,
+            $sensorInfo->name,
+            $sensorInfo->sensorType,
+            $sensorInfo->stationId,
+            Time::toMySqlDate($sensorInfo->lastContact),
+            $sensorInfo->enabled,
+            $sensorInfo->sensorId,
+         ]);
+      
+      return ($result);
+   }
+   
+   public function deleteSensor($sensorId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM sensor WHERE sensorId = ?;");
+      
+      $result = $statement->execute([$sensorId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                  Shift
+   
    public function getShift($shiftId)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare("SELECT * from shift WHERE shiftId = ?");
-      }
+      $statement = $this->pdo->prepare("SELECT * from shift WHERE shiftId = ?;");
       
-      $statement->bind_param("i", $shiftId);
-      $statement->execute();
-      $result = $statement->get_result();
+      $result = $statement->execute([$shiftId]) ? $statement->fetchAll() : null;
       
       return ($result);
    }
-
+   
    public function getShifts()
    {
-      $query = "SELECT * from shift ORDER BY startTime ASC;";
+      $statement = $this->pdo->prepare("SELECT * from shift ORDER BY startTime ASC;");
       
-      $result = $this->query($query);
+      $result = $statement->execute() ? $statement->fetchAll() : null;
       
       return ($result);
    }
-
+   
    public function newShift($shiftInfo)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare(
-            "INSERT INTO shift (shiftName, startTime, endTime) VALUES (?, ?, ?)");
-      }
+      $statement = $this->pdo->prepare(
+         "INSERT INTO shift (shiftName, startTime, endTime) VALUES (?, ?, ?)");
       
-      $statement->bind_param("sss", $shiftInfo->shiftName, $shiftInfo->startTime, $shiftInfo->endTime);
-      $statement->execute();
+      $result = $statement->execute([$shiftInfo->shiftName, $shiftInfo->startTime, $shiftInfo->endTime]);
+      
+      return ($result);
    }
-
+   
    public function updateShift($shiftInfo)
    {
-      static $statement = null;
-      if (!$statement)
-      {
-         $statement = $this->getConnection()->prepare(
-            "UPDATE shift SET shiftName = ?, startTime = ?, endTime = ? WHERE shiftId = ?");
-      }
+      $statement = $this->pdo->prepare(
+         "UPDATE shift SET shiftName = ?, startTime = ?, endTime = ? WHERE shiftId = ?;");
       
-      $statement->bind_param("sssi", $shiftInfo->shiftName, $shiftInfo->startTime, $shiftInfo->endTime, $shiftInfo->shiftId);
-      $statement->execute();
+      $result = $statement->execute([$shiftInfo->shiftName, $shiftInfo->startTime, $shiftInfo->endTime, $shiftInfo->shiftId]);
+      
+      return ($result);
    }
-
+   
    public function deleteShift($shiftId)
    {
-      static $statement = null;
-      if (!$statement)
+      $statement = $this->pdo->prepare("DELETE FROM shift WHERE shiftId = ?;");
+      
+      $result = $statement->execute([$shiftId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                  Slides
+   
+   public function getSlide($slideId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from slide WHERE slideId = ?;");
+      
+      $result = $statement->execute([$slideId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getSlidesForPresentation($presentationId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from slide WHERE presentationId = ? ORDER BY slideIndex ASC;");
+      
+      $result = $statement->execute([$presentationId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function newSlide($slideInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "INSERT INTO slide (presentationId, slideType, slideIndex, duration, enabled, " . 
+         "reloadInterval, url, image, shiftId, stationFilter, stationId1, stationId2, stationId3, stationId4)  " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $slideInfo->presentationId,
+            $slideInfo->slideType,
+            $slideInfo->slideIndex,
+            $slideInfo->duration,
+            $slideInfo->enabled ? 1 : 0,
+            $slideInfo->reloadInterval,
+            $slideInfo->url,
+            $slideInfo->image,
+            $slideInfo->shiftId,
+            $slideInfo->stationFilter,
+            $slideInfo->stationIds[0],
+            $slideInfo->stationIds[1],
+            $slideInfo->stationIds[2],
+            $slideInfo->stationIds[3]
+         ]);
+
+      return ($result);
+   }
+   
+   public function updateSlide($slideInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "UPDATE slide " .
+         "SET presentationId = ?, slideType = ?, slideIndex = ?, duration = ?, enabled = ?, " .
+         "reloadInterval = ?, url = ?, image = ?, shiftId = ?, stationFilter = ?, " .
+         "stationId1 = ?, stationId2 = ?, stationId3 = ?, stationId4 = ? " .
+         "WHERE slideId = ?;");
+      
+      $result = $statement->execute(
+         [
+            $slideInfo->presentationId,
+            $slideInfo->slideType,
+            $slideInfo->slideIndex,
+            $slideInfo->duration,
+            $slideInfo->enabled ? 1 : 0,
+            $slideInfo->reloadInterval,
+            $slideInfo->url,
+            $slideInfo->image,
+            $slideInfo->shiftId,
+            $slideInfo->stationFilter,
+            $slideInfo->stationIds[0],
+            $slideInfo->stationIds[1],
+            $slideInfo->stationIds[2],
+            $slideInfo->stationIds[3],
+            $slideInfo->slideId
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updateSlideOrder($slideId, $slideIndex)
+   {
+      $statement = $this->pdo->prepare("UPDATE slide SET slideIndex = ? WHERE slideId = ?;");
+      
+      $result = $statement->execute([$slideId, $slideIndex]);
+      
+      return ($result);
+   }
+   
+   public function deleteSlide($slideId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM slide WHERE slideId = ?;");
+      
+      $result = $statement->execute([$slideId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                 Station
+   
+   public function getStation($stationId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from station WHERE stationId = ?;");
+      
+      $result = $statement->execute([$stationId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getStations()
+   {
+      $statement = $this->pdo->prepare("SELECT * from station ORDER BY name ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function stationExists($stationId)
+   {
+      $result = $this->getStation($stationId);
+      
+      return ($result && (count($result) > 0));
+   }
+   
+   public function newStation($stationInfo)
+   {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+      
+      $statement = $this->pdo->prepare(
+         "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary, updateTime) " .
+         "VALUES (?, ?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $stationInfo->name, 
+            $stationInfo->label, 
+            $stationInfo->objectName, 
+            $stationInfo->cycleTime, 
+            $stationInfo->hideOnSummary ? 1 : 0, 
+            $now
+         ]);
+      
+      return ($result);
+   }
+   
+   public function addStation($stationInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary) " .
+         "VALUES (?, ?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $stationInfo->name,
+            $stationInfo->label,
+            $stationInfo->objectName,
+            $stationInfo->cycleTime,
+            $stationInfo->hideOnSummary ? 1 : 0,
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updateStation($stationInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "UPDATE station " .
+         "SET name = ?, label = ?, objectName = ?, cycleTime = ?, hideOnSummary = ? " .
+         "WHERE stationId = ?;");
+      
+      $result = $statement->execute(
+         [
+            $stationInfo->name,
+            $stationInfo->label,
+            $stationInfo->objectName,
+            $stationInfo->cycleTime,
+            $stationInfo->hideOnSummary ? 1 : 0,
+            $stationInfo->stationId
+         ]);
+      
+      return ($result);
+   }
+   
+   public function deleteStation($stationId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM station WHERE stationId = ?;");
+      
+      $result = $statement->execute([$stationId]);
+      
+      $statement = $this->pdo->prepare("DELETE FROM count WHERE stationId = ?;");
+      
+      $result &= $statement->execute([$stationId]);
+      
+      $statement = $this->pdo->prepare("UPDATE button SET stationId = NULL WHERE stationId = ?;");
+      
+      $result &= $statement->execute([$stationId]);
+
+      return ($result);
+   }
+   
+   public function touchStation($stationId)
+   {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+
+      $statement = $this->pdo->prepare("UPDATE station SET updateTime = ? WHERE stationId = ?;");
+
+      // Record last update time.
+      $result = $statement->execute([$now, $stationId]);
+      
+      return ($result);
+   }
+   
+   public function getUpdateTime($stationId)
+   {
+      $updateTime = "";
+      
+      $statement = $this->pdo->prepare("SELECT updateTime from station WHERE stationId = ?;");
+      
+      $result = $statement->execute([$stationId]);
+      
+      if ($result && ($row = $result[0]))
       {
-         $statement = $this->getConnection()->prepare("DELETE FROM shift WHERE shiftId = ?");
+         $updateTime = Time::fromMySqlDate($row["updateTime"], "Y-m-d H:i:s");
       }
       
-      $statement->bind_param("i", $shiftId);
-      $statement->execute();
+      return ($updateTime);
    }
-
+   
    // **************************************************************************
    
    protected function calculateCountTime($stationId)
@@ -1061,7 +1477,7 @@ class FlexscreenDatabase extends MySqlDatabase
       
       $now = new DateTime("now", new DateTimeZone('America/New_York'));
       
-      $updateTime = new DateTime(FlexscreenDatabase::getUpdateTime($stationId), new DateTimeZone('America/New_York'));
+      $updateTime = new DateTime($this->getUpdateTime($stationId), new DateTimeZone('America/New_York'));
       
       if ($updateTime)
       {
@@ -1082,136 +1498,7 @@ class FlexscreenDatabase extends MySqlDatabase
    
    // **************************************************************************
    
-   public function getCustomer($customerId)
-   {
-      $query = "SELECT * from customer WHERE customerId = \"$customerId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getCustomerFromSubdomain($subdomain)
-   {
-      $query = "SELECT * from customer WHERE subdomain = \"$subdomain\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   // **************************************************************************
-   
-   public function getPresentations()
-   {
-      $query = "SELECT * from presentation ORDER BY name ASC;";
-      
-      $result = $this->query($query);
-      
-      return ($result);
-   }
-   
-   public function getPresentation($presentationId)
-   {
-      $query = "SELECT * from presentation WHERE presentationId = \"$presentationId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);      
-   }
-   
-   public function newPresentation($presentationInfo)
-   {
-      $query =
-      "INSERT INTO presentation (name) " .
-      "VALUES ('$presentationInfo->name');";
-      
-      $this->query($query);
-   }
-   
-   public function updatePresentation($presentationInfo)
-   {
-      $query =
-      "UPDATE presentation " .
-      "SET name = \"$presentationInfo->name\" " .
-      "WHERE presentationId = $presentationInfo->presentationId;";
-      
-      $this->query($query);
-   }
-   
-   public function deletePresentation($presentationId)
-   {
-      $query = "DELETE FROM presentation WHERE presentationId = $presentationId;";
-      
-      $this->query($query);
-      
-      $query = "DELETE FROM slide WHERE presentationId = $presentationId;";
-      
-      $this->query($query);
-   }
-      
-   // **************************************************************************
-   
-   public function getSlide($slideId)
-   {
-      $query = "SELECT * from slide WHERE slideId = \"$slideId\";";
-      
-      $result = $this->query($query);
-      
-      return ($result);      
-   }
-   
-   public function getSlidesForPresentation($presentationId)
-   {
-      $query = "SELECT * from slide WHERE presentationId = \"$presentationId\" ORDER BY slideIndex ASC";
-      
-      $result = $this->query($query);
-      
-      return ($result);      
-   }
-   
-   public function newSlide($slideInfo)
-   {
-      $enabled = ($slideInfo->enabled ? "true" : "false");
-      
-      $query =
-      "INSERT INTO slide (presentationId, slideType, slideIndex, duration, enabled, reloadInterval, url, image, shiftId, stationFilter, stationId1, stationId2, stationId3, stationId4) " .
-      "VALUES ('$slideInfo->presentationId', '$slideInfo->slideType', '$slideInfo->slideIndex', '$slideInfo->duration', $enabled, '$slideInfo->reloadInterval', '$slideInfo->url', '$slideInfo->image', '$slideInfo->shiftId', '$slideInfo->stationFilter', '{$slideInfo->stationIds[0]}', '{$slideInfo->stationIds[1]}', '{$slideInfo->stationIds[2]}', '{$slideInfo->stationIds[3]}');";
-
-      $this->query($query);
-   }
-   
-   public function updateSlide($slideInfo)
-   {
-      $enabled = ($slideInfo->enabled ? "true" : "false");
-      
-      $query =
-      "UPDATE slide " .
-      "SET presentationId = \"$slideInfo->presentationId\", slideType = \"$slideInfo->slideType\", slideIndex = \"$slideInfo->slideIndex\", duration = \"$slideInfo->duration\", enabled = $enabled, reloadInterval = \"$slideInfo->reloadInterval\", url = \"$slideInfo->url\", image = \"$slideInfo->image\", shiftId = \"$slideInfo->shiftId\", stationFilter = \"$slideInfo->stationFilter\", stationId1 = \"{$slideInfo->stationIds[0]}\", stationId2 = \"{$slideInfo->stationIds[1]}\", stationId3 = \"{$slideInfo->stationIds[2]}\", stationId4 = \"{$slideInfo->stationIds[3]}\" " .
-      "WHERE slideId = $slideInfo->slideId;";
-
-      $this->query($query);
-   }
-   
-   public function updateSlideOrder($slideId, $slideIndex)
-   {
-      $query =
-      "UPDATE slide SET slideIndex = \"$slideIndex\" WHERE slideId = $slideId;";
-      
-      $this->query($query);
-   }
-   
-   public function deleteSlide($slideId)
-   {
-      $query = "DELETE FROM slide WHERE slideId = $slideId;";
-      
-      $this->query($query);
-   }
-   
-   // **************************************************************************
-   
-   
-   private static $databaseInstance = null;
+   private static $databaseInstance;
 }
 
 ?>

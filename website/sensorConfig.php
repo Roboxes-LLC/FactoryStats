@@ -37,13 +37,13 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getSensors();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $sensorInfo = SensorInfo::load($row["sensorId"]);
          
@@ -96,13 +96,13 @@ function getStationOptions()
 {
    $options = "";
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $options .= "<option value=\"{$row["stationId"]}\">{$row["name"]}</option>";
       }
@@ -127,7 +127,7 @@ function getSensorTypeOptions()
 
 function deleteSensor($sensorId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -145,7 +145,7 @@ function updateSensor($sensorId, $sensorType, $stationId, $enabled)
       $sensorInfo->stationId = $stationId;
       $sensorInfo->enabled = $enabled;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {

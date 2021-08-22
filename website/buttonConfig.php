@@ -37,13 +37,13 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getButtons();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $buttonInfo = ButtonInfo::load($row["buttonId"]);
          
@@ -96,13 +96,13 @@ function getStationOptions()
 {
    $options = "";
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $options .= "<option value=\"{$row["stationId"]}\">{$row["name"]}</option>";
       }
@@ -129,7 +129,7 @@ function getButtonClickOptions()
 
 function deleteButton($buttonId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -147,7 +147,7 @@ function updateButton($buttonId, $stationId, $clickAction, $doubleClickAction, $
    $buttonInfo->setButtonAction(ButtonPress::HOLD, $holdAction);
    $buttonInfo->enabled = $enabled;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {

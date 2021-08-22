@@ -32,13 +32,13 @@ class Demo
    
    public static function generateData()
    {
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getStations();
          
-         while ($result && ($row = $result->fetch_assoc()))
+         foreach ($result as $row)
          {
             $stationId = intval($row["stationId"]);
             
@@ -48,7 +48,7 @@ class Demo
             
             foreach ($simulationData as $data)
             {
-               Demo::setHourlyCount($stationId, $shiftId, $data->hour, $data->count, $data->countTime);
+               $database->setHourlyCount($stationId, $shiftId, $data->hour, $data->count, $data->countTime);
             }
             
             // Update the count to set stationInfo.updateTime.
@@ -61,72 +61,38 @@ class Demo
    {
       $simulationData = array();
       
-      $shiftInfo = ShiftInfo::load($shiftId);
+      $database = FactoryStatsDatabase::getInstance();
       
-      $now = Time::now("Y-m-d H:i:s");
-      
-      if ($shiftInfo)
+      if ($database && $database->isConnected())
       {
-         $shiftTimes = $shiftInfo->getShiftTimes($now, $now);
+         $shiftInfo = ShiftInfo::load($shiftId);
          
-         $dateTime = $shiftTimes->startDateTime;
+         $now = Time::now("Y-m-d H:i:s");
          
-         while (($dateTime < $shiftTimes->endDateTime) &&
-                ($dateTime < $now))
+         if ($shiftInfo)
          {
-            if (!Demo::hasEntry($stationId, $shiftId, $dateTime))
-            {
-               $data = new stdClass();
-               $data->hour = $dateTime;
-               $data->count = rand(Demo::MIN_COUNT, Demo::MAX_COUNT);
-               $data->countTime = 3600;  // seconds in an hour
-               
-               $simulationData[] = $data;
-            }
+            $shiftTimes = $shiftInfo->getShiftTimes($now, $now);
             
-            $dateTime = Time::incrementHour($dateTime);
+            $dateTime = $shiftTimes->startDateTime;
+            
+            while (($dateTime < $shiftTimes->endDateTime) &&
+                   ($dateTime < $now))
+            {
+               if ($database->hasCountEntry($stationId, $shiftId, $dateTime))
+               {
+                  $data = new stdClass();
+                  $data->hour = $dateTime;
+                  $data->count = rand(Demo::MIN_COUNT, Demo::MAX_COUNT);
+                  $data->countTime = 3600;  // seconds in an hour
+                  
+                  $simulationData[] = $data;
+               }
+               
+               $dateTime = Time::incrementHour($dateTime);
+            }
          }
       }
       
       return ($simulationData);
-   }
-   
-   private static function setHourlyCount($stationId, $shiftId, $dateTime, $count, $countTime)
-   {
-      $database = FlexscreenDatabase::getInstance();
-      
-      $dateTime = Time::toMySqlDate($dateTime);
-      
-      $firstEntry = Time::toMySqlDate(Time::startOfHour($dateTime));
-      $lastEntry = Time::toMySqlDate(Time::endOfHour($dateTime));
-      
-      if ($database && $database->isConnected())
-      {
-         $query =
-         "INSERT INTO screencount " .
-         "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
-         "VALUES " .
-         "('$stationId', '$shiftId', '$dateTime', '$count', '$countTime', '$firstEntry', '$lastEntry');";
-
-         $database->query($query);
-      }
-   }
-   
-   private static function hasEntry($stationId, $shiftId, $dateTime)
-   {
-      $database = FlexscreenDatabase::getInstance();
-      
-      $dateTime = Time::toMySqlDate($dateTime);
-      
-      $result = null;
-      
-      if ($database && $database->isConnected())
-      {
-         $query = "SELECT * FROM screencount WHERE stationId = $stationId AND shiftId = $shiftId AND dateTime = '$dateTime';";
-  
-         $result = $database->query($query);
-      }
-      
-      return ($result && ($database->countResults($result) > 0));
    }
 }

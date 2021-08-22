@@ -30,13 +30,13 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getBreakDescriptions();
       
-      while ($result && ($row = $result->fetch_assoc()))
+      foreach ($result as $row)
       {
          $breakDescription = BreakDescription::load($row["breakDescriptionId"]);
          
@@ -61,7 +61,7 @@ function addBreakDescription($code, $description)
    $breakDescription->code = $code;
    $breakDescription->description = $description;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -71,7 +71,7 @@ function addBreakDescription($code, $description)
 
 function deleteBreakDescription($breakDescriptionId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -85,7 +85,7 @@ function updateBreakDescription($breakDescriptionId, $code, $description)
    $breakDescription->code = $code;
    $breakDescription->description = $description;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {

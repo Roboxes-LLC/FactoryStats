@@ -36,22 +36,6 @@ function getParams()
    return ($params);
 }
 
-function getScreenSizeClass()
-{
-   $class = "";
-   
-   $params = getParams();
-   
-   if ($params->keyExists("screenSize"))
-   {
-      $screenSize = $params->getInt("screenSize");
-      
-      $class = ScreenSize::getClass($screenSize);
-   }
-   
-   return ($class);
-}
-
 function getStationIds()
 {
    $stationIds = array();
@@ -215,8 +199,6 @@ HEREDOC;
 }
 
 ?>
-
-<html class="<?php echo getScreenSizeClass(); ?>">
 
 <head>
 

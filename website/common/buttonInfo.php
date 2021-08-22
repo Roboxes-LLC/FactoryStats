@@ -44,13 +44,13 @@ class ButtonInfo
    {
       $buttonInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getButton($buttonId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $buttonInfo= new ButtonInfo();
             
@@ -143,7 +143,7 @@ class ButtonInfo
             {
                if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  FlexscreenDatabase::getInstance()->updateCount($this->stationId, $shiftId, 1);
+                  FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, 1);
                }
                break;
             }
@@ -152,7 +152,7 @@ class ButtonInfo
             {
                if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  FlexscreenDatabase::getInstance()->updateCount($this->stationId, $shiftId, -1);
+                  FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, -1);
                }               
                break;
             }

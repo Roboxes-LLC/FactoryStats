@@ -36,13 +36,13 @@ function renderTable()
       </tr>
 HEREDOC;
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
       $result = $database->getDisplays();
 
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $displayInfo = DisplayInfo::load($row["displayId"]);
 
@@ -80,13 +80,13 @@ function getPresentationOptions()
 {
    $options = "<option value=\"0\">None</option>";
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
       $result = $database->getPresentations();
 
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $options .= "<option value=\"{$row["presentationId"]}\">{$row["name"]}</option>";
       }
@@ -97,7 +97,7 @@ function getPresentationOptions()
 
 function deleteDisplay($displayId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
@@ -112,7 +112,7 @@ function updateDisplay($displayId, $name, $presentationId, $enabled)
    $displayInfo->presentationId = $presentationId;
    $displayInfo->enabled = $enabled;
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
