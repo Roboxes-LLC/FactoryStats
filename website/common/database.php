@@ -951,7 +951,7 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE userId = ?;");
       
       $result = $statement->execute([$userId]) ? $statement->fetchAll() : null;
-      
+
       return ($result);
    }
    

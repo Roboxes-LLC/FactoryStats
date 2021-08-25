@@ -46,7 +46,7 @@ function getStations()
 Time::init();
 
 $router = new Router();
-$router->setLogging(true);
+$router->setLogging(false);
 
 $router->add("button", function($params) {
    $result = new stdClass();
