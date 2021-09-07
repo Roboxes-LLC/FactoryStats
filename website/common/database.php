@@ -526,7 +526,7 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare(
          "SELECT firstEntry FROM count " .
          "WHERE stationId = ? AND shiftId = ? AND dateTime >= ? AND dateTime < ? " .
-         "ORDER BY dateTime ASC;");
+         "ORDER BY dateTime DESC;");
       
       $result = $statement->execute(
          [
@@ -551,7 +551,7 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare(
             "SELECT lastEntry FROM count " .
             "WHERE stationId = ? AND shiftId = ? AND dateTime >= ? AND dateTime < ? " .
-            "ORDER BY dateTime ASC;");
+            "ORDER BY dateTime DESC;");
       
       $result = $statement->execute(
          [
