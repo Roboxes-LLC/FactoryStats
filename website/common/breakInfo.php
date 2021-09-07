@@ -20,13 +20,13 @@ class BreakInfo
    {
       $breakInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getBreak($breakId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $breakInfo = new BreakInfo();
             
@@ -49,7 +49,7 @@ class BreakInfo
    {
       $breakInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -68,7 +68,7 @@ class BreakInfo
    {
       $isOnBreak = false;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -84,7 +84,7 @@ class BreakInfo
       
       if (BreakInfo::isOnBreak($stationId, $shiftId) == false)
       {
-         $database = FlexscreenDatabase::getInstance();
+         $database = FactoryStatsDatabase::getInstance();
          
          if ($database && $database->isConnected())
          {
@@ -103,7 +103,7 @@ class BreakInfo
       
       if ($breakInfo)
       {
-         $database = FlexscreenDatabase::getInstance();
+         $database = FactoryStatsDatabase::getInstance();
          
          if ($database && $database->isConnected())
          {

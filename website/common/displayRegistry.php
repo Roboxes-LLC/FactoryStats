@@ -4,6 +4,8 @@ require_once 'database.php';
 
 class DisplayRegistry
 {
+   const UNKNOWN_SUBDOMAIN = "";
+   
    static function isRegistered($uid)
    {
       $isRegistered = false;

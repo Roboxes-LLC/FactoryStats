@@ -8,7 +8,7 @@ class Stats
    {
       $averageCountTime = 0;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -47,13 +47,13 @@ class Stats
    {
       $breakTime = 0;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getBreaks($stationId, $shiftId, $startDateTime, $endDateTime);
          
-         while ($result && ($row = $result->fetch_assoc()))
+         foreach ($result as $row)
          {
             // Only count complete breaks.
             if ($row["endTime"] != null)

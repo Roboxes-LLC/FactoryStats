@@ -26,9 +26,9 @@ function renderStationSummaries($shiftId)
 {
    echo "<div class=\"flex-horizontal main summary\">";
    
-   $result = FlexscreenDatabase::getInstance()->getStations();
+   $result = FactoryStatsDatabase::getInstance()->getStations();
    
-   while ($result && ($row = $result->fetch_assoc()))
+   foreach ($result as $row)
    {
       $stationId = $row["stationId"];
       

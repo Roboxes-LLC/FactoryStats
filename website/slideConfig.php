@@ -151,7 +151,7 @@ function getSlideTypeOptions()
 
 function deleteSlide($slideId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
@@ -184,7 +184,7 @@ function addSlide(
    $slideInfo->stationFilter = $stationFilter;
    $slideInfo->stationIds = $stationIds;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -219,7 +219,7 @@ function updateSlide(
       $slideInfo->stationFilter = $stationFilter;
       $slideInfo->stationIds = $stationIds;
 
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
    
       if ($database && $database->isConnected())
       {

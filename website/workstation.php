@@ -162,13 +162,13 @@ function getShiftHours()
 {
    $shiftHours = "";
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getShifts();
       
-      while ($result && ($row = $result->fetch_assoc()))
+      foreach ($result as $row)
       {
          $shiftName = $row["shiftName"];
          

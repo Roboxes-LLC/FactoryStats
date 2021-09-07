@@ -34,13 +34,13 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $stationId = $row["stationId"];
          
@@ -77,7 +77,7 @@ function addStation($name, $label, $objectName, $cycleTime, $hideOnSummary)
    $stationInfo->cycleTime = is_numeric($cycleTime) ? intval($cycleTime) : 0;
    $stationInfo->hideOnSummary = $hideOnSummary;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -87,7 +87,7 @@ function addStation($name, $label, $objectName, $cycleTime, $hideOnSummary)
 
 function deleteStation($stationId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -105,7 +105,7 @@ function updateStation($stationId, $name, $label, $objectName, $cycleTime, $hide
    $stationInfo->cycleTime = is_numeric($cycleTime) ? intval($cycleTime) : 0;
    $stationInfo->hideOnSummary = $hideOnSummary;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {

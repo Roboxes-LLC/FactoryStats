@@ -46,13 +46,13 @@ class UserInfo
    {
       $userInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getUser($userId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $userInfo = new UserInfo();
             
@@ -67,15 +67,13 @@ class UserInfo
    {
       $userInfo = null;
       
-      $database = new FlexscreenDatabase();
+      $database = FactoryStatsDatabase::getInstance();
       
-      $database->connect();
-      
-      if ($database->isConnected())
+      if ($database && $database->isConnected())
       {
          $result = $database->getUserByName($username);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $userInfo = new UserInfo();
             
@@ -90,15 +88,15 @@ class UserInfo
    {
       $users = array();
       
-      $database = FlexscreenDatabase::getInstance();
-           
+      $database = FactoryStatsDatabase::getInstance();
+      
       if ($database && $database->isConnected())
       {
          $result = $database->getUsersByRole($role);
 
          if ($result)
          {
-            while ($row = $result->fetch_assoc())
+            foreach ($result as $row)
             {
                $userInfo = new UserInfo();
                
@@ -116,22 +114,19 @@ class UserInfo
    {
       $users = array();
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getUsersByRoles($roles);
          
-         if ($result)
+         foreach ($result as $row)
          {
-            while ($row = $result->fetch_assoc())
-            {
-               $userInfo = new UserInfo();
-               
-               $userInfo->initialize($row);
-               
-               $users[] = $userInfo;
-            }
+            $userInfo = new UserInfo();
+            
+            $userInfo->initialize($row);
+            
+            $users[] = $userInfo;
          }
       }
       
@@ -243,7 +238,7 @@ else
 // Script for replacing passwords with password hashes.
 //
 
-$database = FlexscreenDatabase::getInstance();
+$database = FactoryStatsDatabase::getInstance();
 
 if ($database && $database->isConnected())
 {
@@ -252,15 +247,18 @@ if ($database && $database->isConnected())
    foreach ($users as $user)
    {
       $userId = $user["userId"];
-
-      $password = $user["password"];
-      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
       
-      $query = "UPDATE user SET passwordHash = '$passwordHash' WHERE userId = '$userId';";
+      $userInfo = UserInfo::load($userId);
       
-      $database->query($query);
+      if ($userInfo)
+      {
+         $password = $userInfo->password;
+         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+         
+         $database->updateUser($userInfo);
       
-      echo "User [$userId]: $password -> $passwordHash<br>";
+         echo "User [$userId]: $password -> $passwordHash<br>";
+      }
    }
 }
 */

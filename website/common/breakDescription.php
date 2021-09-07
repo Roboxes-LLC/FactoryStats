@@ -14,13 +14,13 @@ class BreakDescription
    {
       $breakDescription = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getBreakDescription($breakDescriptionId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $breakDescription = new BreakDescription();
             
@@ -37,13 +37,13 @@ class BreakDescription
    {
       $html = ""; 
 
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getBreakDescriptions();
          
-         while ($result && ($row = $result->fetch_assoc()))
+         foreach ($result as $row)
          {
             $descriptionId = intval($row["breakDescriptionId"]);
             $description = $row["description"];

@@ -18,7 +18,7 @@ class DailySummary
    {
       $dailySummary = null;
 
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected() && $database->stationExists($stationId))
       {
@@ -48,7 +48,7 @@ class DailySummary
    {
       $dailySummaries = array();
 
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -65,7 +65,7 @@ class DailySummary
          {
             $result = $database->getStations();
             
-            while ($result && ($row = $result->fetch_assoc()))
+            foreach ($result as $row)
             {
                $stations[] = $row["stationId"];
             }
@@ -80,7 +80,7 @@ class DailySummary
          {
             $result = $database->getShifts();
             
-            while ($result && ($row = $result->fetch_assoc()))
+            foreach ($result as $row)
             {
                $shifts[] = $row["shiftId"];
             }

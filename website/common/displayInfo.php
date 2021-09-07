@@ -59,13 +59,13 @@ class DisplayInfo
    {
       $displayInfo = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getDisplay($displayId);
          
-         if ($result && ($row = $result->fetch_assoc()))
+         if ($result && ($row = $result[0]))
          {
             $displayInfo = new DisplayInfo();
             
@@ -95,7 +95,7 @@ class DisplayInfo
       if (($interval->days == 0) && ($interval->h == 0))  // Note: Adjust if threshold is >= 1 hour
       {
          $seconds = (($interval->i * 60) + ($interval->s));
-         $isOnline = ($seconds <= SensorInfo::ONLINE_THRESHOLD);
+         $isOnline = ($seconds <= DisplayInfo::ONLINE_THRESHOLD);
       }
 
       return ($isOnline);

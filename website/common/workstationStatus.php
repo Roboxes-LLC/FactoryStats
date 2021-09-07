@@ -27,7 +27,7 @@ class WorkstationStatus
    {
       $workstationStatus = null;
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       $shiftInfo = ShiftInfo::load($shiftId);
 
@@ -94,7 +94,7 @@ class WorkstationStatus
       
       $result = $database->getStation($stationId);
       
-      if ($result && ($row = $result->fetch_assoc()))
+      if ($result && ($row = $result[0]))
       {
          $name = $row['label'];
       }
@@ -128,7 +128,7 @@ class WorkstationStatus
       $result = $database->getHourlyCounts($stationId, $shiftId, $startDateTime, $endDateTime);
       
       // Fill in hourly counts from the database.
-      while ($result && ($row = $result->fetch_assoc()))
+      foreach ($result as $row)
       {
          $index = Time::fromMySqlDate($row["dateTime"], "Y-m-d H:00:00");
          $hourlyCount[$index] = intval($row["count"]);
@@ -152,7 +152,7 @@ class WorkstationStatus
       // Note: Results returned ordered by lastContact, DESC.
       $results = $database->getButtonsForStation($stationId);
       
-      if ($results && ($row = $results->fetch_assoc()))
+      if ($results && ($row = $results[0]))
       {
          $buttonInfo = ButtonInfo::load($row["buttonId"]);
          

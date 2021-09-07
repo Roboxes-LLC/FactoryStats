@@ -16,12 +16,12 @@ require_once 'rest.php';
 
 function updateCount($stationId, $shiftId, $screenCount)
 {
-   FlexscreenDatabase::getInstance()->updateCount($stationId, $shiftId, $screenCount);
+   FactoryStatsDatabase::getInstance()->updateCount($stationId, $shiftId, $screenCount);
 }
 
 function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
 {
-   $count = FlexscreenDatabase::getInstance()->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
+   $count = FactoryStatsDatabase::getInstance()->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
 
    return ($count);
 }
@@ -30,9 +30,9 @@ function getStations()
 {
    $stations = array();
 
-   $result = FlexscreenDatabase::getInstance()->getStations();
+   $result = FactoryStatsDatabase::getInstance()->getStations();
 
-   while ($result && $row = $result->fetch_assoc())
+   foreach ($result as $row)
    {
       $stations[] = $row["stationId"];
    }
@@ -55,7 +55,7 @@ $router->add("button", function($params) {
    {
       $uid = $params["uid"];
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -63,7 +63,7 @@ $router->add("button", function($params) {
          
          $buttonInfo = null;
          
-         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         if ($queryResult && ($row = $queryResult[0]))
          {
             // Load an existing button.
             $buttonInfo = ButtonInfo::load($row["buttonId"]);
@@ -118,7 +118,7 @@ $router->add("button", function($params) {
 $router->add("buttonStatus", function($params) {
    $result = new stdClass();
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -127,7 +127,7 @@ $router->add("buttonStatus", function($params) {
       
       $dbaseResult = $database->getButtons();
       
-      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      foreach ($dbaseResult as $row)
       {
          $buttonInfo = ButtonInfo::load(intval($row["buttonId"]));
          
@@ -167,7 +167,7 @@ $router->add("sensor", function($params) {
    {
       $uid = $params["uid"];
       
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -175,7 +175,7 @@ $router->add("sensor", function($params) {
          
          $sensorInfo = null;
          
-         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         if ($queryResult && ($row = $queryResult[0]))
          {
             // Load an existing sensor.
             $sensorInfo = SensorInfo::load($row["sensorId"]);
@@ -234,7 +234,7 @@ $router->add("sensor", function($params) {
 $router->add("sensorStatus", function($params) {
    $result = new stdClass();
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -243,7 +243,7 @@ $router->add("sensorStatus", function($params) {
       
       $dbaseResult = $database->getSensors();
       
-      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      foreach ($dbaseResult as $row)
       {
          $sensorInfo = SensorInfo::load(intval($row["sensorId"]));
          
@@ -297,7 +297,7 @@ $router->add("display", function($params) {
          // Is this display associated with *this* subdomain?
          if ($subdomain == CustomerInfo::getSubdomain())
          {
-            $database = FlexscreenDatabase::getInstance();
+            $database = FactoryStatsDatabase::getInstance();
             
             if ($database && $database->isConnected())
             {
@@ -305,7 +305,7 @@ $router->add("display", function($params) {
                
                $displayInfo = null;
                
-               if ($queryResult && ($row = $queryResult->fetch_assoc()))
+               if ($queryResult && ($row = $queryResult[0]))
                {
                   // Load an existing display.
                   $displayInfo = DisplayInfo::load($row["displayId"]);
@@ -402,7 +402,7 @@ $router->add("display", function($params) {
 $router->add("displayStatus", function($params) {
    $result = new stdClass();
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -411,7 +411,7 @@ $router->add("displayStatus", function($params) {
       
       $dbaseResult = $database->getDisplays();
       
-      while ($dbaseResult && ($row = $dbaseResult->fetch_assoc()))
+      foreach ($dbaseResult as $row)
       {
          $displayInfo = DisplayInfo::load(intval($row["displayId"]));
          
@@ -457,13 +457,13 @@ $router->add("update", function($params) {
    {
       $macAddress = $params->get("macAddress");
 
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
 
       if ($database && $database->isConnected())
       {
          $queryResult = $database->getButtonByMacAddress($macAddress);
 
-         if ($queryResult && ($row = $queryResult->fetch_assoc()))
+         if ($queryResult && ($row = $queryResult[0]))
          {
             $stationId = $row["stationId"];
          }
@@ -757,7 +757,7 @@ $router->add("slideOrder", function($params) {
    
    if ($slides)
    {
-      $database = FlexscreenDatabase::getInstance();
+      $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {

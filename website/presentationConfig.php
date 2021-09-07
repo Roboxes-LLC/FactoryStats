@@ -84,13 +84,13 @@ function renderTable()
       </tr>
 HEREDOC;
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
       $result = $database->getPresentations();
 
-      while ($result && $row = $result->fetch_assoc())
+      foreach ($result as $row)
       {
          $presentationInfo = PresentationInfo::load($row["presentationId"]);
          
@@ -113,7 +113,7 @@ HEREDOC;
 
 function deletePresentation($presentationId)
 {
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {
@@ -126,7 +126,7 @@ function addPresentation($name)
    $presentationInfo = new PresentationInfo();
    $presentationInfo->name = $name;
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -139,7 +139,7 @@ function updatePresentation($presentationId, $name)
    $presentationInfo = PresentationInfo::load($presentationId);
    $presentationInfo->name = $name;
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
 
    if ($database && $database->isConnected())
    {

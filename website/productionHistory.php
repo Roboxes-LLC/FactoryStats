@@ -223,13 +223,13 @@ function getHourlyCountData()
    $shiftInfo = ShiftInfo::load($shiftId);
    $shiftName = $shiftInfo ? $shiftInfo->shiftName : "All";
     
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
     
    if ($database && $database->isConnected())
    {
        $result = $database->getHourlyCounts($stationId, $shiftId, $startTime, $endTime);
         
-       while ($result && ($row = $result->fetch_assoc()))
+       foreach ($result as $row)
        {
           $stationInfo = StationInfo::load($row["stationId"]);
             
@@ -270,13 +270,13 @@ function getBreakData()
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getBreaks($stationId, $shiftId, $startTime, $endTime);
        
-      while ($result && ($row = $result->fetch_assoc()))
+      foreach ($result as $row)
       {
          $breakInfo = BreakInfo::load($row["breakId"]);
            
@@ -493,7 +493,7 @@ HEREDOC;
    $startDate = getFilterStartDate();
    $endDate = getFilterEndDate();
     
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
     
    if ($database && $database->isConnected())
    {
@@ -507,7 +507,7 @@ HEREDOC;
       {
           $result = $database->getShifts();
           
-          while ($result && ($row = $result->fetch_assoc()))
+          foreach ($result as $row)
           {
               $shifts[] = $row["shiftId"];
           }
@@ -525,7 +525,7 @@ HEREDOC;
             
             $totalCount = 0;
             
-            while ($result && ($row = $result->fetch_assoc()))
+            foreach ($result as $row)
             {
                $stationInfo = StationInfo::load($row["stationId"]);
                 
@@ -592,7 +592,7 @@ HEREDOC;
    $startTime = Time::startOfDay($startDate);
    $endTime = Time::endOfDay($endDate);
    
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -606,7 +606,7 @@ HEREDOC;
       {
           $result = $database->getShifts();
            
-          while ($result && ($row = $result->fetch_assoc()))
+          foreach ($result as $row)
           {
               $shifts[] = $row["shiftId"];
           }
@@ -622,7 +622,7 @@ HEREDOC;
        
             $result = $database->getBreaks($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
       
-            while ($result && ($row = $result->fetch_assoc()))
+            foreach ($result as $row)
             {
                $breakInfo = BreakInfo::load($row["breakId"]);
                  
@@ -692,13 +692,13 @@ function renderStationOptions()
    
    echo "<option value=\"ALL\">All stations</option>";
 
-   $database = FlexscreenDatabase::getInstance();
+   $database = FactoryStatsDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
       $result = $database->getStations();
       
-      while ($result && ($row = $result->fetch_assoc()))
+      foreach ($result as $row)
       {
          $stationId = $row["stationId"];
          $stationName = $row["name"];
