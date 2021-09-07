@@ -5,8 +5,8 @@ require_once 'databaseDefs.php';
 
 // Uncomment one to select database type.
 // Edit here:
-//$DATABASE_TYPE = DatabaseType::MY_SQL;
-$DATABASE_TYPE = DatabaseType::SQL_SERVER;
+$DATABASE_TYPE = DatabaseType::MY_SQL;
+//$DATABASE_TYPE = DatabaseType::SQL_SERVER;
 
 if ($DATABASE_TYPE == DatabaseType::SQL_SERVER)
 {

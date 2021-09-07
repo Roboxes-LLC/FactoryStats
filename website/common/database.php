@@ -1088,6 +1088,17 @@ class FactoryStatsDatabase extends PDODatabase
       return ($result);
    }
    
+   public function updatePassword($userId, $passwordHash)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("UPDATE $userTable SET passwordHash = ? WHERE userId = ?");
+      
+      $result = $statement->execute([$passwordHash, $userId]);
+      
+      return ($result);
+   }
+   
    public function deleteUser($userId)
    {
       $userTable = DatabaseType::reservedName("user", $this->databaseType);
@@ -1459,8 +1470,8 @@ class FactoryStatsDatabase extends PDODatabase
       
       $statement = $this->pdo->prepare("SELECT updateTime from station WHERE stationId = ?;");
       
-      $result = $statement->execute([$stationId]);
-      
+      $result = $statement->execute([$stationId]) ? $statement->fetchAll() : null;
+
       if ($result && ($row = $result[0]))
       {
          $updateTime = Time::fromMySqlDate($row["updateTime"], "Y-m-d H:i:s");
