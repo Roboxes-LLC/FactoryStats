@@ -525,15 +525,18 @@ class FactoryStatsDatabase extends PDODatabase
       
       $statement = $this->pdo->prepare(
          "SELECT firstEntry FROM count " .
-         "WHERE stationId = ? AND shiftId = ? AND dateTime >= ? AND dateTime < ? " .
+         "WHERE stationId = ? AND shiftId = ? AND dateTime BETWEEN ? AND ? " .
          "ORDER BY dateTime DESC;");
+      
+      $startDateTime = Time::toMySqlDate($startDateTime);
+      $endDateTime = Time::toMySqlDate($endDateTime);
       
       $result = $statement->execute(
          [
             $stationId,
             $shiftId, 
-            $startDateTime, 
-            $endDateTime               
+            $startDateTime,
+            $endDateTime,
          ]) ? $statement->fetchAll() : null;
       
       if ($result && ($row = $result[0]) && $row["firstEntry"])
@@ -550,15 +553,18 @@ class FactoryStatsDatabase extends PDODatabase
       
       $statement = $this->pdo->prepare(
             "SELECT lastEntry FROM count " .
-            "WHERE stationId = ? AND shiftId = ? AND dateTime >= ? AND dateTime < ? " .
+            "WHERE stationId = ? AND shiftId = ? AND dateTime BETWEEN ? AND ? " .
             "ORDER BY dateTime DESC;");
+      
+      $startDateTime = Time::toMySqlDate($startDateTime);
+      $endDateTime = Time::toMySqlDate($endDateTime);
       
       $result = $statement->execute(
          [
             $stationId, 
             $shiftId,
             $startDateTime,
-            $endDateTime               
+            $endDateTime,
          ]) ? $statement->fetchAll() : null;
       
       if ($result && ($row = $result[0]) && $row["lastEntry"])

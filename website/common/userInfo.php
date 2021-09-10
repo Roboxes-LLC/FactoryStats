@@ -247,20 +247,15 @@ if ($database && $database->isConnected())
    foreach ($users as $user)
    {
       $userId = $user["userId"];
-      
-      $userInfo = UserInfo::load($userId);
-      
-      if ($userInfo)
-      {
-         $password = $userInfo->password;
-         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+      $password = $user["password"];
+      $passwordHash = password_hash($password, PASSWORD_DEFAULT);
          
-         $database->updateUser($userInfo);
+      $database->updatePassword($userId, $password);
       
-         echo "User [$userId]: $password -> $passwordHash<br>";
-      }
+      echo "User [$userId]: $password -> $passwordHash<br>";
    }
 }
 */
+
 
 ?>

@@ -1,33 +1,3 @@
-/*
-var Page = {
-   FIRST : 0,
-   SPLASH : 0,
-   WORKSTATION_SUMMARY : 0,
-   PRODUCTION_HISTORY : 1,
-   HARDWARE_BUTTON : 2,
-   LAST : 3
-};
-
-var lastCountTime = new Array();
-
-function jumpTo(page)
-{
-   var urls = [
-      "index.php",
-      "workstationSummary.php",
-      "productionHistory.php",
-      "hardwareButton.php",
-   ];
-   
-   if ((page >= Page.FIRST) && (page < Page.LAST))
-   {
-      
-   }
-
-   location.href = urls[page];
-}
-*/
-
 var MenuItem = {
    FIRST : 0,
    WORKSTATION_SUMMARY : 0,
@@ -143,7 +113,7 @@ function update()
    {
       if (this.readyState == 4 && this.status == 200)
       {
-         //try
+         try
          {
             var json = JSON.parse(this.responseText);
             
@@ -154,13 +124,18 @@ function update()
    
             currentShiftId = parseInt(json.currentShiftId);
          }
-         /*
          catch (exception)
          {
-            console.log("JSON syntax error");
-            console.log(this.responseText);
+            if (exception.name == "SyntaxError")
+            {
+               console.log("JSON syntax error");
+               console.log(this.responseText);
+            }
+            else
+            {
+               throw(exception);
+            }            
          }
-         */
       }
    };
    xhttp.open("GET", requestURL, true);

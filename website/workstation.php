@@ -325,10 +325,10 @@ $objectNamePlural = getObjectNamePlural();
    <script src="script/modal.js<?php echo versionQuery();?>"></script>
    <script>
       // Start a timer to update the count/hourly count div.
-      setInterval(function(){update();}, 3000);
+      setInterval(function(){update();}, 10000);
    
       // Start a one-second timer to update the elapsed-time-div.
-      setInterval(function(){updateElapsedTime();}, 50);
+      setInterval(function(){updateElapsedTime();}, 500);
       
       // Store shift hours for updating the x-axis of the hourly chart.
       shiftHours = {

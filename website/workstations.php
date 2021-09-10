@@ -237,7 +237,7 @@ HEREDOC;
       setInterval(function(){update(stationIds);}, 3000);
    
       // Start a one-second timer to update the elapsed-time-div.
-      setInterval(function(){updateElapsedTimes(stationIds);}, 50);
+      setInterval(function(){updateElapsedTimes(stationIds);}, 500);
    </script>
 
 </body>

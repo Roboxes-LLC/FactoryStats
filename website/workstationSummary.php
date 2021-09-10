@@ -120,7 +120,7 @@ HEREDOC;
    // Set menu selection.
    setMenuSelection(MenuItem.WORKSTATION_SUMMARY);
 
-   // Start a five-second timer to update the count/hourly count div.
+   // Start a timer to update the count/hourly count div.
    setInterval(function(){update();}, 5000);
 </script>
 
