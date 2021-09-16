@@ -526,7 +526,7 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare(
          "SELECT firstEntry FROM count " .
          "WHERE stationId = ? AND shiftId = ? AND dateTime BETWEEN ? AND ? " .
-         "ORDER BY dateTime DESC;");
+         "ORDER BY dateTime ASC;");
       
       $startDateTime = Time::toMySqlDate($startDateTime);
       $endDateTime = Time::toMySqlDate($endDateTime);
