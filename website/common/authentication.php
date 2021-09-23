@@ -102,10 +102,11 @@ class Authentication
          {
             $result = AuthenticationResult::AUTHENTICATED;
             
-            // Record authentication status and user name.
+            // Record authentication status.
             $_SESSION['authenticated'] = true;
             $_SESSION['authenticatedUserId'] = $user->userId;
             $_SESSION["permissions"] = $user->permissions;
+            $_SESSION["customers"] = $user->customers;
          }
       }
       
@@ -116,6 +117,7 @@ class Authentication
    {
       $_SESSION['authenticated'] = false;
       unset($_SESSION['authenticatedUserId']);
+      unset($_SESSION['permissions']);
    }
    
    static public function checkPermissions($permissionId)

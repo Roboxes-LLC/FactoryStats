@@ -209,6 +209,225 @@ class FactoryStatsGlobalDatabase extends PDODatabase
    }
    
    // **************************************************************************
+   //                                Customer
+   
+   public function getCustomer($customerId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from customer WHERE customerId = ?;");
+      
+      $result = $statement->execute([$customerId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getCustomers()
+   {
+      $statement = $this->pdo->prepare("SELECT * FROM customer ORDER BY name ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getCustomerFromSubdomain($subdomain)
+   {
+      $statement = $this->pdo->prepare("SELECT * from customer WHERE subdomain = ?;");
+      
+      $result = $statement->execute([$subdomain]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getCustomersForUser($userId)
+   {
+      $statement = $this->pdo->prepare("SELECT * FROM customer INNER JOIN user_customer ON customer.customerId = user_customer.customerId WHERE user_customer.userId = ? ORDER BY customer.name ASC;");
+      
+      $result = $statement->execute([$userId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                   User
+   
+   public function getUser($userId)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE userId = ?;");
+      
+      $result = $statement->execute([$userId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUserByName($username)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE username = ?");
+      
+      $result = $statement->execute([$username]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsers()
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable ORDER BY firstName ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsersForCustomer($customerId)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("SELECT * FROM $userTable INNER JOIN user_customer ON $userTable.userId = user_customer.userId WHERE user_customer.customerId = ? ORDER BY $userTable.firstName ASC;");
+      
+      $result = $statement->execute([$customerId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsersByRole($role)
+   {
+      $params = array();
+      
+      $roleClause = "";
+      if ($role != Role::UNKNOWN)
+      {
+         $roleClause = "WHERE roles = ?";
+         $params[] = $role;
+      }
+      
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $query = "SELECT * FROM $userTable $roleClause ORDER BY firstName ASC;";
+      
+      $statement = $this->pdo->prepare($query);
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getUsersByRoles($roles)
+   {
+      $result = null;
+      
+      $params = array();
+      
+      if (sizeof($roles) > 0)
+      {
+         $rolesClause = "roles in (";
+         
+         $count = 0;
+         foreach ($roles as $role)
+         {
+            $rolesClause .= "?";
+            $params[] = $role;
+            
+            $count++;
+            
+            if ($count < sizeof($roles))
+            {
+               $rolesClause .= ", ";
+            }
+         }
+         
+         $rolesClause .= ")";
+         
+         $userTable = DatabaseType::reservedName("user", $this->databaseType);
+         
+         $query = "SELECT * FROM $userTable WHERE $rolesClause ORDER BY firstName ASC;";
+         
+         $statement = $this->pdo->prepare($query);
+         
+         $result = $statement->execute($params) ? $statement->fetchAll() : false;
+      }
+      
+      return ($result);
+   }
+   
+   public function newUser($userInfo)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare(
+            "INSERT INTO $userTable " .
+            "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, authToken) " .
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      
+      $result = $statement->execute(
+         [
+               $userInfo->employeeNumber,
+               $userInfo->username,
+               $userInfo->passwordHash,
+               $userInfo->roles,
+               $userInfo->permissions,
+               $userInfo->firstName,
+               $userInfo->lastName,
+               $userInfo->email,
+               $userInfo->authToken
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updateUser($userInfo)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare(
+            "UPDATE $userTable " .
+            "SET employeeNumber = ?, username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, authToken = ? " .
+            "WHERE userId = ?");
+      
+      $result = $statement->execute(
+         [
+               $userInfo->employeeNumber,
+               $userInfo->username,
+               $userInfo->passwordHash,
+               $userInfo->roles,
+               $userInfo->permissions,
+               $userInfo->firstName,
+               $userInfo->lastName,
+               $userInfo->email,
+               $userInfo->authToken,
+               $userInfo->userId
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updatePassword($userId, $passwordHash)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("UPDATE $userTable SET passwordHash = ? WHERE userId = ?");
+      
+      $result = $statement->execute([$passwordHash, $userId]);
+      
+      return ($result);
+   }
+   
+   public function deleteUser($userId)
+   {
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      $statement = $this->pdo->prepare("DELETE FROM $userTable WHERE userId = ?");
+      
+      $result = $statement->execute([$userId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
    
    private static $databaseInstance = null;
 }
@@ -790,28 +1009,7 @@ class FactoryStatsDatabase extends PDODatabase
       
       return ($result);
    }
-   
-   // **************************************************************************
-   //                                Customer
-      
-   public function getCustomer($customerId)
-   {
-      $statement = $this->pdo->prepare("SELECT * from customer WHERE customerId = ?;");
-      
-      $result = $statement->execute([$customerId]) ? $statement->fetchAll() : null;
-      
-      return ($result);
-   }
-   
-   public function getCustomerFromSubdomain($subdomain)
-   {
-      $statement = $this->pdo->prepare("SELECT * from customer WHERE subdomain = ?;");
-      
-      $result = $statement->execute([$subdomain]) ? $statement->fetchAll() : null;
-      
-      return ($result);
-   }
-   
+     
    // **************************************************************************
    //                                  Display
    
@@ -947,174 +1145,7 @@ class FactoryStatsDatabase extends PDODatabase
       return ($result);
    }
    
-   // **************************************************************************
-   //                                   User
-   
-   public function getUser($userId)
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE userId = ?;");
-      
-      $result = $statement->execute([$userId]) ? $statement->fetchAll() : null;
 
-      return ($result);
-   }
-   
-   public function getUserByName($username)
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare("SELECT * FROM $userTable WHERE username = ?");
-
-      $result = $statement->execute([$username]) ? $statement->fetchAll() : null;
-      
-      return ($result);
-   }
-   
-   public function getUsers()
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare("SELECT * FROM $userTable ORDER BY firstName ASC;");
-      
-      $result = $statement->execute() ? $statement->fetchAll() : null;
-      
-      return ($result);
-   }
-   
-   public function getUsersByRole($role)
-   {
-      $params = array();
-      
-      $roleClause = "";
-      if ($role != Role::UNKNOWN)
-      {
-         $roleClause = "WHERE roles = ?";
-         $params[] = $role;
-      }
-      
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $query = "SELECT * FROM $userTable $roleClause ORDER BY firstName ASC;";
-      
-      $statement = $this->pdo->prepare($query);
-      
-      $result = $statement->execute($params) ? $statement->fetchAll() : null;
-      
-      return ($result);
-   }
-   
-   public function getUsersByRoles($roles)
-   {
-      $result = null;
-      
-      $params = array();
-      
-      if (sizeof($roles) > 0)
-      {
-         $rolesClause = "roles in (";
-         
-         $count = 0;
-         foreach ($roles as $role)
-         {
-            $rolesClause .= "?";
-            $params[] = $role;
-            
-            $count++;
-            
-            if ($count < sizeof($roles))
-            {
-               $rolesClause .= ", ";
-            }
-         }
-         
-         $rolesClause .= ")";
-         
-         $userTable = DatabaseType::reservedName("user", $this->databaseType);
-         
-         $query = "SELECT * FROM $userTable WHERE $rolesClause ORDER BY firstName ASC;";
-
-         $statement = $this->pdo->prepare($query);
-         
-         $result = $statement->execute($params) ? $statement->fetchAll() : false;
-      }
-      
-      return ($result);
-   }
-   
-   public function newUser($userInfo)
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare(
-         "INSERT INTO $userTable " .
-         "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, assignedStations) " .
-         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-      
-      $result = $statement->execute(
-         [
-            $userInfo->employeeNumber,
-            $userInfo->username,
-            $userInfo->passwordHash,
-            $userInfo->roles,
-            $userInfo->permissions,
-            $userInfo->firstName,
-            $userInfo->lastName,
-            $userInfo->email,
-            $userInfo->assignedStations
-         ]);
-
-      return ($result);
-   }
-   
-   public function updateUser($userInfo)
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare(
-            "UPDATE $userTable " .
-            "SET employeeNumber = ?, username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, assignedStations = ? " .
-            "WHERE userId = ?");
-      
-      $result = $statement->execute(
-         [
-            $userInfo->employeeNumber,
-            $userInfo->username,
-            $userInfo->passwordHash,
-            $userInfo->roles,
-            $userInfo->permissions,
-            $userInfo->firstName,
-            $userInfo->lastName,
-            $userInfo->email,
-            $userInfo->assignedStations,
-            $userInfo->userId
-         ]);
-      
-      return ($result);
-   }
-   
-   public function updatePassword($userId, $passwordHash)
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare("UPDATE $userTable SET passwordHash = ? WHERE userId = ?");
-      
-      $result = $statement->execute([$passwordHash, $userId]);
-      
-      return ($result);
-   }
-   
-   public function deleteUser($userId)
-   {
-      $userTable = DatabaseType::reservedName("user", $this->databaseType);
-      
-      $statement = $this->pdo->prepare("DELETE FROM $userTable WHERE userId = ?");
-      
-      $result = $statement->execute([$userId]);
-      
-      return ($result);
-   }
    
    // **************************************************************************
    //                                  Sensor

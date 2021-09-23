@@ -131,7 +131,7 @@ class CustomerInfo
    {
       $customerInfo = null;
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -146,6 +146,22 @@ class CustomerInfo
       }
       
       return ($customerInfo);
+   }
+   
+   public static function getCustomerOptions($customerIds, $selectedCustomerId)
+   {
+      $html = "";
+      
+      foreach ($customerIds as $customerId)
+      {
+         $customerInfo = CustomerInfo::load($customerId);
+         
+         $selected = ($customerId == $selectedCustomerId) ? "selected" : "";
+            
+         $html .= "<option value=\"$customerInfo->customerId\" $selected>$customerInfo->name</option>";
+      }
+      
+      return ($html);
    }
    
    static function getTimeZoneString($timeZoneId)

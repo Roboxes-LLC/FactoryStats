@@ -33,7 +33,7 @@ function renderTable()
       </tr>
 HEREDOC;
    
-   $database = FactoryStatsDatabase::getInstance();
+   $database = FactoryStatsGlobalDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -104,7 +104,7 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
    }
    $userInfo->email = $email;
    
-   $database = FactoryStatsDatabase::getInstance();
+   $database = FactoryStatsGlobalDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -114,7 +114,7 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
 
 function deleteUser($userId)
 {
-   $database = FactoryStatsDatabase::getInstance();
+   $database = FactoryStatsGlobalDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -141,7 +141,7 @@ function updateUser($userId, $employeeNumber, $firstName, $lastName, $username, 
          $userInfo->passwordHash = password_hash($password, PASSWORD_DEFAULT);
       }
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {

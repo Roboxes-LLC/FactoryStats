@@ -6,6 +6,13 @@ require_once '../common/userInfo.php';
 
 //phpinfo();
 
+global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE;
+global $GLOBAL_SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE;
+
+echo "<b>DATABASE_TYPE</b>: " . DatabaseType::getLabel($DATABASE_TYPE) . "<br>";
+echo "<b>DATABASE</b>: $DATABASE<br>";
+echo "<b>GOBAL_DATABASE</b>: $GLOBAL_DATABASE<br><br>";
+
 $database = FactoryStatsDatabase::getInstance();
 
 $globalDatabase = FactoryStatsGlobalDatabase::getInstance();
@@ -20,28 +27,42 @@ if ($database->isConnected())
    }
    
    echo "<b>getUser</b><br>";
-   $result = $database->getUser(1);
+   $result = $globalDatabase->getUser(1);
    foreach ($result as $row)
    {
       var_dump($row);
    }
    
    echo "<b>getUserByName</b><br>";
-   $result = $database->getUserByName("bbaggins");
+   $result = $globalDatabase->getUserByName("jtost");
    foreach ($result as $row)
    {
       var_dump($row);
    }
    
    echo "<b>getUsers</b><br>";
-   $result = $database->getUsers();
+   $result = $globalDatabase->getUsers();
+   foreach ($result as $row)
+   {
+      var_dump($row);
+   }
+   
+   echo "<b>getUsers</b><br>";
+   $result = $globalDatabase->getUsers();
+   foreach ($result as $row)
+   {
+      var_dump($row);
+   }
+   
+   echo "<b>getUsersForCustomer</b><br>";
+   $result = $globalDatabase->getUsersForCustomer(3);
    foreach ($result as $row)
    {
       var_dump($row);
    }
    
    echo "<b>getUsersByRoles</b><br>";
-   $result = $database->getUsersByRoles([1, 2]);
+   $result = $globalDatabase->getUsersByRoles([1, 2]);
    foreach ($result as $row)
    {
       var_dump($row);
@@ -57,12 +78,11 @@ if ($database->isConnected())
    $userInfo->permissions = 1;       // bitfield
    $userInfo->email = "bbaggins@hotmail.com";
    $userInfo->authToken = "ABCDEFG";
-   $userInfo->assignedStations = 0b101;  // bitfield
    
    echo "<b>newUser</b><br>";
-   if ($database->newUser($userInfo))
+   if ($globalDatabase->newUser($userInfo))
    {
-      $userId = $database->lastInsertId();
+      $userId = $globalDatabase->lastInsertId();
       $userInfo = UserInfo::load($userId);
       echo "newUser [$userId]<br>";
       var_dump($userInfo);
@@ -70,7 +90,7 @@ if ($database->isConnected())
       echo "<b>updateUser</b><br>";
       $userInfo->username = "fbaggins";
       $userInfo->firstName = "Frodo";
-      if ($database->updateUser($userInfo))
+      if ($globalDatabase->updateUser($userInfo))
       {
          echo "updateUser [$userId]<br>";
          $userInfo = UserInfo::load($userId);
@@ -78,7 +98,7 @@ if ($database->isConnected())
       }
       
       echo "<b>deleteUser</b><br>";
-      if ($database->deleteUser($userId))
+      if ($globalDatabase->deleteUser($userId))
       {
          echo "deleteUser [$userId] <br>";
       }
@@ -217,14 +237,21 @@ if ($database->isConnected())
    // **************************************************************************
    
    echo "<b>getCustomer</b><br>";
-   $result = $database->getCustomer(1);
+   $result = $globalDatabase->getCustomer(1);
    foreach ($result as $row)
    {
       var_dump($row);
    }
    
    echo "<b>getCustomerFromSubdomain</b><br>";
-   $result = $database->getCustomerFromSubdomain("flexscreendet");
+   $result = $globalDatabase->getCustomerFromSubdomain("flexscreendet");
+   foreach ($result as $row)
+   {
+      var_dump($row);
+   }
+   
+   echo "<b>getCustomersForUser</b><br>";
+   $result = $globalDatabase->getCustomersForUser(1);
    foreach ($result as $row)
    {
       var_dump($row);

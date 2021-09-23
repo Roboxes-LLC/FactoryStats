@@ -104,7 +104,7 @@ HEREDOC;
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php Header::render(true, true);?>
+   <?php Header::render(true, true, true);?>
    
    <?php if (!isKioskMode()) {include 'common/menu.php';}?>
    

@@ -8,7 +8,7 @@ require_once 'shiftInfo.php';
 
 class Header
 {
-   public static function getHtml($includeShiftIdInput = false, $includeStationFilterInput = false)
+   public static function getHtml($includeShiftIdInput = false, $includeStationFilterInput = false, $includeCustomerFilterInput = false)
    {
       global $ROOT;
       
@@ -41,6 +41,28 @@ HEREDOC;
 HEREDOC;
       }
       
+      $customerFilterInput = "";
+      if ($includeCustomerFilterInput)
+      {
+         // Retrieve any customer filter that is currently selected.
+         $customerFilter = Header::getCustomerFilter();
+         
+         $customerIds = array();
+         $userInfo = Authentication::getAuthenticatedUser();
+         if ($userInfo)
+         {
+            $customerIds = $userInfo->getCustomers($customerIds);
+         }
+         
+         $customerFilterOptions = CustomerInfo::getCustomerOptions($customerIds, $customerFilter);
+         
+         
+         $customerFilterInput =
+<<<HEREDOC
+         <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="storeInSession('customerFilter', this.value); update();">$customerFilterOptions</select>
+HEREDOC;
+      }
+      
       $imagesFolder = CustomerInfo::getImagesFolder();
       
       $html = 
@@ -67,6 +89,7 @@ HEREDOC;
          
          $html .=
 <<<HEREDOC
+            $customerFilterInput
             <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
             <div class="nav-username">$username &nbsp | &nbsp</div>
             <a class="nav-link" href="$ROOT/index.php?action=logout">Logout</a>
@@ -83,9 +106,9 @@ HEREDOC;
       return ($html);
    }
    
-   public static function render($includeShiftIdInput = false, $includeStationFilterInput = false)
+   public static function render($includeShiftIdInput = false, $includeStationFilterInput = false, $includeCustomerFilterInput = false)
    {
-      echo (Header::getHtml($includeShiftIdInput, $includeStationFilterInput));
+      echo (Header::getHtml($includeShiftIdInput, $includeStationFilterInput, $includeCustomerFilterInput));
    }
    
    private static function getStationFilter()
@@ -100,6 +123,18 @@ HEREDOC;
       }
       
       return ($stationFilter);
+   }
+   
+   private static function getCustomerFilter()
+   {
+      $customerFilter = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      if (isset($_SESSION["customerId"]))
+      {
+         $customerFilter = intval($_SESSION["customerId"]);
+      }
+      
+      return ($customerFilter);
    }
 }
 

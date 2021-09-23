@@ -9,6 +9,15 @@ abstract class DatabaseType
    const LAST = 3;
    const COUNT = DatabaseType::LAST - DatabaseType::FIRST;
    
+   public static $values = array(DatabaseType::MY_SQL, DatabaseType::SQL_SERVER);
+   
+   public static function getLabel($databaseType)
+   {
+      $labels = array("---", "MY_SQL", "SQL_SERVER");
+      
+      return ($labels[$databaseType]);
+   }
+   
    public static function getConnectString($databaseType, $server, $database)
    {
       $dsn = null;

@@ -37,7 +37,7 @@ else
    $PASSWORD = "";
 }
 
-$GLOBAL_DATABASE = CustomerInfo::getDatabase();
+$GLOBAL_DATABASE = "factorystatsglobal";
 
 $DATABASE = CustomerInfo::getDatabase();
 
