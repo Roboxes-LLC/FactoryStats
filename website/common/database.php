@@ -448,9 +448,11 @@ class FactoryStatsDatabase extends PDODatabase
    
    public function __construct()
    {
-      global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE;
+      global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD;
       
-      parent::__construct($DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE);
+      $database = $_SESSION["database"];
+      
+      parent::__construct($DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $database);
    }
    
    // **************************************************************************

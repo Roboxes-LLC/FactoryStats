@@ -1,5 +1,6 @@
 <?php
 
+require_once '../common/authentication.php';
 require_once '../common/buttonInfo.php';
 require_once '../common/breakInfo.php';
 require_once '../common/database.php';
@@ -44,6 +45,8 @@ function getStations()
 //                                   Begin
 
 Time::init();
+
+session_start();
 
 $router = new Router();
 $router->setLogging(false);
@@ -775,6 +778,44 @@ $router->add("slideOrder", function($params) {
       }
    }
    else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+   
+   echo json_encode($result);
+});
+
+$router->add("customer", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   
+   if (isset($params["customerId"]))
+   {
+      $customerId = $params->getInt("customerId");
+      
+      $customerInfo = CustomerInfo::load($customerId);
+      
+      if ($customerInfo)
+      {
+         if (Authentication::setCustomer($customerId))
+         {
+            $result->success = true;
+            $result->customerId = $customerId;
+            $result->customerName = $customerInfo->name;
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "Authentication failure";
+         }
+      }
+      else 
+      {
+         $result->error = "Invalid customer";
+      }
+   }
+   else 
    {
       $result->success = false;
       $result->error = "Invalid parameters";

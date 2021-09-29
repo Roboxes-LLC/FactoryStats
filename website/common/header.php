@@ -59,7 +59,7 @@ HEREDOC;
          
          $customerFilterInput =
 <<<HEREDOC
-         <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="storeInSession('customerFilter', this.value); update();">$customerFilterOptions</select>
+         <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="setCustomer(this.value); location.reload();">$customerFilterOptions</select>
 HEREDOC;
       }
       

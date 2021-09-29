@@ -39,6 +39,4 @@ else
 
 $GLOBAL_DATABASE = "factorystatsglobal";
 
-$DATABASE = CustomerInfo::getDatabase();
-
 ?>

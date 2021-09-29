@@ -1,6 +1,7 @@
 <?php
 
 require_once 'params.php';
+require_once 'database.php';
 require_once 'userInfo.php';
 
 abstract class AuthenticationResult
@@ -9,6 +10,7 @@ abstract class AuthenticationResult
    const INVALID_USERNAME = 1;
    const INVALID_PASSWORD = 2;
    const INVALID_AUTH_TOKEN = 3;
+   const INVALID_CUSTOMER = 4;
 }
 
 class Authentication
@@ -59,6 +61,17 @@ class Authentication
          $result = Authentication::authenticateToken($params->get("authToken"));
       }
       
+      // Authenticate user against customer.
+      if ($result == AuthenticationResult::AUTHENTICATED)
+      {
+         $customerId = CustomerInfo::getCustomerId($_SESSION['authenticatedUserId']);
+         
+         if (!Authentication::setCustomer($customerId))
+         {
+            $result == AuthenticationResult::INVALID_CUSTOMER;
+         }
+      }
+      
       return ($result);
    }
    
@@ -84,6 +97,7 @@ class Authentication
          $_SESSION['authenticated'] = true;
          $_SESSION['authenticatedUserId'] = $user->userId;
          $_SESSION["permissions"] = $user->permissions;
+         $_SESSION["customers"] = $user->getCustomers();
       }
       
       return ($result);
@@ -118,6 +132,9 @@ class Authentication
       $_SESSION['authenticated'] = false;
       unset($_SESSION['authenticatedUserId']);
       unset($_SESSION['permissions']);
+      unset($_SESSION['customers']);
+      unset($_SESSION['customerId']);
+      unset($_SESSION['database']);
    }
    
    static public function checkPermissions($permissionId)
@@ -126,6 +143,22 @@ class Authentication
       $userPermissions = Authentication::getPermissions();
       
       return (($userPermissions & $permission) > 0);
+   }
+   
+   static public function setCustomer($customerId)
+   {
+      $success = false;
+      
+      if ((Authentication::isAuthenticated()) &&
+          in_array($customerId, $_SESSION["customers"]))
+      {
+         $_SESSION["customerId"] = $customerId;
+         $_SESSION["database"] = CustomerInfo::getDatabase();
+         
+         $success = true;
+      }
+      
+      return ($success);
    }
 }
 ?>

@@ -117,7 +117,7 @@ if (Demo::isDemoSite())
 
 <div class="flex-vertical" style="align-items: flex-start; height:100%;">
 
-   <?php Header::render(false);?>
+   <?php /*Header::render(false, false, false);*/ ?>
    
    <div class="flex-horizontal main splash" style="flex-wrap: wrap; align-items: center;">
    
