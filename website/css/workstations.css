@@ -303,7 +303,7 @@ body {
    }   
    .station-grid.triple .station-panel .stat-label,
    .station-grid.quad .station-panel .stat-label {
-      font-size: 2.3em;
+      font-size: 2em;
    }   
    .station-grid.triple .station-panel .large-stat,
    .station-grid.quad .station-panel .large-stat {
@@ -312,7 +312,7 @@ body {
    .station-grid.triple .station-panel .small-stat,
    .station-grid.quad .station-panel .small-stat {
       color: white;
-      font-size: 3em;
+      font-size: 2.5em;
    }
    .station-grid.triple .hourly-count-chart,
    .station-grid.quad .hourly-count-chart {
