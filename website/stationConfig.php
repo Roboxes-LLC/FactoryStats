@@ -188,7 +188,7 @@ switch ($params->get("action"))
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php Header::render(false);?>
+   <?php Header::render(false, false, true);?>
    
    <?php include 'common/menu.php';?>
      

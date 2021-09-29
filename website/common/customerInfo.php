@@ -56,6 +56,32 @@ class CustomerInfo
       return ($customerId);
    }
    
+   public static function isCustomerSpecifiedInUrl()
+   {
+      return (CustomerInfo::getSubdomainFromUrl() != "");
+   }
+   
+   public static function validateUserForCustomer($userId, $customerId)
+   {
+      $isValid = false;
+      
+      $database = FactoryStatsGlobalDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {  
+         $userInfo = UserInfo::load($userId);
+         
+         if ($userInfo)
+         {
+            $customerIds = $userInfo->getCustomers();
+            
+            $isValid = in_array($customerId, $customerIds);
+         }
+      }
+      
+      return ($isValid);
+   }
+   
    public static function getSubdomain()
    {
       static $subdomain = null;

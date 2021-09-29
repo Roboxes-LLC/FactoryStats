@@ -48,19 +48,32 @@ HEREDOC;
          $customerFilter = Header::getCustomerFilter();
          
          $customerIds = array();
-         $userInfo = Authentication::getAuthenticatedUser();
-         if ($userInfo)
+         if (CustomerInfo::isCustomerSpecifiedInUrl())
          {
-            $customerIds = $userInfo->getCustomers($customerIds);
+            // If the customer is specified using a URL subdomain, limit selection
+            // to that customer only.
+            $customerIds[] = CustomerInfo::getCustomerId();
+         }
+         else 
+         {
+            $userInfo = Authentication::getAuthenticatedUser();
+            if ($userInfo)
+            {
+               $customerIds = $userInfo->getCustomers($customerIds);
+            }
          }
          
-         $customerFilterOptions = CustomerInfo::getCustomerOptions($customerIds, $customerFilter);
-         
-         
-         $customerFilterInput =
+         // Only provide a customer filter if there is more than one.
+         if (count($customerIds) > 1)
+         {        
+            $customerFilterOptions = CustomerInfo::getCustomerOptions($customerIds, $customerFilter);
+            
+            
+            $customerFilterInput =
 <<<HEREDOC
-         <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="setCustomer(this.value); location.reload();">$customerFilterOptions</select>
+            <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="setCustomer(this.value); location.reload();">$customerFilterOptions</select>
 HEREDOC;
+         }
       }
       
       $imagesFolder = CustomerInfo::getImagesFolder();

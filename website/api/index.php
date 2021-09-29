@@ -48,6 +48,28 @@ Time::init();
 
 session_start();
 
+Authentication::authenticate();
+
+if (!Authentication::isAuthenticated())
+{
+   // HACK!!! Remove once API authentication is required.
+   $customerId = CustomerInfo::getCustomerId();
+   if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
+   {
+      $_SESSION["customerId"] = $customerId;
+      $_SESSION["database"] = CustomerInfo::getDatabase();
+   }
+   else 
+   {
+      $result = new stdClass();
+      $result->success = false;
+      $result->error = "Authentication error";
+      
+      echo json_encode($result);
+      exit;
+   }
+}
+
 $router = new Router();
 $router->setLogging(false);
 
