@@ -846,5 +846,70 @@ $router->add("customer", function($params) {
    echo json_encode($result);
 });
 
+$router->add("userCustomer", function($params) {
+   $result = new stdClass();
+   
+   if (isset($params["userId"]) &&
+       isset($params["customerId"]) &&
+       isset($params["action"]))
+   {
+      $userId = intval($params["userId"]);
+      $customerId = intval($params["customerId"]);
+      $action = $params["action"];
+      
+      if (!Authentication::checkPermissions(Permission::USER_CONFIG))
+      {
+         $result->success = false;
+         $result->error = "Permissions error";
+      }
+      else if (!CustomerInfo::validateUserForCustomer(Authentication::getAuthenticatedUser()->userId, $customerId))
+      {
+         $result->success = false;
+         $result->error = "Site permissions error";
+      }
+      else
+      {
+         $database = FactoryStatsGlobalDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $userInfo = UserInfo::load($userId);
+            $customerInfo = CustomerInfo::load($customerId);
+            
+            if (!$userInfo)
+            {
+               $result->success = false;
+               $result->error = "Invalid user";
+            }
+            else if (!$customerInfo)
+            {
+               $result->success = false;
+               $result->error = "Invalid customer";
+            }
+            else if ($action == "add")
+            {
+               $result->success = $database->addUserToCustomer($userId, $customerId);
+            }
+            else if ($action == "remove")
+            {
+               $result->success = $database->removeUserFromCustomer($userId, $customerId);
+            }
+            else 
+            {
+               $result->success = false;
+               $result->error = "Invalid action";
+            }
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "No database connection";
+         }
+      }
+   }
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>

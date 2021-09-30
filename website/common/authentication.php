@@ -19,7 +19,10 @@ class Authentication
    
    static public function isAuthenticated()
    {
-      return (isset($_SESSION["authenticated"]) && ($_SESSION["authenticated"] == true));
+      return (isset($_SESSION["authenticated"]) && 
+              ($_SESSION["authenticated"] == true) &&
+              isset($_SESSION["customerId"]) &&
+              ($_SESSION["customerId"] != CustomerInfo::UNKNOWN_CUSTOMER_ID));
    }
    
    static public function getAuthenticatedUser()
@@ -80,7 +83,8 @@ class Authentication
          
          if (!Authentication::setCustomer($customerId))
          {
-            $result == AuthenticationResult::INVALID_CUSTOMER;
+            Authentication::deauthenticate();
+            $result = AuthenticationResult::INVALID_CUSTOMER;
          }
       }
       

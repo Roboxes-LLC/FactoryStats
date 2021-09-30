@@ -28,6 +28,7 @@ function renderTable()
          <th>Username</th>
          <th>Role</th>
          <th>Email</th>
+         <th>Sites</th>
          <th></th>
          <th></th>
       </tr>
@@ -52,6 +53,8 @@ HEREDOC;
             $roleName = $role->roleName;
          }
          
+         $siteCount = count($userInfo->getCustomers());
+         
          echo 
 <<<HEREDOC
          <tr>
@@ -60,6 +63,7 @@ HEREDOC;
             <td>$userInfo->username</td>
             <td>$roleName</td>
             <td>$userInfo->email</td>
+            <td>$siteCount</td>
             <td><button class="config-button" onclick="setUserInfo($userInfo->userId, $userInfo->employeeNumber, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
@@ -236,7 +240,10 @@ switch ($params->get("action"))
    
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
-         <button class="config-button" onclick="setUserInfo('', '', '', '', '', '', '', ''); showModal('config-modal');">New User</button>
+         <div class="flex-horizontal">
+            <button class="config-button" onclick="setUserInfo('', '', '', '', '', '', '', ''); showModal('config-modal');">New User</button>
+            <button class="config-button" onclick="window.location.href = 'userCustomerConfig.php';">Sites</button>
+         </div>
          <br>
          <?php renderTable();?>
       </div>

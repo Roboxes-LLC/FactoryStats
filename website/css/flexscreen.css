@@ -160,6 +160,7 @@ body {
 .main.splash {
    background-image: url("../images/graph-arrow-background-1080-688.png");
    background-repeat: no-repeat;
+   background-size: cover;
 }
 
 /* Removed in version 1.01 at customer request */

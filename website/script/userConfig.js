@@ -38,3 +38,49 @@ function setAction(action)
    var input = document.getElementById('action-input');
    input.setAttribute('value', action);
 }
+
+function onCustomerClicked(element)
+{
+   var customerId = element.value;
+   var userId = element.getAttribute('data-userId');
+   var shouldAdd = (element.checked == true);
+   
+   updateUserCustomer(userId, customerId, shouldAdd);
+}
+
+function updateUserCustomer(userId, customerId, shouldAdd)
+{
+   var action = shouldAdd ? "add" : "remove";
+   var requestURL = "api/userCustomer/?userId=" + userId + "&customerId=" + customerId + "&action=" + action;
+      
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         try
+         {
+            var json = JSON.parse(this.responseText);
+            
+            if (!json.success)
+            {
+               console.log(json.error);
+            }
+         }
+         catch (exception)
+         {
+            if (exception.name == "SyntaxError")
+            {
+               console.log("JSON syntax error");
+               console.log(this.responseText);
+            }
+            else
+            {
+               throw(exception);
+            } 
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();
+}

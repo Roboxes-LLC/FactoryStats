@@ -294,6 +294,30 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       return ($result);
    }
    
+   public function getUsersForCustomers($customerIds)
+   {
+      $result = null;
+      
+      $userTable = DatabaseType::reservedName("user", $this->databaseType);
+      
+      if (count($customerIds) > 0)
+      {
+         $customerClause = "";
+         $symbols = array();
+         for ($i = 0; $i < count($customerIds); $i++)
+         {
+            $symbols[] = "?";
+         }
+         $customerClause = implode(",", $symbols);
+         
+         $statement = $this->pdo->prepare("SELECT DISTINCT $userTable.userId FROM $userTable INNER JOIN user_customer ON $userTable.userId = user_customer.userId WHERE user_customer.customerId IN ($customerClause) ORDER BY $userTable.firstName ASC;");
+         
+         $result = $statement->execute($customerIds) ? $statement->fetchAll() : null;
+      }
+      
+      return ($result);
+   }
+   
    public function getUsersByRole($role)
    {
       $params = array();
@@ -423,6 +447,33 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       $statement = $this->pdo->prepare("DELETE FROM $userTable WHERE userId = ?");
       
       $result = $statement->execute([$userId]);
+      
+      return ($result);
+   }
+   
+   public function customerHasUser($userId, $customerId)
+   {
+      $statement = $this->pdo->prepare("SELECT * FROM user_customer WHERE userId = ? AND customerId = ?;");
+      
+      $result = $statement->execute([$userId, $customerId]);
+      
+      return ($result && (count($result) > 0));
+   }
+   
+   public function addUserToCustomer($userId, $customerId)
+   {
+      $statement = $this->pdo->prepare("INSERT INTO user_customer (userId, customerId) VALUE (?, ?);");
+      
+      $result = $statement->execute([$userId, $customerId]);
+      
+      return ($result);
+   }
+   
+   public function removeUserFromCustomer($userId, $customerId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM user_customer WHERE userId = ? AND customerId = ?;");
+      
+      $result = $statement->execute([$userId, $customerId]);
       
       return ($result);
    }

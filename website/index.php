@@ -52,6 +52,10 @@ function getLoginFailureText($authenticationResult)
    {
       $text = "The supplied password is incorrect.  Contact your supervisor if you forgot or need to reset your password.";
    }
+   else if ($authenticationResult == AuthenticationResult::INVALID_CUSTOMER)
+   {
+      $text = "The supplied user has not beed added to this customer site.  Contact your supervisor be added to the system.";
+   }
    
    return ($text);
 }
