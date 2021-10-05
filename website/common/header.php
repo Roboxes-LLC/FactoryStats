@@ -68,10 +68,10 @@ HEREDOC;
          {        
             $customerFilterOptions = CustomerInfo::getCustomerOptions($customerIds, $customerFilter);
             
-            
+            $nullShiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
             $customerFilterInput =
 <<<HEREDOC
-            <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="setCustomer(this.value); location.reload();">$customerFilterOptions</select>
+            <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="setCustomer(this.value); storeInSession('shiftId', $nullShiftId); location.reload();">$customerFilterOptions</select>
 HEREDOC;
          }
       }

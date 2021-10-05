@@ -149,7 +149,8 @@ class ShiftInfo
       
       $currentShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
       
-      if ($params->keyExists("shiftId"))
+      if (($params->keyExists("shiftId")) &&
+          ($params->getInt("shiftId") != ShiftInfo::UNKNOWN_SHIFT_ID))
       {
          $shiftId = $params->getInt("shiftId");
       }
