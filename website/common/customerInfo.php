@@ -244,7 +244,8 @@ class CustomerInfo
          
          // Look for the domain in the URL.
          // I.e. <subdomain>.factorystats.com
-         if (count($tokens) == 3)
+         if ((count($tokens) == 3) &&
+             ($tokens[0] != "www"))
          {
             $subdomain = $tokens[0];
          }
