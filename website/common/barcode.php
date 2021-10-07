@@ -31,6 +31,13 @@ class Barcode
          $barcode->schedule = intval($tokens[1]);
          $barcode->sequence = intval($tokens[2]);
       }
+      else if (count($tokens) == 2)
+      {
+         // Temporary hack to support Flexscreen barcodes with no order field.
+         $barcode->order = "UNK";
+         $barcode->schedule = intval($tokens[0]);
+         $barcode->sequence = intval($tokens[1]);
+      }
       
       return ($barcode);
    }

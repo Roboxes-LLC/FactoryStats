@@ -318,6 +318,15 @@ $objectNamePlural = getObjectNamePlural();
       </div>
    </div>
    
+   <div id="barcode-modal" class="modal">
+      <div class="flex-vertical modal-content" style="width:300px;">
+         <div id="close" class="close">&times;</div>
+         <div class="flex-vertical">
+            <div id="barcode-modal-content"></div>
+         </div>
+      </div>
+   </div>
+   
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
    <script src="script/barcodeScanner.js<?php echo versionQuery();?>"></script>
    <script src="chart/chart.js<?php echo versionQuery();?>"></script>

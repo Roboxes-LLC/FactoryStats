@@ -537,15 +537,23 @@ function onBarcode(barcode)
          try
          {
             var json = JSON.parse(this.responseText);
+            var modalText = "";
             
             if (json.success)
             {
                update();
+               modalText = barcode;
             }
             else
             {
                console.log(json.error);
+               modalText = json.error;
             }
+            
+            document.getElementById("barcode-modal-content").innerHTML = modalText;
+            showModal("barcode-modal");
+            
+            setTimeout(function(){hideModal("barcode-modal");}, 3000);
          }
          catch (exception)
          {
