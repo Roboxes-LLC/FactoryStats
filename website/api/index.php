@@ -911,5 +911,78 @@ $router->add("userCustomer", function($params) {
    echo json_encode($result);
 });
 
+$router->add("barcode", function($params) {
+   $result = new stdClass();
+   
+   if (isset($params["barcode"]) &&
+       isset($params["stationId"]))
+   {
+      $encodedBarcode = $params["barcode"];
+      $stationId = $params->getInt("stationId");
+      $shiftId = ShiftInfo::getShiftId();
+
+      $barcode = Barcode::parse($encodedBarcode);
+      
+      if (!$barcode->isValid())
+      {
+         $result->success = false;
+         $result->error = "Invalid barcode";
+      }
+      else 
+      {
+         $database = FactoryStatsDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $assetInfo = AssetInfo::loadFromBarcode($encodedBarcode);
+         
+            if (!$assetInfo)
+            {
+               $assetInfo = new AssetInfo();
+               $assetInfo->order = $barcode->order;
+               $assetInfo->schedule = $barcode->schedule;
+               $assetInfo->sequence = $barcode->sequence;
+               
+               if ($database->newAsset($assetInfo))
+               {
+                  $assetInfo = AssetInfo::load($database->lastInsertId());
+               }
+            }
+
+            if ($assetInfo->stationId == $stationId)
+            {
+               $result->success = false;
+               $result->error = "Already checked in";
+            }
+            else
+            {
+               $assetInfo->checkIn($stationId);
+                                
+               updateCount($stationId, $shiftId, 1);
+               
+               $now = Time::now("Y-m-d H:i:s");
+               $startDateTime = Time::startOfDay($now);
+               $endDateTime = Time::endOfDay($now);
+               
+               $totalCount = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
+               
+               $result->stationId = $stationId;
+               $result->shiftId = $shiftId;
+               $result->count = $totalCount;
+               
+               $result->success = true;
+            }
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "No database connection";            
+         }
+      }
+   }
+   
+   echo json_encode($result);
+});
+
 $router->route();
 ?>

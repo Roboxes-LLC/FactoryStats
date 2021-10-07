@@ -9,9 +9,11 @@ require_once '../common/userInfo.php';
 global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE;
 global $GLOBAL_SERVER, $GLOBAL_USER, $GLOBAL_PASSWORD, $GLOBAL_DATABASE;
 
+$DATABASE = "flexscreentest";
+
 echo "<b>DATABASE_TYPE</b>: " . DatabaseType::getLabel($DATABASE_TYPE) . "<br>";
 echo "<b>DATABASE</b>: $DATABASE<br>";
-echo "<b>GOBAL_DATABASE</b>: $GLOBAL_DATABASE<br><br>";
+echo "<b>GLOBAL_DATABASE</b>: $GLOBAL_DATABASE<br><br>";
 
 $database = FactoryStatsDatabase::getInstance();
 
@@ -467,22 +469,6 @@ if ($database->isConnected())
    
    // **************************************************************************
    
-   echo "<b>getCustomer</b><br>";
-   $result = $database->getCustomer(1);
-   foreach ($result as $row)
-   {
-      var_dump($row);
-   }
-   
-   echo "<b>getCustomerFromSubdomain</b><br>";
-   $result = $database->getCustomerFromSubdomain("flexscreendet");
-   foreach ($result as $row)
-   {
-      var_dump($row);
-   }
-   
-   // **************************************************************************
-   
    echo "<b>getCount</b><br>";
    $result = $database->getCount(1, 1, Time::startOfDay(Time::now("Y-m-d H:i:s")), Time::endOfDay(Time::now("Y-m-d H:i:s")));
    echo "getCount [$result]<br>";
@@ -610,7 +596,6 @@ if ($database->newSensor($sensorInfo))
    
 // **************************************************************************
 
-
 $globalDatabase = FactoryStatsGlobalDatabase::getInstance();
 
 if ($database->isConnected())
@@ -638,6 +623,45 @@ if ($database->isConnected())
       {
          echo "uregisterDisplay [PIXMIX]: " . ($result ? "true" : "false") . "<br>";
       } 
+   }
+}
+
+// **************************************************************************
+
+$assetInfo = new AssetInfo();
+$assetInfo->order = "P123";
+$assetInfo->schedule = 456;
+$assetInfo->sequence = 1;
+
+echo "<b>newAsset</b><br>";
+if ($database->newAsset($assetInfo))
+{
+   $assetId = $database->lastInsertId();
+   $assetInfo = AssetInfo::load($assetId);
+   echo "newAsset [$assetId]<br>";
+   var_dump($shiftInfo);
+   
+   $barcode = $assetInfo->getBarcode();
+   
+   $assetInfo = AssetInfo::loadFromBarcode($barcode);
+   if($assetInfo)
+   {
+      echo "getAssetFromBarcode [$barcode]<br>";
+      var_dump($assetInfo);
+   }
+   
+   $database->checkInAsset($assetId, 1);
+   if ($database->updateShift($shiftInfo))
+   {
+      echo "checkInAsset [$barcode, 1]<br>";
+      $assetInfo = AssetInfo::load($assetId);
+      var_dump($assetInfo);
+   }
+   
+   echo "<b>deleteAsset</b><br>";
+   if ($database->deleteAsset($assetId))
+   {
+      echo "deleteAsset [$assetId] <br>";
    }
 }
 

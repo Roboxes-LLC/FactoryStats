@@ -524,3 +524,43 @@ function updateFirstEntry(firstEntry)
       element.innerHTML = timeString;
    }
 }
+
+function onBarcode(barcode)
+{
+   var requestURL = "api/barcode/?&barcode=" + barcode + "&stationId=" + getStationId() + "&shiftId=" + getShiftId();
+   console.log(requestURL);
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         try
+         {
+            var json = JSON.parse(this.responseText);
+            
+            if (json.success)
+            {
+               update();
+            }
+            else
+            {
+               console.log(json.error);
+            }
+         }
+         catch (exception)
+         {
+            if (exception.name == "SyntaxError")
+            {
+               console.log("JSON syntax error");
+               console.log(this.responseText);
+            }
+            else
+            {
+               throw(exception);
+            }            
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();   
+}

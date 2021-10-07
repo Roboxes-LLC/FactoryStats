@@ -319,10 +319,12 @@ $objectNamePlural = getObjectNamePlural();
    </div>
    
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   <script src="script/barcodeScanner.js<?php echo versionQuery();?>"></script>
    <script src="chart/chart.js<?php echo versionQuery();?>"></script>
    <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
    <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"" . versionQuery() . "></script>";}?>
    <script src="script/modal.js<?php echo versionQuery();?>"></script>
+   
    <script>
       // Start a timer to update the count/hourly count div.
       setInterval(function(){update();}, 10000);
@@ -334,6 +336,10 @@ $objectNamePlural = getObjectNamePlural();
       shiftHours = {
          <?php echo getShiftHours(); ?>
       };
+      
+      // Listen for barcodes.
+      var barcodeScanner = new BarcodeScanner();
+      barcodeScanner.onBarcode = onBarcode;
    </script>
    
 <?php

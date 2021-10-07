@@ -1,5 +1,6 @@
 <?php
 
+require_once 'assetInfo.php';
 require_once 'breakInfo.php';
 require_once 'buttonInfo.php';
 require_once 'databaseDefs.php';
@@ -499,9 +500,9 @@ class FactoryStatsDatabase extends PDODatabase
    
    public function __construct()
    {
-      global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD;
+      global $DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $DATABASE;
       
-      $database = $_SESSION["database"];
+      $database = isset($DATABASE) ? $DATABASE : $_SESSION["database"];
       
       parent::__construct($DATABASE_TYPE, $SERVER, $USER, $PASSWORD, $database);
    }
@@ -1568,6 +1569,78 @@ class FactoryStatsDatabase extends PDODatabase
       }
       
       return ($updateTime);
+   }
+   
+   // **************************************************************************
+   //                                 Asset
+   
+   public function getAsset($assetId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from asset WHERE assetId = ?;");
+      
+      $result = $statement->execute([$assetId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getAssetFromBarcode($encodedBarcode)
+   {
+      $result = null;
+      
+      $barcode = Barcode::parse($encodedBarcode);
+      
+      if ($barcode && $barcode->isValid())
+      {      
+         $statement = $this->pdo->prepare(
+            "SELECT * from asset " . 
+            "WHERE orderId = ? AND schedule = ? AND sequence = ?;");
+         
+         $result = $statement->execute(
+            [
+               $barcode->order, 
+               $barcode->schedule, 
+               $barcode->sequence
+            ]) ? $statement->fetchAll() : null;
+      }
+      
+      return ($result);
+   }
+   
+   public function newAsset($assetInfo)
+   {
+      $statement = $this->pdo->prepare(
+         "INSERT INTO asset (orderId, schedule, sequence) " .
+         "VALUES (?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $assetInfo->order,
+            $assetInfo->schedule,
+            $assetInfo->sequence
+         ]);
+      
+      return ($result);
+   }
+   
+   public function checkInAsset($assetId, $stationId)
+   {
+      $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+      
+      $statement = $this->pdo->prepare(
+         "UPDATE asset SET stationId = ?, checkInDateTime = ? WHERE assetId = ?;");
+      
+      $result = $statement->execute([$stationId, $now, $assetId]);
+      
+      return ($result);
+   }
+   
+   public function deleteAsset($assetId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM asset WHERE assetId = ?;");
+      
+      $result = $statement->execute([$assetId]);
+      
+      return ($result);
    }
    
    // **************************************************************************
