@@ -120,8 +120,18 @@ class WorkstationStatus
       {
          $index = (new DateTime($tempDateTime))->format("Y-m-d H:00:00");
          $hourlyCount[$index] = 0;
-         
+
+         $prevTempDateTime = $tempDateTime;
          $tempDateTime = Time::incrementHour($tempDateTime);
+         
+         // Workaround for daylight savings time.
+         // Increment hour uses DateTime::add().  During daylight savings time in the fall, 
+         // DateTime::add(new DateInterval("P1D")) on 1:00 AM -> 1:00 AM.  
+         // This extra logic detects that and skips ahead two hours to compensate.
+         if ($prevTempDateTime == $tempDateTime)
+         {
+            $tempDateTime = Time::incrementHour($tempDateTime, 2);
+         }
       }
 
       // Retrieve hourly counts from the database.

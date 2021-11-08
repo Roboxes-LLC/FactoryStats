@@ -80,11 +80,11 @@ class Time
       return ($endDateTime->format("Y-m-d 23:59:59"));
    }
    
-   static public function incrementHour($dateTime)
+   static public function incrementHour($dateTime, $hours = 1)
    {
       $incrementedDateTime = new DateTime($dateTime);
       
-      $incrementedDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
+      $incrementedDateTime->add(new DateInterval("PT{$hours}H"));  // period, time, 1 hour
       
       return ($incrementedDateTime->format("Y-m-d H:i:s"));
    }
