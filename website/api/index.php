@@ -35,10 +35,24 @@ function getStations()
 
    foreach ($result as $row)
    {
-      $stations[] = $row["stationId"];
+      $stations[] = intval($row["stationId"]);
    }
 
    return ($stations);
+}
+
+function getShifts()
+{
+   $shifts = array();
+   
+   $result = FactoryStatsDatabase::getInstance()->getShifts();
+   
+   foreach ($result as $row)
+   {
+      $shifts[] = intval($row["shiftId"]);
+   }
+   
+   return ($shifts);
 }
 
 // *****************************************************************************
@@ -842,7 +856,7 @@ $router->add("customer", function($params) {
       $result->success = false;
       $result->error = "Invalid parameters";
    }
-   
+
    echo json_encode($result);
 });
 
@@ -894,7 +908,7 @@ $router->add("userCustomer", function($params) {
             {
                $result->success = $database->removeUserFromCustomer($userId, $customerId);
             }
-            else 
+            else
             {
                $result->success = false;
                $result->error = "Invalid action";
@@ -905,6 +919,254 @@ $router->add("userCustomer", function($params) {
             $result->success = false;
             $result->error = "No database connection";
          }
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+      
+   echo json_encode($result);
+});
+   
+// *****************************************************************************
+//                                     Public API
+// *****************************************************************************
+
+$router->add("apiUser", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   $result->users = array();
+   
+   /*
+   Authentication::authenticate();
+   
+   if (!Authentication::checkPermissions(Permission::USER_CONFIG))
+   {
+      $result->success = false;
+      $result->error = "Permissions error";
+   }
+   else
+   */
+   {
+      /*
+      $database = FactoryStatsGlobalDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $customerId = CustomerInfo::getCustomerId($_SESSION['authenticatedUserId']);
+         
+         $databaseResult = $database->getUsersForCustomer($customerId);
+      */
+      
+       $database = FactoryStatsDatabase::getInstance();
+       
+       if ($database && $database->isConnected())
+       {
+         $databaseResult = $database->getUsers();
+         
+         foreach ($databaseResult as $row)
+         {
+            $userInfo = UserInfo::load(intval($row["userId"]));
+            unset($userInfo->passwordHash);
+            unset($userInfo->authToken);
+            
+            $result->users[$userInfo->userId] = $userInfo;
+         }
+         
+         $result->success = true;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
+      }
+   }
+   
+   echo json_encode($result);
+});
+   
+$router->add("apiShift", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   $result->shifts = array();
+   
+   /*
+   Authentication::authenticate();
+      
+   if (!Authentication::checkPermissions(Permission::CUSTOMER_CONFIG))
+   {
+      $result->success = false;
+      $result->error = "Permissions error";
+   }
+   else
+   */
+   {
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $databaseResult = $database->getShifts();
+         
+         foreach ($databaseResult as $row)
+         {
+            $shiftInfo = ShiftInfo::load(intval($row["shiftId"]));
+            
+            $result->shifts[$shiftInfo->shiftId] = $shiftInfo;
+         }
+         
+         $result->currentShiftId = ShiftInfo::getShift(Time::now("H:i:s"));
+         
+         $result->success = true;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
+      }
+   }
+   
+   echo json_encode($result);
+});
+
+$router->add("apiStation", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   $result->stations = array();
+   
+   /*
+   Authentication::authenticate();
+   
+   if (!Authentication::checkPermissions(Permission::STATION_CONFIG))
+   {
+      $result->success = false;
+      $result->error = "Permissions error";
+   }
+   else
+   */
+   {
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $databaseResult = $database->getStations();
+         
+         foreach ($databaseResult as $row)
+         {
+            $stationInfo = StationInfo::load(intval($row["stationId"]));
+            
+            $result->stations[$stationInfo->stationId] = $stationInfo;
+         }
+         
+         $result->success = true;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
+      }
+   }
+   
+   echo json_encode($result);
+});
+            
+$router->add("apiButton", function($params) {
+   $result = new stdClass();
+   
+   echo json_encode($result);
+});
+               
+$router->add("apiSensor", function($params) {
+   $result = new stdClass();
+   
+   echo json_encode($result);
+});
+                  
+$router->add("apiDisplay", function($params) {
+   $result = new stdClass();
+   
+   echo json_encode($result);
+});
+                     
+$router->add("apiCount", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   $result->counts = array();
+   
+   /*
+   Authentication::authenticate();
+   
+   if (!Authentication::checkPermissions(Permission::WORKSTATION))
+   {
+      $result->success = false;
+      $result->error = "Permissions error";
+   }
+   else
+   */
+   {
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $stations = array();
+         if (isset($params["stationId"]))
+         {
+            $stations[] = $params->getInt("stationId");
+         }
+         else
+         {
+            $stations = getStations();
+         }
+         
+         $shifts = array();
+         if (isset($params["shiftId"]))
+         {
+            $shifts[] = $params->getInt("shiftId");
+         }
+         else
+         {
+            $shifts = getShifts();
+         }
+         
+         $dateTime =
+            (isset($params["date"])) ?
+               $params->get("date") :
+               Time::now("H:i:s");
+         
+         foreach ($shifts as $shiftId)
+         {
+            // Get start and end times based on the shift.
+            $shiftInfo = ShiftInfo::load($shiftId);
+            $evaluationTimes = $shiftInfo->getEvaluationTimes($dateTime, $dateTime);
+            
+            foreach ($stations as $stationId)
+            {
+               $result->counts[$stationId] = array();
+               
+               $result->counts[$stationId][$shiftId] = new stdClass();
+ 
+               $result->counts[$stationId][$shiftId]->stationId = $stationId;
+               $result->counts[$stationId][$shiftId]->shiftId = $shiftId;
+               $result->counts[$stationId][$shiftId]->startDateTime = $evaluationTimes->startDateTime;
+               $result->counts[$stationId][$shiftId]->endDateTime = $evaluationTimes->endDateTime;
+               
+               $result->counts[$stationId][$shiftId]->count = FactoryStatsDatabase::getInstance()->getCount($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+               
+               $result->counts[$stationId][$shiftId]->firstEntry = $database->getFirstEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+               
+               $result->counts[$stationId][$shiftId]->updateTime = $database->getLastEntry($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);
+               
+               $result->counts[$stationId][$shiftId]->averageCountTime = Stats::getAverageCountTime($stationId, $shiftId, $evaluationTimes->startDateTime, $evaluationTimes->endDateTime);               
+            }
+         }
+         
+         $result->success = true;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
       }
    }
    

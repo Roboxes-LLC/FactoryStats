@@ -34,3 +34,4 @@ makefile
 
 # Ignored folders
 databaseBackup/
+.scannerwork/
