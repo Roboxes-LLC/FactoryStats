@@ -112,7 +112,7 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
    
    if ($database && $database->isConnected())
    {
-      $database->newUser($userInfo);
+      $database->newUser($userInfo, CustomerInfo::getCustomerId());
    }
 }
 

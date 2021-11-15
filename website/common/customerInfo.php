@@ -88,7 +88,9 @@ class CustomerInfo
       
       if (!$subdomain)
       {         
-         $customerId = intval($_SESSION["customerId"]);
+         $customerId = isset($_SESSION["customerId"]) ? 
+                          intval($_SESSION["customerId"]) : 
+                          CustomerInfo::UNKNOWN_CUSTOMER_ID;
          
          if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
          {
@@ -98,6 +100,10 @@ class CustomerInfo
             {
                $subdomain = $customerInfo->subdomain;
             }
+         }
+         else
+         {
+            $subdomain = CustomerInfo::getSubdomainFromUrl();
          }
       }
       
@@ -244,7 +250,8 @@ class CustomerInfo
          
          // Look for the domain in the URL.
          // I.e. <subdomain>.factorystats.com
-         if (count($tokens) == 3)
+         if ((count($tokens) == 3) &&
+             (strtolower($tokens[0]) != "www"))
          {
             $subdomain = $tokens[0];
          }

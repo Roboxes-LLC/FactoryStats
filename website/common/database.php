@@ -378,7 +378,7 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       return ($result);
    }
    
-   public function newUser($userInfo)
+   public function newUser($userInfo, $customerId)
    {
       $userTable = DatabaseType::reservedName("user", $this->databaseType);
       
@@ -399,6 +399,11 @@ class FactoryStatsGlobalDatabase extends PDODatabase
                $userInfo->email,
                $userInfo->authToken
          ]);
+      
+      if ($result)
+      {
+         $this->addUserToCustomer($this->lastInsertId(), $customerId);
+      }
       
       return ($result);
    }
@@ -447,6 +452,10 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       $statement = $this->pdo->prepare("DELETE FROM $userTable WHERE userId = ?");
       
       $result = $statement->execute([$userId]);
+      
+      $statement = $this->pdo->prepare("DELETE FROM user_customer WHERE userId = ?");
+      
+      $result &= $statement->execute([$userId]);
       
       return ($result);
    }

@@ -60,7 +60,7 @@ class DisplayRegistry
    
    static function getAssociatedSubdomain($uid)
    {
-      $domain = "";
+      $domain = DisplayRegistry::UNKNOWN_SUBDOMAIN;
       
       $database = FactoryStatsGlobalDatabase::getInstance();
       

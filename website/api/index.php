@@ -73,6 +73,7 @@ if (!Authentication::isAuthenticated())
       $_SESSION["customerId"] = $customerId;
       $_SESSION["database"] = CustomerInfo::getDatabase();
    }
+   /*
    else 
    {
       $result = new stdClass();
@@ -82,6 +83,7 @@ if (!Authentication::isAuthenticated())
       echo json_encode($result);
       exit;
    }
+   */
 }
 
 $router = new Router();
@@ -331,10 +333,12 @@ $router->add("display", function($params) {
       if (DisplayRegistry::isRegistered($uid))
       {
          // Retrieve the associated subdomain (if any).
-         $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
+         $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);  // TODO: Change to getAssociatedCustomer().
          
          // Is this display associated with *this* subdomain?
-         if ($subdomain == CustomerInfo::getSubdomain())
+         if (($subdomain != DisplayRegistry::UNKNOWN_SUBDOMAIN) &&
+             (CustomerInfo::getSubdomain()) && 
+             ($subdomain == CustomerInfo::getSubdomain()))
          {
             $database = FactoryStatsDatabase::getInstance();
             
