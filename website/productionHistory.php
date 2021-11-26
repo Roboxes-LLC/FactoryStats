@@ -806,13 +806,16 @@ if ($params->keyExists("action") &&
    <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
    
+   <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+   <script src="script/productionHistory.js<?php echo versionQuery();?>"></script>
+   
 </head>
 
 <body>
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php Header::render(false);?>
+   <?php Header::render(false, false, true);?>
    
    <?php include 'common/menu.php';?>
    
@@ -841,8 +844,6 @@ if ($params->keyExists("action") &&
      
 </div>
 
-<script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
-<script src="script/productionHistory.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.PRODUCTION_HISTORY);
 </script>

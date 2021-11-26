@@ -48,7 +48,7 @@ def updateIpAddress():
    IP_ADDRESS = os.popen(GET_IP).read()
 
 def getUrl(server):
-   return ("http://" + SERVER + "/api/display/")
+   return ("https://" + SERVER + "/api/display/")
    
 def getParams():
    global UID

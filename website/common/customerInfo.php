@@ -24,42 +24,86 @@ class CustomerInfo
    
    public $disableAuthentication;
    
+   public static function getCustomerId($userId = UserInfo::UNKNOWN_USER_ID)
+   {
+      $customerId = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      // First, check the $_SESSION variable.
+      if ((isset($_SESSION["customerId"])) &&
+          (intval($_SESSION["customerId"]) != CustomerInfo::UNKNOWN_CUSTOMER_ID))
+      {
+         $customerId = intval($_SESSION["customerId"]);
+      }
+      else
+      {
+         // Attempt examine the URL for a customer subdomain.
+         $customerId = CustomerInfo::getCustomerIdFromUrl();
+         
+         if (($customerId == CustomerInfo::UNKNOWN_CUSTOMER_ID) &&
+             ($userId != UserInfo::UNKNOWN_USER_ID))
+         {
+            // Otherwise, go with the user's first associated customer.
+            $customerId = CustomerInfo::getCustomerIdFromUser($userId);
+         }
+
+         // Store any valid customer id.
+         if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
+         {
+            $_SESSION["customerId"] = $customerId;
+         }
+      }
+      
+      return ($customerId);
+   }
+   
+   public static function isCustomerSpecifiedInUrl()
+   {
+      return (CustomerInfo::getSubdomainFromUrl() != "");
+   }
+   
+   public static function validateUserForCustomer($userId, $customerId)
+   {
+      $isValid = false;
+      
+      $database = FactoryStatsGlobalDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {  
+         $userInfo = UserInfo::load($userId);
+         
+         if ($userInfo)
+         {
+            $customerIds = $userInfo->getCustomers();
+            
+            $isValid = in_array($customerId, $customerIds);
+         }
+      }
+      
+      return ($isValid);
+   }
+   
    public static function getSubdomain()
    {
-      global $SUBDOMAIN;
-      
       static $subdomain = null;
       
-      // Allow spoofing of subdomain using $SUBDOMAIN variable defined in root.php.
-      if (isset($SUBDOMAIN))
-      {
-         $subdomain = $SUBDOMAIN;
-      }
-      else 
-      {
-         $params = Params::parse();
+      if (!$subdomain)
+      {         
+         $customerId = isset($_SESSION["customerId"]) ? 
+                          intval($_SESSION["customerId"]) : 
+                          CustomerInfo::UNKNOWN_CUSTOMER_ID;
          
-         if ($subdomain == null)
+         if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
          {
-            // Allow spoofing of subdomain for testing.
-            if ($params->keyExists("subdomain"))
+            $customerInfo = CustomerInfo::load($customerId);
+            
+            if ($customerInfo)
             {
-               $subdomain = $params["subdomain"];
+               $subdomain = $customerInfo->subdomain;
             }
-            // Otherwise, parse the domain from the HTTP request.
-            else
-            {
-               $tokens = explode('.', $_SERVER['HTTP_HOST']);
-               
-               if (count($tokens) >= 3)
-               {
-                  $subdomain = $tokens[0];
-               }
-               else
-               {
-                  $subdomain = "flexscreentest";  // Default to test domain
-               }
-            }
+         }
+         else
+         {
+            $subdomain = CustomerInfo::getSubdomainFromUrl();
          }
       }
       
@@ -131,7 +175,7 @@ class CustomerInfo
    {
       $customerInfo = null;
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -146,6 +190,22 @@ class CustomerInfo
       }
       
       return ($customerInfo);
+   }
+   
+   public static function getCustomerOptions($customerIds, $selectedCustomerId)
+   {
+      $html = "";
+      
+      foreach ($customerIds as $customerId)
+      {
+         $customerInfo = CustomerInfo::load($customerId);
+         
+         $selected = ($customerId == $selectedCustomerId) ? "selected" : "";
+            
+         $html .= "<option value=\"$customerInfo->customerId\" $selected>$customerInfo->name</option>";
+      }
+      
+      return ($html);
    }
    
    static function getTimeZoneString($timeZoneId)
@@ -171,6 +231,79 @@ class CustomerInfo
          
          $this->disableAuthentication = $row['disableAuthentication'];
       }
+   }
+   
+   private static function getSubdomainFromUrl()
+   {
+      global $SUBDOMAIN;
+      
+      $subdomain = null;
+      
+      // Allow spoofing of subdomain using $SUBDOMAIN variable defined in root.php.
+      if (isset($SUBDOMAIN))
+      {
+         $subdomain = $SUBDOMAIN;
+      }
+      else 
+      {
+         $tokens = explode('.', $_SERVER['HTTP_HOST']);
+         
+         // Look for the domain in the URL.
+         // I.e. <subdomain>.factorystats.com
+         if ((count($tokens) == 3) &&
+             (strtolower($tokens[0]) != "www"))
+         {
+            $subdomain = $tokens[0];
+         }
+      }
+      
+      return ($subdomain);      
+   }
+   
+   private static function getCustomerIdFromUrl()
+   {
+      $customerId = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      $subdomain = CustomerInfo::getSubdomainFromUrl();
+      
+      if ($subdomain)
+      {
+         $database = FactoryStatsGlobalDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {            
+            $result = $database->getCustomerFromSubdomain($subdomain);
+            
+            if ($result && ($row = $result[0]))
+            {
+               $customerId = intval($row["customerId"]);
+            }
+         }         
+      }
+      
+      return ($customerId);
+   }
+   
+   private static function getCustomerIdFromUser($userId)
+   {
+      $customerId = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      if ($userId != UserInfo::UNKNOWN_USER_ID)
+      {
+         $database = FactoryStatsGlobalDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $result = $database->getCustomersForUser($userId);
+            
+            if ($result && ($row = $result[0]))
+            {
+               $customerId = intval($row["customerId"]);
+            }
+         }
+      }      
+      
+      return ($customerId);
    }
 }
 

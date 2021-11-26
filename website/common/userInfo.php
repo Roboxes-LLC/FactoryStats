@@ -12,8 +12,6 @@ class UserInfo
    
    const ADMIN_EMPLOYEE_NUMBER = 1;
    
-   const NO_ASSIGNED_STATIONS = 0;
-   
    const DUMMY_PASSWORD = "DUMMYPASSWORD";
    
    public $userId;
@@ -26,7 +24,6 @@ class UserInfo
    public $permissions;       // bitfield
    public $email;
    public $authToken;
-   public $assignedStations;  // bitfield
    
    public function __construct()
    {
@@ -39,14 +36,13 @@ class UserInfo
       $this->permissions = Permission::NO_PERMISSIONS;
       $this->email = null;
       $this->authToken = null;
-      $this->assignedStations = UserInfo::NO_ASSIGNED_STATIONS;
    }
    
    public static function load($userId)
    {
       $userInfo = null;
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -67,7 +63,7 @@ class UserInfo
    {
       $userInfo = null;
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -88,22 +84,19 @@ class UserInfo
    {
       $users = array();
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
          $result = $database->getUsersByRole($role);
 
-         if ($result)
+         foreach ($result as $row)
          {
-            foreach ($result as $row)
-            {
-               $userInfo = new UserInfo();
-               
-               $userInfo->initialize($row);
-               
-               $users[] = $userInfo;
-            }
+            $userInfo = new UserInfo();
+            
+            $userInfo->initialize($row);
+            
+            $users[] = $userInfo;
          }
       }
       
@@ -114,7 +107,7 @@ class UserInfo
    {
       $users = array();
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -138,47 +131,23 @@ class UserInfo
       return ($this->firstName . " " . $this->lastName);
    }
    
-   public function setAssignedStation($stationId)
+   public function getCustomers()
    {
-      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
-      {
-         $this->assignedStations |= (1 << ($stationId - StationInfo::MIN_STATION_ID));
-      }  
-   }
-   
-   public function clearAssignedStation($stationId)
-   {
-      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
-      {
-         $this->assignedStations |= ~(1 << ($stationId - StationInfo::MIN_STATION_ID));
-      }      
-   }   
-   
-   public function isAssignedStation($stationId)
-   {
-      $isAssigned = false;
+      $customers = array();
       
-      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
-      {
-         $isAssigned = (($this->assignedStations & (1 << ($stationId - StationInfo::MIN_STATION_ID))) > 0);
-      }
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
-      return ($isAssigned);
-   }
-   
-   public function getAssignedStations()
-   {
-      $stationIds = array();
-      
-      for ($stationId = StationInfo::MIN_STATION_ID; stationId <= StationInfo::MAX_STATION_ID; $stationId++)
+      if ($database && $database->isConnected())
       {
-         if ($this->isAssignedStation($stationId))
+         $result = $database->getCustomersForUser($this->userId);
+         
+         foreach ($result as $row)
          {
-            $stationIds[] = $stationId;
+            $customers[] = intval($row["customerId"]);
          }
       }
       
-      return ($stationIds);
+      return ($customers);
    }
    
    private function initialize($row)
@@ -193,7 +162,6 @@ class UserInfo
       $this->lastName = $row['lastName'];
       $this->email = $row['email'];
       $this->authToken = $row['authToken'];
-      $this->assignedStations = $row["assignedStations"];
    }
 }
 
@@ -223,7 +191,6 @@ if ($userInfo)
    echo "lastName: " .         $userInfo->lastName .         "<br/>";
    echo "email: " .            $userInfo->email .            "<br/>";
    echo "authToken: " .        $userInfo->authToken .        "<br/>";
-   echo "assignedStations: " . $userInfo->assignedStations . "<br/>";
    
    echo "fullName: " . $userInfo->getFullName() . "<br/>";
 }

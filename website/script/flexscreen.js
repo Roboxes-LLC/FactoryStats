@@ -109,6 +109,31 @@ function storeInSession(key, value)
    xhttp.send();
 }
 
+function setCustomer(customerId)
+{
+   var requestURL = "api/customer/?action=set&customerId=" + customerId;
+   
+   var xhttp = new XMLHttpRequest();
+   xhttp.onreadystatechange = function()
+   {
+      if (this.readyState == 4 && this.status == 200)
+      {
+         var json = JSON.parse(this.responseText);
+         
+         if (json.success)
+         {
+            console.log("Customer set to \'" + json.customerName + "\'.");
+         }
+         else
+         {
+            console.log("Failed to set customer.");
+         }
+      }
+   };
+   xhttp.open("GET", requestURL, true);
+   xhttp.send();
+}
+
 function update()
 {
    var requestURL = "api/status/?stationId=" + getStationId() + "&shiftId=" + getShiftId() + "&action=status";

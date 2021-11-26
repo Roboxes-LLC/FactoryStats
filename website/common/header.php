@@ -8,7 +8,7 @@ require_once 'shiftInfo.php';
 
 class Header
 {
-   public static function getHtml($includeShiftIdInput = false, $includeStationFilterInput = false)
+   public static function getHtml($includeShiftIdInput = false, $includeStationFilterInput = false, $includeCustomerFilterInput = false)
    {
       global $ROOT;
       
@@ -41,6 +41,41 @@ HEREDOC;
 HEREDOC;
       }
       
+      $customerFilterInput = "";
+      if ($includeCustomerFilterInput)
+      {
+         // Retrieve any customer filter that is currently selected.
+         $customerFilter = Header::getCustomerFilter();
+         
+         $customerIds = array();
+         if (CustomerInfo::isCustomerSpecifiedInUrl())
+         {
+            // If the customer is specified using a URL subdomain, limit selection
+            // to that customer only.
+            $customerIds[] = CustomerInfo::getCustomerId();
+         }
+         else 
+         {
+            $userInfo = Authentication::getAuthenticatedUser();
+            if ($userInfo)
+            {
+               $customerIds = $userInfo->getCustomers($customerIds);
+            }
+         }
+         
+         // Only provide a customer filter if there is more than one.
+         if (count($customerIds) > 1)
+         {        
+            $customerFilterOptions = CustomerInfo::getCustomerOptions($customerIds, $customerFilter);
+            
+            $nullShiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+            $customerFilterInput =
+<<<HEREDOC
+            <select id="customer-filter-input" class="header-input" name="customerFilter" onchange="setCustomer(this.value); storeInSession('shiftId', $nullShiftId); location.reload();">$customerFilterOptions</select>
+HEREDOC;
+         }
+      }
+      
       $imagesFolder = CustomerInfo::getImagesFolder();
       
       $html = 
@@ -67,6 +102,7 @@ HEREDOC;
          
          $html .=
 <<<HEREDOC
+            $customerFilterInput
             <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
             <div class="nav-username">$username &nbsp | &nbsp</div>
             <a class="nav-link" href="$ROOT/index.php?action=logout">Logout</a>
@@ -83,9 +119,9 @@ HEREDOC;
       return ($html);
    }
    
-   public static function render($includeShiftIdInput = false, $includeStationFilterInput = false)
+   public static function render($includeShiftIdInput = false, $includeStationFilterInput = false, $includeCustomerFilterInput = false)
    {
-      echo (Header::getHtml($includeShiftIdInput, $includeStationFilterInput));
+      echo (Header::getHtml($includeShiftIdInput, $includeStationFilterInput, $includeCustomerFilterInput));
    }
    
    private static function getStationFilter()
@@ -100,6 +136,18 @@ HEREDOC;
       }
       
       return ($stationFilter);
+   }
+   
+   private static function getCustomerFilter()
+   {
+      $customerFilter = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      if (isset($_SESSION["customerId"]))
+      {
+         $customerFilter = intval($_SESSION["customerId"]);
+      }
+      
+      return ($customerFilter);
    }
 }
 

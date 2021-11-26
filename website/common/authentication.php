@@ -1,6 +1,7 @@
 <?php
 
 require_once 'params.php';
+require_once 'database.php';
 require_once 'userInfo.php';
 
 abstract class AuthenticationResult
@@ -9,6 +10,7 @@ abstract class AuthenticationResult
    const INVALID_USERNAME = 1;
    const INVALID_PASSWORD = 2;
    const INVALID_AUTH_TOKEN = 3;
+   const INVALID_CUSTOMER = 4;
 }
 
 class Authentication
@@ -17,7 +19,10 @@ class Authentication
    
    static public function isAuthenticated()
    {
-      return (isset($_SESSION["authenticated"]) && ($_SESSION["authenticated"] == true));
+      return (isset($_SESSION["authenticated"]) && 
+              ($_SESSION["authenticated"] == true) &&
+              isset($_SESSION["customerId"]) &&
+              ($_SESSION["customerId"] != CustomerInfo::UNKNOWN_CUSTOMER_ID));
    }
    
    static public function getAuthenticatedUser()
@@ -30,6 +35,18 @@ class Authentication
       }
       
       return ($authenticatedUser);
+   }
+   
+   static public function getAuthenticatedCustomer()
+   {
+      $authenticatedCustomer = null;
+      
+      if (Authentication::isAuthenticated())
+      {
+         $authenticatedCustomer = CustomerInfo::load($_SESSION['customerId']);
+      }
+      
+      return ($authenticatedCustomer);
    }
    
    static public function getPermissions()
@@ -59,10 +76,56 @@ class Authentication
          $result = Authentication::authenticateToken($params->get("authToken"));
       }
       
+      // Authenticate user against customer.
+      if ($result == AuthenticationResult::AUTHENTICATED)
+      {
+         $customerId = CustomerInfo::getCustomerId($_SESSION['authenticatedUserId']);
+         
+         if (!Authentication::setCustomer($customerId))
+         {
+            Authentication::deauthenticate();
+            $result = AuthenticationResult::INVALID_CUSTOMER;
+         }
+      }
+      
       return ($result);
    }
    
-   static public function authenticateUser($username, $password)
+   static public function deauthenticate()
+   {
+      $_SESSION['authenticated'] = false;
+      unset($_SESSION['authenticatedUserId']);
+      unset($_SESSION['permissions']);
+      unset($_SESSION['customers']);
+      unset($_SESSION['customerId']);
+      unset($_SESSION['database']);
+   }
+   
+   static public function checkPermissions($permissionId)
+   {
+      $permission = Permission::getPermission($permissionId)->bits;
+      $userPermissions = Authentication::getPermissions();
+      
+      return (($userPermissions & $permission) > 0);
+   }
+   
+   static public function setCustomer($customerId)
+   {
+      $success = false;
+      
+      if (Authentication::isAuthenticated() &&
+          CustomerInfo::validateUserForCustomer($_SESSION['authenticatedUserId'], $customerId))
+      {
+         $_SESSION["customerId"] = $customerId;
+         $_SESSION["database"] = CustomerInfo::getDatabase();
+         
+         $success = true;
+      }
+      
+      return ($success);
+   }
+   
+   static private function authenticateUser($username, $password)
    {
       $result = AuthenticationResult::INVALID_USERNAME;
       
@@ -89,7 +152,7 @@ class Authentication
       return ($result);
    }
    
-   static public function authenticateToken($authToken)
+   static private function authenticateToken($authToken)
    {
       $result = AuthenticationResult::INVALID_AUTH_TOKEN;
       
@@ -98,11 +161,11 @@ class Authentication
       foreach ($users as $user)
       {
          if (($user->authToken != "") &&
-             ($authToken == $user->authToken))
+               ($authToken == $user->authToken))
          {
             $result = AuthenticationResult::AUTHENTICATED;
             
-            // Record authentication status and user name.
+            // Record authentication status.
             $_SESSION['authenticated'] = true;
             $_SESSION['authenticatedUserId'] = $user->userId;
             $_SESSION["permissions"] = $user->permissions;
@@ -110,20 +173,6 @@ class Authentication
       }
       
       return ($result);
-   }
-   
-   static public function deauthenticate()
-   {
-      $_SESSION['authenticated'] = false;
-      unset($_SESSION['authenticatedUserId']);
-   }
-   
-   static public function checkPermissions($permissionId)
-   {
-      $permission = Permission::getPermission($permissionId)->bits;
-      $userPermissions = Authentication::getPermissions();
-      
-      return (($userPermissions & $permission) > 0);
    }
 }
 ?>

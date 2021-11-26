@@ -1,6 +1,6 @@
 <?php
 
-//require_once '../common/authentication.php';
+require_once '../common/authentication.php';
 require_once '../common/buttonInfo.php';
 require_once '../common/breakInfo.php';
 require_once '../common/database.php';
@@ -59,6 +59,32 @@ function getShifts()
 //                                   Begin
 
 Time::init();
+
+session_start();
+
+Authentication::authenticate();
+
+if (!Authentication::isAuthenticated())
+{
+   // HACK!!! Remove once API authentication is required.
+   $customerId = CustomerInfo::getCustomerId();
+   if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
+   {
+      $_SESSION["customerId"] = $customerId;
+      $_SESSION["database"] = CustomerInfo::getDatabase();
+   }
+   /*
+   else 
+   {
+      $result = new stdClass();
+      $result->success = false;
+      $result->error = "Authentication error";
+      
+      echo json_encode($result);
+      exit;
+   }
+   */
+}
 
 $router = new Router();
 $router->setLogging(false);
@@ -307,10 +333,12 @@ $router->add("display", function($params) {
       if (DisplayRegistry::isRegistered($uid))
       {
          // Retrieve the associated subdomain (if any).
-         $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
+         $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);  // TODO: Change to getAssociatedCustomer().
          
          // Is this display associated with *this* subdomain?
-         if ($subdomain == CustomerInfo::getSubdomain())
+         if (($subdomain != DisplayRegistry::UNKNOWN_SUBDOMAIN) &&
+             (CustomerInfo::getSubdomain()) && 
+             ($subdomain == CustomerInfo::getSubdomain()))
          {
             $database = FactoryStatsDatabase::getInstance();
             
@@ -798,6 +826,114 @@ $router->add("slideOrder", function($params) {
    echo json_encode($result);
 });
 
+$router->add("customer", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   
+   if (isset($params["customerId"]))
+   {
+      $customerId = $params->getInt("customerId");
+      
+      $customerInfo = CustomerInfo::load($customerId);
+      
+      if ($customerInfo)
+      {
+         if (Authentication::setCustomer($customerId))
+         {
+            $result->success = true;
+            $result->customerId = $customerId;
+            $result->customerName = $customerInfo->name;
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "Authentication failure";
+         }
+      }
+      else 
+      {
+         $result->error = "Invalid customer";
+      }
+   }
+   else 
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+
+   echo json_encode($result);
+});
+
+$router->add("userCustomer", function($params) {
+   $result = new stdClass();
+   
+   if (isset($params["userId"]) &&
+       isset($params["customerId"]) &&
+       isset($params["action"]))
+   {
+      $userId = intval($params["userId"]);
+      $customerId = intval($params["customerId"]);
+      $action = $params["action"];
+      
+      if (!Authentication::checkPermissions(Permission::USER_CONFIG))
+      {
+         $result->success = false;
+         $result->error = "Permissions error";
+      }
+      else if (!CustomerInfo::validateUserForCustomer(Authentication::getAuthenticatedUser()->userId, $customerId))
+      {
+         $result->success = false;
+         $result->error = "Site permissions error";
+      }
+      else
+      {
+         $database = FactoryStatsGlobalDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $userInfo = UserInfo::load($userId);
+            $customerInfo = CustomerInfo::load($customerId);
+            
+            if (!$userInfo)
+            {
+               $result->success = false;
+               $result->error = "Invalid user";
+            }
+            else if (!$customerInfo)
+            {
+               $result->success = false;
+               $result->error = "Invalid customer";
+            }
+            else if ($action == "add")
+            {
+               $result->success = $database->addUserToCustomer($userId, $customerId);
+            }
+            else if ($action == "remove")
+            {
+               $result->success = $database->removeUserFromCustomer($userId, $customerId);
+            }
+            else
+            {
+               $result->success = false;
+               $result->error = "Invalid action";
+            }
+         }
+         else
+         {
+            $result->success = false;
+            $result->error = "No database connection";
+         }
+      }
+   }
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+      
+   echo json_encode($result);
+});
+   
 // *****************************************************************************
 //                                     Public API
 // *****************************************************************************
@@ -897,7 +1033,7 @@ $router->add("apiShift", function($params) {
    
    echo json_encode($result);
 });
-      
+
 $router->add("apiStation", function($params) {
    $result = new stdClass();
    $result->success = false;
@@ -1040,8 +1176,6 @@ $router->add("apiCount", function($params) {
    
    echo json_encode($result);
 });
-                        
-// *****************************************************************************
 
 $router->route();
 ?>

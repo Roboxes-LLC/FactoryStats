@@ -28,16 +28,17 @@ function renderTable()
          <th>Username</th>
          <th>Role</th>
          <th>Email</th>
+         <th>Sites</th>
          <th></th>
          <th></th>
       </tr>
 HEREDOC;
    
-   $database = FactoryStatsDatabase::getInstance();
+   $database = FactoryStatsGlobalDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
-      $result = $database->getUsers();
+      $result = $database->getUsersForCustomer(Authentication::getAuthenticatedCustomer()->customerId);
       
       foreach ($result as $row)
       {
@@ -52,6 +53,8 @@ HEREDOC;
             $roleName = $role->roleName;
          }
          
+         $siteCount = count($userInfo->getCustomers());
+         
          echo 
 <<<HEREDOC
          <tr>
@@ -60,6 +63,7 @@ HEREDOC;
             <td>$userInfo->username</td>
             <td>$roleName</td>
             <td>$userInfo->email</td>
+            <td>$siteCount</td>
             <td><button class="config-button" onclick="setUserInfo($userInfo->userId, $userInfo->employeeNumber, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
@@ -104,17 +108,17 @@ function addUser($employeeNumber, $firstName, $lastName, $username, $password, $
    }
    $userInfo->email = $email;
    
-   $database = FactoryStatsDatabase::getInstance();
+   $database = FactoryStatsGlobalDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
-      $database->newUser($userInfo);
+      $database->newUser($userInfo, CustomerInfo::getCustomerId());
    }
 }
 
 function deleteUser($userId)
 {
-   $database = FactoryStatsDatabase::getInstance();
+   $database = FactoryStatsGlobalDatabase::getInstance();
    
    if ($database && $database->isConnected())
    {
@@ -141,7 +145,7 @@ function updateUser($userId, $employeeNumber, $firstName, $lastName, $username, 
          $userInfo->passwordHash = password_hash($password, PASSWORD_DEFAULT);
       }
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
@@ -230,13 +234,16 @@ switch ($params->get("action"))
 
 <div class="flex-vertical" style="align-items: flex-start;">
 
-   <?php Header::render(false);?>
+   <?php Header::render(false, false, true);?>
    
    <?php include 'common/menu.php';?>
    
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
-         <button class="config-button" onclick="setUserInfo('', '', '', '', '', '', '', ''); showModal('config-modal');">New User</button>
+         <div class="flex-horizontal">
+            <button class="config-button" onclick="setUserInfo('', '', '', '', '', '', '', ''); showModal('config-modal');">New User</button>
+            <button class="config-button" onclick="window.location.href = 'userCustomerConfig.php';">Sites</button>
+         </div>
          <br>
          <?php renderTable();?>
       </div>

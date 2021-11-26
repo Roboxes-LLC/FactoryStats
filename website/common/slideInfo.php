@@ -126,23 +126,23 @@ class SlideInfo
          {
             $url = $this->url;
             
-            // Add HTTP prefex if necessary.
+            // Add HTTPS prefex if necessary.
             if (substr($url, 0, 4) != "http")
             {
-               $url = "http://" . $url;
+               $url = "https://" . $url;
             }
             break;
          }
          
          case SlideType::IMAGE:
          {
-            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/pages/slide.php?slideId=" . $this->slideId;
+            $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/pages/slide.php?slideId=" . $this->slideId;
             break;
          }
          
          case SlideType::WORKSTATION_SUMMARY_PAGE:
          {
-            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true";
+            $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true";
             
             if ($this->shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
             {
@@ -162,7 +162,7 @@ class SlideInfo
          
          case SlideType::WORKSTATION_PAGE:
          {
-            $url = "http://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstations.php?kiosk=true";            
+            $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstations.php?kiosk=true";            
             
             foreach ($this->stationIds as $stationId)
             {

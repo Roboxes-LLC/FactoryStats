@@ -2,6 +2,7 @@
 
 body {
    color: white;
+   margin: 0;
 }
 
 .main.paused {
@@ -157,8 +158,9 @@ body {
 }
 
 .main.splash {
-   background-image: url("../images/Maddie-Hands-Fade-In-Graphic-01-1500x870.png");
+   background-image: url("../images/graph-arrow-background-1080-688.png");
    background-repeat: no-repeat;
+   background-size: cover;
 }
 
 /* Removed in version 1.01 at customer request */

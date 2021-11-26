@@ -10,7 +10,7 @@ class Demo
    
    public static function isDemoSite()
    {
-      return (CustomerInfo::getSubdomain() == "demo");
+      return (false);//return (CustomerInfo::getSubdomain() == "demo");
    }
    
    public static function showedInstructions($page)

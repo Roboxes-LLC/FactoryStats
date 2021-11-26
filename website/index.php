@@ -52,6 +52,10 @@ function getLoginFailureText($authenticationResult)
    {
       $text = "The supplied password is incorrect.  Contact your supervisor if you forgot or need to reset your password.";
    }
+   else if ($authenticationResult == AuthenticationResult::INVALID_CUSTOMER)
+   {
+      $text = "The supplied user has not beed added to this customer site.  Contact your supervisor be added to the system.";
+   }
    
    return ($text);
 }
@@ -117,7 +121,7 @@ if (Demo::isDemoSite())
 
 <div class="flex-vertical" style="align-items: flex-start; height:100%;">
 
-   <?php Header::render(false);?>
+   <?php /*Header::render(false, false, false);*/ ?>
    
    <div class="flex-horizontal main splash" style="flex-wrap: wrap; align-items: center;">
    
