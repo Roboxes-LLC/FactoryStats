@@ -35,16 +35,19 @@ function updateDisplayStatus()
                      // IP address.
                      row.cells[2].innerHTML = displayStatus.ipAddress;
                      
+                     // Version.
+                     row.cells[3].innerHTML = displayStatus.version;
+                     
                      // Last contact.
-                     row.cells[3].innerHTML = displayStatus.lastContact;
+                     row.cells[4].innerHTML = displayStatus.lastContact;
                      
                      // Display status.
-                     row.cells[4].className = "";
-                     row.cells[4].innerHTML = displayStatus.displayStatusLabel;
-                     row.cells[4].classList.add(displayStatus.displayStatusClass);
+                     row.cells[5].className = "";
+                     row.cells[5].innerHTML = displayStatus.displayStatusLabel;
+                     row.cells[5].classList.add(displayStatus.displayStatusClass);
    
                      // LED indicator.         
-                     var ledDiv = row.cells[5].querySelector('.display-led');     
+                     var ledDiv = row.cells[6].querySelector('.display-led');     
                      ledDiv.classList.remove("led-green");     
                      ledDiv.classList.remove("led-red");
                      if (displayStatus.isOnline)

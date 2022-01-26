@@ -67,7 +67,13 @@ protected:
    void onConnectionUpdate(
       MessagePtr message);
 
-   void onButtonUp(
+   void onButtonClick(
+      const String& buttonId);
+      
+   void onButtonDoubleClick(
+      const String& buttonId);  
+      
+   void onButtonDouble(
       const String& buttonId);
       
    void onButtonLongPress(

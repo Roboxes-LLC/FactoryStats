@@ -28,9 +28,11 @@ function renderTable()
          <th>ID</th>
          <th>Description</th>
          <th>IP Address</th>
+         <th>Version</th>
          <th>Last Contact</th>
          <th>Status</th>
          <th>Online</th>
+         <th></th>
          <th></th>
          <th></th>
       </tr>
@@ -63,10 +65,12 @@ HEREDOC;
             <td>$displayInfo->uid</td>
             <td>$displayInfo->name</td>
             <td>$displayInfo->ipAddress</td>
+            <td>$displayInfo->version</td>
             <td>$formattedDateTime</td>
             <td class="$displayStatusClass">$displayStatusLabel</td>
             <td><div class="display-led $ledClass"></div></td>
             <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, '$displayInfo->name', $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-reset-modal');"">Reset</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -117,6 +121,16 @@ function updateDisplay($displayId, $name, $presentationId, $enabled)
    if ($database && $database->isConnected())
    {
       $database->updateDisplay($displayInfo);
+   }
+}
+
+function resetDisplay($displayId)
+{
+   $database = FactoryStatsDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $database->setDisplayResetTime($displayId, Time::now("Y-m-d H:i:s"));
    }
 }
 
@@ -208,6 +222,12 @@ switch ($params->get("action"))
          DisplayRegistry::associateWithSubdomain($uid, $subdomain);
          $displayAdded = true;
       }
+      break;
+   }
+   
+   case "reset":
+   {
+      resetDisplay($params->get("displayId"));
       break;
    }
 
@@ -322,6 +342,14 @@ switch ($params->get("action"))
       <div id="close" class="close">&times;</div>
       <p>Really delete display?</p>
       <button class="config-button" type="submit" form="config-form" onclick="setAction('delete')">Confirm</button>
+   </div>
+</div>
+
+<div id="confirm-reset-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Really reset display?</p>
+      <button class="config-button" type="submit" form="config-form" onclick="setAction('reset')">Confirm</button>
    </div>
 </div>
 

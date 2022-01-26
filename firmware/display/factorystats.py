@@ -26,6 +26,10 @@ print("Read server: '%s'" % SERVER)
 IP_ADDRESS = os.popen(GET_IP).read()
 print("Read IP address: '%s'" % IP_ADDRESS)
 
+# version from file
+VERSION = open("%s/version.txt" % DIR).read().replace('\n','')
+print("Read version: '%s'" % VERSION)
+
 # MAC address, via script
 MAC_ADDRESS = os.popen(GET_MAC).read()
 print("Read MAC address: '%s'" % MAC_ADDRESS)
@@ -58,7 +62,7 @@ def getParams():
    # Reaquire IP address, as it may have changed since the script loaded.
    updateIpAddress()
    
-   return ({'uid':UID, 'ipAddress':IP_ADDRESS, 'macAddress':MAC_ADDRESS})
+   return ({'uid':UID, 'ipAddress':IP_ADDRESS, 'version':VERSION, 'macAddress':MAC_ADDRESS})
 
 def pingServer():
    global URL
@@ -115,6 +119,12 @@ def processPingResult(response):
             file = open("%s/www/presentation.json" % DIR, "w+")
             file.write(PRESENTATION)
             file.close()
+      
+      # Process reset request
+      if ("resetPending" in response):
+         print("Rebooting device ...")
+         os.system("sudo reboot");
+            
    elif ("error" in response):
       print("Server error: %s" % response["error"])
    else:

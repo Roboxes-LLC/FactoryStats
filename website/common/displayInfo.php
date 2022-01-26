@@ -36,10 +36,13 @@ class DisplayInfo
    
    const ONLINE_THRESHOLD = 45;  // seconds
    
+   const RESET_THRESHOLD = 45;   // seconds
+   
    public $displayId;
    public $uid;
    public $name;
    public $ipAddress;
+   public $version;
    public $presentationId;
    public $lastContact;
    public $enabled;
@@ -50,8 +53,10 @@ class DisplayInfo
       $this->uid = "";
       $this->name = "";
       $this->ipAddress = "";
+      $this->version = "";
       $this->presentationId = PresentationInfo::UNKNOWN_PRESENTATION_ID;
       $this->lastContact = null;
+      $this->resetTime = null;
       $this->enabled = false;
    }
 
@@ -73,8 +78,10 @@ class DisplayInfo
             $displayInfo->uid = $row['uid'];
             $displayInfo->name = $row['name'];
             $displayInfo->ipAddress = $row['ipAddress'];
+            $displayInfo->version = $row['version'];
             $displayInfo->presentationId = intval($row['presentationId']);
             $displayInfo->lastContact = Time::fromMySqlDate($row['lastContact'], "Y-m-d H:i:s");
+            $displayInfo->resetTime = $row['resetTime'] ? Time::fromMySqlDate($row['resetTime'], "Y-m-d H:i:s") : null; 
             $displayInfo->enabled = filter_var($row["enabled"], FILTER_VALIDATE_BOOLEAN);
          }
       }
@@ -99,6 +106,28 @@ class DisplayInfo
       }
 
       return ($isOnline);
+   }
+   
+   public function isResetPending()
+   {
+      $resetPending = false;
+      
+      if ($this->resetTime)
+      {
+         $now = new DateTime("now", new DateTimeZone('America/New_York'));
+         $resetTime = new DateTime($this->resetTime);
+         
+         // Determine the interval between the supplied date and the current time.
+         $interval = $resetTime->diff($now);
+         
+         if (($interval->days == 0) && ($interval->h == 0))  // Note: Adjust if threshold is >= 1 hour
+         {
+            $seconds = (($interval->i * 60) + ($interval->s));
+            $resetPending = ($seconds <= DisplayInfo::RESET_THRESHOLD);
+         }
+      }
+      
+      return ($resetPending);
    }
    
    public function getDisplayStatus()
@@ -133,6 +162,7 @@ class DisplayInfo
        echo "displayId: " .      $displayInfo->displayId .      "<br/>";
        echo "uid: " .            $displayInfo->uid .            "<br/>";
        echo "ipAddress: " .      $displayInfo->ipAddress .      "<br/>";
+       echo "version: " .        $displayInfo->version .        "<br/>";
        echo "name: " .           $displayInfo->roboxName .      "<br/>";
        echo "presentationId: " . $displayInfo->presentationId . "<br/>";
        echo "lastContact: " .    $displayInfo->lastContact .    "<br/>";
