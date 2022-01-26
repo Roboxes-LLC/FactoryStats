@@ -137,6 +137,10 @@ class SlideInfo
          case SlideType::IMAGE:
          {
             $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/pages/slide.php?slideId=" . $this->slideId;
+            
+            // TODO: Better solution for this!
+            $url .= "&authToken=jO9xT7iKvBwUsZDD56fV9UzFPin3qyvp";
+            
             break;
          }
          

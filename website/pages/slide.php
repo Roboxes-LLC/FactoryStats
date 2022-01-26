@@ -1,7 +1,21 @@
 <?php
 
+require_once '../common/authentication.php';
 require_once '../common/customerInfo.php';
 require_once '../common/slideInfo.php';
+
+Time::init();
+
+session_start();
+
+Authentication::authenticate();
+
+if (!(Authentication::isAuthenticated() &&
+      Authentication::checkPermissions(Permission::WORKSTATION)))
+{
+   header('Location: index.php?action=logout');
+   exit;
+}
 
 function getParams()
 {
