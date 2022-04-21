@@ -38,6 +38,8 @@ class DisplayInfo
    
    const RESET_THRESHOLD = 45;   // seconds
    
+   const UPGRADE_THRESHOLD = 45;   // seconds
+   
    public $displayId;
    public $uid;
    public $name;
@@ -45,6 +47,9 @@ class DisplayInfo
    public $version;
    public $presentationId;
    public $lastContact;
+   public $resetTime;
+   public $upgradeTime;
+   public $firmwareImage;
    public $enabled;
    
    public function __construct()
@@ -57,6 +62,8 @@ class DisplayInfo
       $this->presentationId = PresentationInfo::UNKNOWN_PRESENTATION_ID;
       $this->lastContact = null;
       $this->resetTime = null;
+      $this->upgradeTime = null;
+      $this->firmwareImage = null;
       $this->enabled = false;
    }
 
@@ -82,6 +89,8 @@ class DisplayInfo
             $displayInfo->presentationId = intval($row['presentationId']);
             $displayInfo->lastContact = Time::fromMySqlDate($row['lastContact'], "Y-m-d H:i:s");
             $displayInfo->resetTime = $row['resetTime'] ? Time::fromMySqlDate($row['resetTime'], "Y-m-d H:i:s") : null; 
+            $displayInfo->upgradeTime = $row['upgradeTime'] ? Time::fromMySqlDate($row['upgradeTime'], "Y-m-d H:i:s") : null; 
+            $displayInfo->firmwareImage = $row['firmwareImage'];
             $displayInfo->enabled = filter_var($row["enabled"], FILTER_VALIDATE_BOOLEAN);
          }
       }
@@ -128,6 +137,28 @@ class DisplayInfo
       }
       
       return ($resetPending);
+   }
+      
+   public function isUpgradePending()
+   {
+      $upgradePending = false;
+      
+      if ($this->upgradeTime)
+      {
+         $now = new DateTime("now", new DateTimeZone('America/New_York'));
+         $upgradeTime = new DateTime($this->upgradeTime);
+         
+         // Determine the interval between the supplied date and the current time.
+         $interval = $upgradeTime->diff($now);
+         
+         if (($interval->days == 0) && ($interval->h == 0))  // Note: Adjust if threshold is >= 1 hour
+         {
+            $seconds = (($interval->i * 60) + ($interval->s));
+            $upgradePending = ($seconds <= DisplayInfo::UPGRADE_THRESHOLD);
+         }
+      }
+   
+      return ($upgradePending);
    }
    
    public function getDisplayStatus()

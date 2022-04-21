@@ -1108,7 +1108,7 @@ class FactoryStatsDatabase extends PDODatabase
       
       $statement = $this->pdo->prepare(
          "INSERT INTO display (uid, ipAddress, version, name, presentationId, lastContact, enabled) " .
-         "VALUES (?, ?, ?, ?, ?, ?);");
+         "VALUES (?, ?, ?, ?, ?, ?, ?);");
       
       $result = $statement->execute(
          [
@@ -1155,6 +1155,17 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare("UPDATE display SET resetTime = ? WHERE displayId = ?;");
       
       $result = $statement->execute([$resetTime, $displayId]);
+      
+      return ($result);
+   }
+   
+   public function setDisplayUpgradeTime($displayId, $upgradeTime, $firmwareImage = null)
+   {
+      $resetTime = $upgradeTime ? Time::toMySqlDate($upgradeTime) : null;
+      
+      $statement = $this->pdo->prepare("UPDATE display SET upgradeTime = ?, firmwareImage = ? WHERE displayId = ?;");
+      
+      $result = $statement->execute([$resetTime, $firmwareImage, $displayId]);
       
       return ($result);
    }

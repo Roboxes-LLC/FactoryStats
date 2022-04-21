@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import os 
-from urlparse import urlparse
+import os
+
+# Python 2
+#from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+#from urlparse import urlparse
+
+# Python 3
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse
  
 class StaticServer(BaseHTTPRequestHandler):
  

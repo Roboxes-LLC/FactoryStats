@@ -415,6 +415,14 @@ $router->add("display", function($params) {
                      
                      $database->setDisplayResetTime($displayInfo->displayId, null);
                   }
+                  
+                  if ($displayInfo->isUpgradePending())
+                  {
+                     $result->upgradePending = true;
+                     $result->firmwareImage = $displayInfo->firmwareImage;
+                                          
+                     $database->setDisplayUpgradeTime($displayInfo->displayId, null, null);
+                  }
                }
             }
          }
