@@ -1,7 +1,6 @@
 #include "Adapter/HttpClientAdapter.hpp"
 #include "Board/WifiBoard.hpp"
 #include "Connection/ConnectionManager.hpp"
-#include "Component/Button.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Address.hpp"
 #include "Messaging/Messaging.hpp"
@@ -87,9 +86,8 @@ void ShopSensor::setup()
       
    Messaging::subscribe(this, ConnectionManager::CONNECTION);
    Messaging::subscribe(this, Power::POWER_INFO);
-   Messaging::subscribe(this, Roboxes::Button::BUTTON_CLICK);
-   Messaging::subscribe(this, Roboxes::Button::BUTTON_DOUBLE_CLICK);
-   Messaging::subscribe(this, Roboxes::Button::BUTTON_LONG_PRESS);
+   Messaging::subscribe(this, "buttonUp");
+   Messaging::subscribe(this, "buttonLongPress");
    
    updateTimer = Timer::newTimer(
       getId() + ".update",
@@ -131,18 +129,13 @@ void ShopSensor::handleMessage(
    {
       onConnectionUpdate(message);
    }
-   //  buttonClick
-   else if (message->getTopic() == Roboxes::Button::BUTTON_CLICK)
+   //  buttonUp
+   else if (message->getTopic() == "buttonUp")
    {
-      onButtonClick(message->getSource());
-   }
-   //  buttonDoubleClick
-   else if (message->getTopic() == Roboxes::Button::BUTTON_DOUBLE_CLICK)
-   {
-      onButtonDoubleClick(message->getSource());
+      onButtonUp(message->getSource());
    }
    //  buttonLongPress
-   else if (message->getTopic() == Roboxes::Button::BUTTON_LONG_PRESS)
+   else if (message->getTopic() == "buttonLongPress")
    {
       onButtonLongPress(message->getSource());
    }
@@ -170,7 +163,7 @@ void ShopSensor::timeout(
    if (timer == updateTimer)
    {
       bool updateRequired =
-         ((count != 0) ||                      // Update if there is a count
+         ((count > 0) ||                       // Update if there is a count
           (updateCount == 0) ||                // Initial update
           ((updateCount % pingPeriod) == 0));  // Always update on ping periods
       
@@ -339,10 +332,10 @@ void ShopSensor::onConnectionUpdate(
    }
 }
 
-void ShopSensor::onButtonClick(
+void ShopSensor::onButtonUp(
    const String& buttonId)
 {
-   Logger::logDebug("ShopSensor::onButtonClick: Button [%s] pressed.", buttonId.c_str());
+   Logger::logDebug("ShopSensor::onButtonUp: Button [%s] pressed.", buttonId.c_str());
    
    if ((buttonId == LIMIT_SWITCH) || (buttonId == BUTTON_A))
    {
@@ -359,25 +352,6 @@ void ShopSensor::onButtonClick(
    else if (buttonId == BUTTON_B)
    {
       toggledDisplayMode();
-   }
-}
-
-void ShopSensor::onButtonDoubleClick(
-   const String& buttonId)
-{
-   Logger::logDebug("ShopSensor::onButtonDoubleClick: Button [%s] double-clicked.", buttonId.c_str());
-   
-   if ((buttonId == LIMIT_SWITCH) || (buttonId == BUTTON_A))
-   {
-      count--;
-      
-      Display* display = getDisplay();
-      if (display)
-      {
-         display->updateCount(totalCount, count);
-      
-         setDisplayMode(Display::COUNT, DISPLAY_TIME);
-      }
    }
 }
 

@@ -441,7 +441,7 @@ void Display::drawCount()
       M5.Lcd.drawString("No connection", (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
    }
    // Pending count
-   else if (pendingCount != 0)
+   else if (pendingCount > 0)
    {
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
