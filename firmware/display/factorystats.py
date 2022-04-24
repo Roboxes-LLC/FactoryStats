@@ -4,6 +4,7 @@ import json
 import requests
 import shutil
 import time
+import zipfile
 
 # Working directory
 DIR = os.environ['HOME'] + "/factorystats"
@@ -26,6 +27,10 @@ print("Read server: '%s'" % SERVER)
 IP_ADDRESS = os.popen(GET_IP).read()
 print("Read IP address: '%s'" % IP_ADDRESS)
 
+# version from file
+VERSION = open("%s/version.txt" % DIR).read().replace('\n','')
+print("Read version: '%s'" % VERSION)
+
 # MAC address, via script
 MAC_ADDRESS = os.popen(GET_MAC).read()
 print("Read MAC address: '%s'" % MAC_ADDRESS)
@@ -43,12 +48,23 @@ PING_RATE = INIT_PING_RATE
 # Global variable tracking server availability.
 SERVER_AVAILABLE = True
 
+# HTTP string
+# Uncomment for production
+HTTP = "https"
+# Uncomment for local testing
+#HTTP = "http"
+
 def updateIpAddress():
    global IP_ADDRESS
    IP_ADDRESS = os.popen(GET_IP).read()
 
 def getUrl(server):
-   return ("https://" + SERVER + "/api/display/")
+   global HTTP
+   return ("%s://%s/api/display/" % (HTTP, server))
+   
+def getFirmwareUrl(server, imageName):
+   global HTTP
+   return ("%s://%s/firmware/display/%s" % (HTTP, server, imageName))
    
 def getParams():
    global UID
@@ -58,7 +74,7 @@ def getParams():
    # Reaquire IP address, as it may have changed since the script loaded.
    updateIpAddress()
    
-   return ({'uid':UID, 'ipAddress':IP_ADDRESS, 'macAddress':MAC_ADDRESS})
+   return ({'uid':UID, 'ipAddress':IP_ADDRESS, 'version':VERSION, 'macAddress':MAC_ADDRESS})
 
 def pingServer():
    global URL
@@ -115,6 +131,16 @@ def processPingResult(response):
             file = open("%s/www/presentation.json" % DIR, "w+")
             file.write(PRESENTATION)
             file.close()
+      
+      # Process firmware upgrade request
+      if (("upgradePending" in response) and ("firmwareImage" in response)):
+         firmwareUpdate(response["firmwareImage"])
+      
+      # Process reset request
+      if ("resetPending" in response):
+         print("Rebooting device ...")
+         os.system("sudo reboot");
+            
    elif ("error" in response):
       print("Server error: %s" % response["error"])
    else:
@@ -150,7 +176,41 @@ def processNoConnection():
       print("Updated presentation: %s" % content)
       file.close()
 
-# Ping server every 30 seconds.
+def firmwareUpdate(imageName):
+   global DIR
+   global SERVER
+   
+   url = getFirmwareUrl(SERVER, imageName)
+   
+   # Target directories
+   tempDir = "/tmp/factorystats/"
+   unzipDir = "%s%s/" % (tempDir, os.path.splitext(imageName)[0])
+   
+   destination = "%s%s" % (tempDir, imageName)
+   
+   # Make temp folder
+   os.system("mkdir %s" % tempDir);
+   
+   # Download file
+   print("Downloading from %s ..." % url)
+   with open(destination, "wb") as f:
+      r = requests.get(url)
+      f.write(r.content)
+      
+   # Unzip
+   print("Unzipping firmware ...")
+   with zipfile.ZipFile(destination, 'r') as zip_ref:
+      zip_ref.extractall(tempDir)
+      
+   # Copy
+   print("Copying files ...")
+   os.system("cp -r %s/*.* %s" % (unzipDir, DIR))  
+   
+   # Reboot
+   print("Firmware updated.  Rebooting device ...")
+   os.system("sudo reboot");       
+
+# Ping server every PING_RATE seconds.
 URL = getUrl(SERVER)
 print("Pinging server at %s" % URL)
 try:

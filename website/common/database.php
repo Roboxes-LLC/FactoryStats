@@ -1107,13 +1107,14 @@ class FactoryStatsDatabase extends PDODatabase
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
       $statement = $this->pdo->prepare(
-         "INSERT INTO display (uid, ipAddress, name, presentationId, lastContact, enabled) " .
-         "VALUES (?, ?, ?, ?, ?, ?);");
+         "INSERT INTO display (uid, ipAddress, version, name, presentationId, lastContact, enabled) " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?);");
       
       $result = $statement->execute(
          [
             $displayInfo->uid,
             $displayInfo->ipAddress,
+            $displayInfo->version,
             $displayInfo->name,
             $displayInfo->presentationId,
             $lastContact,
@@ -1129,13 +1130,14 @@ class FactoryStatsDatabase extends PDODatabase
       
       $statement = $this->pdo->prepare(
          "UPDATE display " .
-         "SET uid = ?, ipAddress = ?, name = ?, presentationId = ?, lastContact = ?, enabled = ? " .
+         "SET uid = ?, ipAddress = ?, version = ?, name = ?, presentationId = ?, lastContact = ?, enabled = ? " .
          "WHERE displayId = ?;");
       
       $result = $statement->execute(
          [
             $displayInfo->uid,
             $displayInfo->ipAddress,
+            $displayInfo->version,
             $displayInfo->name,
             $displayInfo->presentationId,
             $lastContact,
@@ -1143,6 +1145,28 @@ class FactoryStatsDatabase extends PDODatabase
             $displayInfo->displayId
          ]);
 
+      return ($result);
+   }
+   
+   public function setDisplayResetTime($displayId, $resetTime)
+   {
+      $resetTime = $resetTime ? Time::toMySqlDate($resetTime) : null;
+      
+      $statement = $this->pdo->prepare("UPDATE display SET resetTime = ? WHERE displayId = ?;");
+      
+      $result = $statement->execute([$resetTime, $displayId]);
+      
+      return ($result);
+   }
+   
+   public function setDisplayUpgradeTime($displayId, $upgradeTime, $firmwareImage = null)
+   {
+      $resetTime = $upgradeTime ? Time::toMySqlDate($upgradeTime) : null;
+      
+      $statement = $this->pdo->prepare("UPDATE display SET upgradeTime = ?, firmwareImage = ? WHERE displayId = ?;");
+      
+      $result = $statement->execute([$resetTime, $firmwareImage, $displayId]);
+      
       return ($result);
    }
    

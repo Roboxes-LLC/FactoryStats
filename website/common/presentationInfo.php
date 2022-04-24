@@ -52,6 +52,8 @@ class PresentationInfo
 
    public static function getDefaultPresentation($uid)
    {
+      global $HTTP;
+      
       $presentation = new PresentationInfo();
       
       $subdomain = CustomerInfo::getSubdomain();
@@ -59,7 +61,7 @@ class PresentationInfo
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = "http://$subdomain.factorystats.com/pages/default.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://$subdomain.factorystats.com/pages/default.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
@@ -70,13 +72,14 @@ class PresentationInfo
    public static function getUnregisteredPresentation($uid)
    {
       global $DISPLAY_REGISTRY;
+      global $HTTP;
 
       $presentation = new PresentationInfo();
 
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = "http://$DISPLAY_REGISTRY.factorystats.com/pages/unregistered.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://$DISPLAY_REGISTRY.factorystats.com/pages/unregistered.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
@@ -87,6 +90,7 @@ class PresentationInfo
    public static function getRedirectingPresentation($uid)
    {
       global $DISPLAY_REGISTRY;
+      global $HTTP;
       
       $presentation = new PresentationInfo();
       
@@ -99,7 +103,7 @@ class PresentationInfo
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = "http://$subdomain.factorystats.com/pages/redirecting.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://$subdomain.factorystats.com/pages/redirecting.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
@@ -110,6 +114,7 @@ class PresentationInfo
    public static function getUnconfiguredPresentation($uid)
    {
       global $DISPLAY_REGISTRY;
+      global $HTTP;
       
       $presentation = new PresentationInfo();
       
@@ -122,7 +127,7 @@ class PresentationInfo
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = "http://$subdomain.factorystats.com/pages/unconfigured.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://$subdomain.factorystats.com/pages/unconfigured.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;

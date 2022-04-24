@@ -373,6 +373,12 @@ $router->add("display", function($params) {
                      $displayInfo->ipAddress = $params["ipAddress"];
                   }
                   
+                  // Set version, if provided.
+                  if (isset($params["version"]))
+                  {
+                     $displayInfo->version = $params["version"];
+                  }
+                  
                   // Update last contact.
                   $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
                   
@@ -400,6 +406,22 @@ $router->add("display", function($params) {
                   else
                   {
                      $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();
+                  }
+                  
+                  // Mark for reset.
+                  if ($displayInfo->isResetPending())
+                  {
+                     $result->resetPending = true;
+                     
+                     $database->setDisplayResetTime($displayInfo->displayId, null);
+                  }
+                  
+                  if ($displayInfo->isUpgradePending())
+                  {
+                     $result->upgradePending = true;
+                     $result->firmwareImage = $displayInfo->firmwareImage;
+                                          
+                     $database->setDisplayUpgradeTime($displayInfo->displayId, null, null);
                   }
                }
             }
@@ -465,6 +487,7 @@ $router->add("displayStatus", function($params) {
          $displayStatus->displayId = $displayInfo->displayId;
          
          $displayStatus->ipAddress = $displayInfo->ipAddress;
+         $displayStatus->version = $displayInfo->version;
          $displayStatus->lastContact = $formattedDateTime;
          
          $status = $displayInfo->getDisplayStatus();
@@ -1089,6 +1112,41 @@ $router->add("apiSensor", function($params) {
                   
 $router->add("apiDisplay", function($params) {
    $result = new stdClass();
+   $result->success = false;
+   $result->displays = array();
+   
+   /*
+   Authentication::authenticate();
+   
+   if (!Authentication::checkPermissions(Permission::STATION_CONFIG))
+   {
+      $result->success = false;
+      $result->error = "Permissions error";
+   }
+   else
+   */
+   {
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $databaseResult = $database->getDisplays();
+         
+         foreach ($databaseResult as $row)
+         {
+            $displayInfo = DisplayInfo::load(intval($row["displayId"]));
+            
+            $result->displays[$displayInfo->displayId] = $displayInfo;
+         }
+         
+         $result->success = true;
+      }
+      else
+      {
+         $result->success = false;
+         $result->error = "No database connection";
+      }
+   }
    
    echo json_encode($result);
 });

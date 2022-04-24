@@ -1,6 +1,7 @@
 <?php
 
 require_once 'common/database.php';
+require_once 'common/displayFirmwareInfo.php';
 require_once 'common/displayInfo.php';
 require_once 'common/displayRegistry.php';
 require_once 'common/header.php';
@@ -28,9 +29,12 @@ function renderTable()
          <th>ID</th>
          <th>Description</th>
          <th>IP Address</th>
+         <th>Version</th>
          <th>Last Contact</th>
          <th>Status</th>
          <th>Online</th>
+         <th></th>
+         <th></th>
          <th></th>
          <th></th>
       </tr>
@@ -63,10 +67,13 @@ HEREDOC;
             <td>$displayInfo->uid</td>
             <td>$displayInfo->name</td>
             <td>$displayInfo->ipAddress</td>
+            <td>$displayInfo->version</td>
             <td>$formattedDateTime</td>
             <td class="$displayStatusClass">$displayStatusLabel</td>
             <td><div class="display-led $ledClass"></div></td>
             <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, '$displayInfo->name', $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-reset-modal');"">Reset</button></div></td>
+            <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('select-firmware-modal');"">Upgrade</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -117,6 +124,26 @@ function updateDisplay($displayId, $name, $presentationId, $enabled)
    if ($database && $database->isConnected())
    {
       $database->updateDisplay($displayInfo);
+   }
+}
+
+function resetDisplay($displayId)
+{
+   $database = FactoryStatsDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $database->setDisplayResetTime($displayId, Time::now("Y-m-d H:i:s"));
+   }
+}
+
+function upgradeDisplay($displayId, $firmwareImage)
+{
+   $database = FactoryStatsDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $database->setDisplayUpgradeTime($displayId, Time::now("Y-m-d H:i:s"), $firmwareImage);
    }
 }
 
@@ -208,6 +235,18 @@ switch ($params->get("action"))
          DisplayRegistry::associateWithSubdomain($uid, $subdomain);
          $displayAdded = true;
       }
+      break;
+   }
+   
+   case "reset":
+   {
+      resetDisplay($params->get("displayId"));
+      break;
+   }
+   
+   case "upgrade":
+   {
+      upgradeDisplay($params->get("displayId"), $params->get("firmwareImage"));
       break;
    }
 
@@ -322,6 +361,23 @@ switch ($params->get("action"))
       <div id="close" class="close">&times;</div>
       <p>Really delete display?</p>
       <button class="config-button" type="submit" form="config-form" onclick="setAction('delete')">Confirm</button>
+   </div>
+</div>
+
+<div id="confirm-reset-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Really reset display?</p>
+      <button class="config-button" type="submit" form="config-form" onclick="setAction('reset')">Confirm</button>
+   </div>
+</div>
+
+<div id="select-firmware-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Select display firmware</p>
+      <select form="config-form" name="firmwareImage"><?php echo DisplayFirmwareInfo::getOptions() ?></select>
+      <button class="config-button" type="submit" form="config-form" onclick="setAction('upgrade')">Confirm</button>
    </div>
 </div>
 

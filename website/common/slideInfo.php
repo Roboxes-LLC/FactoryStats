@@ -117,6 +117,7 @@ class SlideInfo
    public function getUrl()
    {
       global $ROOT;
+      global $HTTP;
       
       $url = "";
       
@@ -129,14 +130,14 @@ class SlideInfo
             // Add HTTPS prefex if necessary.
             if (substr($url, 0, 4) != "http")
             {
-               $url = "https://" . $url;
+               $url = $HTTP . "://" . $url;
             }
             break;
          }
          
          case SlideType::IMAGE:
          {
-            $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/pages/slide.php?slideId=" . $this->slideId;
+            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/pages/slide.php?slideId=" . $this->slideId;
             
             // TODO: Better solution for this!
             $url .= "&authToken=jO9xT7iKvBwUsZDD56fV9UzFPin3qyvp";
@@ -146,7 +147,7 @@ class SlideInfo
          
          case SlideType::WORKSTATION_SUMMARY_PAGE:
          {
-            $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true";
+            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true";
             
             if ($this->shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
             {
@@ -166,7 +167,7 @@ class SlideInfo
          
          case SlideType::WORKSTATION_PAGE:
          {
-            $url = "https://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstations.php?kiosk=true";            
+            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstations.php?kiosk=true";            
             
             foreach ($this->stationIds as $stationId)
             {
