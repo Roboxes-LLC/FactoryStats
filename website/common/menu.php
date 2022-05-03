@@ -48,6 +48,7 @@ function toggleSubmenu(submenu)
             echo getMenuItem("menu-item-user-config", Permission::USER_CONFIG, "userConfig.php", "Users");
             echo getMenuItem("menu-item-shift-config", Permission::CUSTOMER_CONFIG, "shiftConfig.php", "Shifts");
             echo getMenuItem("menu-item-station-config", Permission::STATION_CONFIG, "stationConfig.php", "Workstations");
+            echo getMenuItem("menu-item-station-group-config", Permission::STATION_CONFIG, "stationGroupConfig.php", "Station Groups");
             echo getMenuItem("menu-item-button-config", Permission::BUTTON_CONFIG, "buttonConfig.php", "Hardware Buttons");
             echo getMenuItem("menu-item-sensor-config", Permission::SENSOR_CONFIG, "sensorConfig.php", "Sensors");
             echo getMenuItem("menu-item-display-config", Permission::DISPLAY_CONFIG, "displayConfig.php", "Displays");

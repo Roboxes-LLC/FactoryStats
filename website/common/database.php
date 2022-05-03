@@ -1398,8 +1398,8 @@ class FactoryStatsDatabase extends PDODatabase
    {
       $statement = $this->pdo->prepare(
          "INSERT INTO slide (presentationId, slideType, slideIndex, duration, enabled, " . 
-         "reloadInterval, url, image, shiftId, stationFilter, stationId1, stationId2, stationId3, stationId4)  " .
-         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+         "reloadInterval, url, image, shiftId, groupId, stationFilter, stationId1, stationId2, stationId3, stationId4)  " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
       
       $result = $statement->execute(
          [
@@ -1412,6 +1412,7 @@ class FactoryStatsDatabase extends PDODatabase
             $slideInfo->url,
             $slideInfo->image,
             $slideInfo->shiftId,
+            $slideInfo->groupId,
             $slideInfo->stationFilter,
             $slideInfo->stationIds[0],
             $slideInfo->stationIds[1],
@@ -1427,7 +1428,7 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare(
          "UPDATE slide " .
          "SET presentationId = ?, slideType = ?, slideIndex = ?, duration = ?, enabled = ?, " .
-         "reloadInterval = ?, url = ?, image = ?, shiftId = ?, stationFilter = ?, " .
+         "reloadInterval = ?, url = ?, image = ?, shiftId = ?, groupId = ?, stationFilter = ?, " .
          "stationId1 = ?, stationId2 = ?, stationId3 = ?, stationId4 = ? " .
          "WHERE slideId = ?;");
       
@@ -1442,6 +1443,7 @@ class FactoryStatsDatabase extends PDODatabase
             $slideInfo->url,
             $slideInfo->image,
             $slideInfo->shiftId,
+            $slideInfo->groupId,
             $slideInfo->stationFilter,
             $slideInfo->stationIds[0],
             $slideInfo->stationIds[1],
@@ -1601,6 +1603,97 @@ class FactoryStatsDatabase extends PDODatabase
       }
       
       return ($updateTime);
+   }
+   
+   // **************************************************************************
+   //                               Station Groups
+   
+   public function getStationGroup($groupId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from stationgroup WHERE groupId = ?;");
+      
+      $result = $statement->execute([$groupId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getStationGroups()
+   {
+      $statement = $this->pdo->prepare("SELECT * from stationgroup ORDER BY name ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function newStationGroup($stationGroup)
+   {
+      $statement = $this->pdo->prepare("INSERT INTO stationgroup (name) VALUES (?);");
+      
+      $result = $statement->execute([$stationGroup->name]);
+      
+      return ($result);
+   }
+   
+   public function updateStationGroup($stationGroup)
+   {
+      $statement = $this->pdo->prepare("UPDATE stationgroup SET name = ? WHERE groupId = ?;");
+      
+      $result = $statement->execute([$stationGroup->name, $stationGroup->groupId]);
+      
+      return ($result);
+   }
+   
+   public function deleteStationGroup($groupId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM stationgroup WHERE groupId = ?;");
+      
+      $result = $statement->execute([$groupId]);
+      
+      $statement = $this->pdo->prepare("UPDATE slide SET groupId = 0 WHERE groupId = ?;");
+      
+      $result = $statement->execute([$groupId]);
+      
+      return ($result);
+   }   
+   
+   // **************************************************************************
+   //                                Group_Station
+   
+   public function getStationsForGroup($groupId)
+   {
+      $statement = $this->pdo->prepare("SELECT * FROM station INNER JOIN group_station ON station.stationId = group_station.stationId WHERE group_station.groupId = ? ORDER BY station.name ASC;");
+      
+      $result = $statement->execute([$groupId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function stationInGroup($stationId, $groupId)
+   {
+      $statement = $this->pdo->prepare("SELECT * FROM group_station WHERE groupId = ? AND stationId = ?;");
+      
+      $result = $statement->execute([$groupId, $stationId]) ? $statement->fetchAll() : null;
+      
+      return ($result && (count($result) > 0));
+   }
+   
+   public function addStationToGroup($stationId, $groupId)
+   {
+      $statement = $this->pdo->prepare("INSERT INTO group_station (groupId, stationId) VALUE (?, ?);");
+      
+      $result = $statement->execute([$groupId, $stationId]);
+      
+      return ($result);
+   }
+   
+   public function removeStationFromGroup($stationId, $groupId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM group_station WHERE groupId = ? AND stationId = ?;");
+      
+      $result = $statement->execute([$groupId, $stationId]);
+      
+      return ($result);
    }
    
    // **************************************************************************

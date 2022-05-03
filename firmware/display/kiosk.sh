@@ -21,5 +21,8 @@ rm -rf ~/.config/chromium/Singleton*
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/Default/Preferences
 sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
 
+# Sleep until local webserver is available
+curl --head -X GET --retry 20 --retry-connrefused --retry-delay 5 http://localhost/slideShow.html
+
 # Launch Chromium browser in kiosk mode
-/usr/bin/chromium-browser --noerrdialogs --disable-infobars --disable-component-update --kiosk &
+/usr/bin/chromium-browser --noerrdialogs --disable-infobars --disable-component-update --kiosk http://localhost/slideShow.html &

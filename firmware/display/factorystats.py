@@ -9,8 +9,14 @@ import zipfile
 # Working directory
 DIR = os.environ['HOME'] + "/factorystats"
 
+# Config directory
+CONFIG_DIR = DIR + "/config"
+
+# Utils directory
+UTILS_DIR = DIR + "/utils"
+
 # getMac script
-GET_MAC = "%s/getMac.sh" % DIR
+GET_MAC = "%s/getMac.sh" % UTILS_DIR
 
 # GET_IP linux command
 GET_IP = "hostname  -I | cut -f1 -d' ' | tr -d '\n' | tr -d '\r'"
@@ -19,7 +25,7 @@ GET_IP = "hostname  -I | cut -f1 -d' ' | tr -d '\n' | tr -d '\r'"
 HOST_NAME = open("/etc/hostname").read().replace('\n','')
 
 # server address from file
-ORIG_SERVER = open("%s/server.txt" % DIR).read().replace('\n','')
+ORIG_SERVER = open("%s/server.txt" % CONFIG_DIR).read().replace('\n','')
 SERVER = ORIG_SERVER
 print("Read server: '%s'" % SERVER)
 
@@ -28,7 +34,7 @@ IP_ADDRESS = os.popen(GET_IP).read()
 print("Read IP address: '%s'" % IP_ADDRESS)
 
 # version from file
-VERSION = open("%s/version.txt" % DIR).read().replace('\n','')
+VERSION = open("%s/version.txt" % CONFIG_DIR).read().replace('\n','')
 print("Read version: '%s'" % VERSION)
 
 # MAC address, via script

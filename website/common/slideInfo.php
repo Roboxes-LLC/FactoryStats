@@ -2,6 +2,7 @@
 
 require_once 'root.php';
 require_once 'shiftInfo.php';
+require_once 'stationGroup.php';
 require_once 'stationInfo.php';
 
 abstract class SlideType
@@ -50,6 +51,7 @@ class SlideInfo
    public $shiftId;
    
    // Workstation summary options
+   public $groupId;
    public $stationFilter;
    
    // Workstation page options
@@ -67,6 +69,7 @@ class SlideInfo
       $this->url = "";
       $this->image = "";
       $this->shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+      $this->groupId = StationGroup::UNKNOWN_GROUP_ID;
       $this->stationFilter = StationFilter::UNKNOWN;
       $this->stationIds = array(StationInfo::UNKNOWN_STATION_ID, StationInfo::UNKNOWN_STATION_ID, StationInfo::UNKNOWN_STATION_ID, StationInfo::UNKNOWN_STATION_ID);
    }
@@ -83,6 +86,7 @@ class SlideInfo
       $this->url = $row['url'];
       $this->image = $row['image'];
       $this->shiftId = intval($row['shiftId']);
+      $this->groupId = intval($row['groupId']);
       $this->stationFilter = intval($row['stationFilter']);
       
       for ($i = 0; $i < SlideInfo::MAX_STATION_IDS; $i++)
@@ -148,6 +152,11 @@ class SlideInfo
          case SlideType::WORKSTATION_SUMMARY_PAGE:
          {
             $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true";
+            
+            if ($this->groupId != StationGroup::UNKNOWN_GROUP_ID)
+            {
+               $url .= "&groupId=" . $this->groupId;
+            }
             
             if ($this->shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
             {
