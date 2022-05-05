@@ -5,8 +5,11 @@ import time
 # Working directory
 DIR = os.environ['HOME'] + "/factorystats"
 
+# Utils directory
+UTILS_DIR = DIR + "/utils"
+
 # getMac script
-GET_MAC = "%s/getMac.sh" % DIR
+GET_MAC = "%s/getMac.sh" % UTILS_DIR
 
 # Host name from file
 HOST_NAME = open("/etc/hostname").read().replace('\n','')
