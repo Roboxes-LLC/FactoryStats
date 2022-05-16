@@ -15,6 +15,9 @@ CONFIG_DIR = DIR + "/config"
 # Utils directory
 UTILS_DIR = DIR + "/utils"
 
+# Temp directory
+TEMP_DIR = "/tmp/factorystats/"
+
 # getMac script
 GET_MAC = "%s/getMac.sh" % UTILS_DIR
 
@@ -189,13 +192,12 @@ def firmwareUpdate(imageName):
    url = getFirmwareUrl(SERVER, imageName)
    
    # Target directories
-   tempDir = "/tmp/factorystats/"
-   unzipDir = "%s%s/" % (tempDir, os.path.splitext(imageName)[0])
+   unzipDir = "%s%s/" % (TEMP_DIR, os.path.splitext(imageName)[0])
    
-   destination = "%s%s" % (tempDir, imageName)
+   destination = "%s%s" % (TEMP_DIR, imageName)
    
    # Make temp folder
-   os.system("mkdir %s" % tempDir);
+   os.system("mkdir %s" % TEMP_DIR);
    
    # Download file
    print("Downloading from %s ..." % url)
@@ -206,7 +208,7 @@ def firmwareUpdate(imageName):
    # Unzip
    print("Unzipping firmware ...")
    with zipfile.ZipFile(destination, 'r') as zip_ref:
-      zip_ref.extractall(tempDir)
+      zip_ref.extractall(TEMP_DIR)
       
    # Copy
    print("Copying files ...")
