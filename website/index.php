@@ -3,6 +3,7 @@
 require_once 'common/authentication.php';
 require_once 'common/demo.php';
 require_once 'common/header.php';
+require_once 'common/language.php';
 require_once 'common/params.php';
 require_once 'common/version.php';
 
@@ -60,6 +61,24 @@ function getLoginFailureText($authenticationResult)
    return ($text);
 }
 
+function parseLanguage()
+{
+   $languageType = Language::getLanguage();
+   
+   $selectedLanguage = getParams()->get("language");
+
+   if ($selectedLanguage == "english")
+   {
+      $languageType = LanguageType::ENGLISH;
+   }
+   else if ($selectedLanguage == "spanish")
+   {
+      $languageType = LanguageType::SPANISH;
+   }
+   
+   return ($languageType);
+}
+
 // *****************************************************************************
 
 Time::init();
@@ -67,6 +86,8 @@ Time::init();
 session_start();
 
 $params = Params::parse();
+
+Language::setLanguage(parseLanguage());
 
 $authenticationResult = null;
 
@@ -129,14 +150,15 @@ if (Demo::isDemoSite())
       <input type="hidden" name="action" value="login">
       
       <div class="flex-vertical login-div" style="padding:10px;">
-         <label>Username</label>
+         <label><?php echo LANG("_USERNAME") ?></label>
          <input type="text" name="username" value="<?php echo getUsername(); ?>">
-         <label>Password</label>
+         <label><?php echo LANG("_PASSWORD") ?></label>
          <input type="password" name="password">
          <div class="flex-horizontal flex-h-center" style="margin-top: 20px; width:100%; color: red;">
             <?php echo getLoginFailureText($authenticationResult); ?>
          </div>         
          <button type="submit">Login</button>
+         <div class="flex-horizontal" style="margin-top: 15px;"><div id="english-language-selector" class="language-selector <?php echo (Language::getLanguage() == LanguageType::ENGLISH) ? "selected" : ""; ?>">English</div>&nbsp;&nbsp;|&nbsp;&nbsp;<div id="spanish-language-selector" class="language-selector <?php echo (Language::getLanguage() == LanguageType::SPANISH) ? "selected" : ""; ?>">Espa&#xF1ol</div></div>
       </div>
    </form>
       
@@ -145,6 +167,15 @@ if (Demo::isDemoSite())
 </div>
 
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
+
+<script>
+   document.getElementById("english-language-selector").addEventListener('click', function() {
+      document.location = "index.php?language=english";    
+   });
+   document.getElementById("spanish-language-selector").addEventListener('click', function() {
+      document.location = "index.php?language=spanish";    
+   });
+</script>
 
 <?php
    if (Demo::isDemoSite() && (getAction() == ""))

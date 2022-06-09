@@ -1,7 +1,7 @@
 <?php
 
 // Root folder of the website.
-$ROOT = "/flexscreen";
+$ROOT = "";
 
 // Subdomain
 // Uncomment this to enable a local server or to spoof a subdomain for testing.

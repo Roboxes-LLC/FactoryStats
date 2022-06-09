@@ -1,0 +1,14 @@
+{
+   "_USERNAME":"Username",
+   "_PASSWORD":"Password",
+   
+   "_USERS":"Users",
+   "_SHIFTS":"Shifts",
+   "_WORKSTATIONS":"Workstations",
+   "_STATION_GROUPS":"Station Groups",
+   "_HARDWARE_BUTTONS":"Hardware Buttons",
+   "_SENSORS":"Sensors",
+   "_DISPLAYS":"Displays",
+   "_PRESENTATIONS":"Presentations",
+   "_BREAKS":"Breaks"
+}
