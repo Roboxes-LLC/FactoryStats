@@ -383,21 +383,20 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       $userTable = DatabaseType::reservedName("user", $this->databaseType);
       
       $statement = $this->pdo->prepare(
-            "INSERT INTO $userTable " .
-            "(employeeNumber, username, passwordHash, roles, permissions, firstName, lastName, email, authToken) " .
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+         "INSERT INTO $userTable " .
+         "(username, passwordHash, roles, permissions, firstName, lastName, email, authToken) " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
       
       $result = $statement->execute(
          [
-               $userInfo->employeeNumber,
-               $userInfo->username,
-               $userInfo->passwordHash,
-               $userInfo->roles,
-               $userInfo->permissions,
-               $userInfo->firstName,
-               $userInfo->lastName,
-               $userInfo->email,
-               $userInfo->authToken
+            $userInfo->username,
+            $userInfo->passwordHash,
+            $userInfo->roles,
+            $userInfo->permissions,
+            $userInfo->firstName,
+            $userInfo->lastName,
+            $userInfo->email,
+            $userInfo->authToken
          ]);
       
       if ($result)
@@ -413,22 +412,21 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       $userTable = DatabaseType::reservedName("user", $this->databaseType);
       
       $statement = $this->pdo->prepare(
-            "UPDATE $userTable " .
-            "SET employeeNumber = ?, username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, authToken = ? " .
-            "WHERE userId = ?");
+         "UPDATE $userTable " .
+         "SET username = ?, passwordHash = ?, roles = ?, permissions = ?, firstName = ?, lastName = ?, email = ?, authToken = ? " .
+         "WHERE userId = ?");
       
       $result = $statement->execute(
          [
-               $userInfo->employeeNumber,
-               $userInfo->username,
-               $userInfo->passwordHash,
-               $userInfo->roles,
-               $userInfo->permissions,
-               $userInfo->firstName,
-               $userInfo->lastName,
-               $userInfo->email,
-               $userInfo->authToken,
-               $userInfo->userId
+            $userInfo->username,
+            $userInfo->passwordHash,
+            $userInfo->roles,
+            $userInfo->permissions,
+            $userInfo->firstName,
+            $userInfo->lastName,
+            $userInfo->email,
+            $userInfo->authToken,
+            $userInfo->userId
          ]);
       
       return ($result);

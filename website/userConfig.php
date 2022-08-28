@@ -23,7 +23,6 @@ function renderTable()
 <<<HEREDOC
    <table>
       <tr>
-         <th>Employee #</th>
          <th>Name</th>
          <th>Username</th>
          <th>Role</th>
@@ -58,13 +57,12 @@ HEREDOC;
          echo 
 <<<HEREDOC
          <tr>
-            <td>$userInfo->employeeNumber</td>
             <td>$name</td>
             <td>$userInfo->username</td>
             <td>$roleName</td>
             <td>$userInfo->email</td>
             <td>$siteCount</td>
-            <td><button class="config-button" onclick="setUserInfo($userInfo->userId, $userInfo->employeeNumber, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setUserInfo($userInfo->userId, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -90,13 +88,12 @@ function getRoleOptions()
    return ($options);
 }
 
-function addUser($employeeNumber, $firstName, $lastName, $username, $password, $role, $email)
+function addUser($firstName, $lastName, $username, $password, $role, $email)
 {
    $userInfo = new UserInfo();
    
    $roleDetails = Role::getRole($role);
    
-   $userInfo->employeeNumber = $employeeNumber;
    $userInfo->firstName = $firstName;
    $userInfo->lastName = $lastName;
    $userInfo->username = $username;
@@ -126,13 +123,12 @@ function deleteUser($userId)
    }
 }
 
-function updateUser($userId, $employeeNumber, $firstName, $lastName, $username, $password, $role, $email)
+function updateUser($userId, $firstName, $lastName, $username, $password, $role, $email)
 {
    $userInfo = UserInfo::load($userId);
    
    if ($userInfo)
    {
-      $userInfo->employeeNumber = $employeeNumber;
       $userInfo->firstName = $firstName;
       $userInfo->lastName = $lastName;
       $userInfo->username = $username;
@@ -174,7 +170,6 @@ switch ($params->get("action"))
       if ($params->getInt("userId") == UserInfo::UNKNOWN_USER_ID)
       {
          addUser(
-            $params->get("employeeNumber"),
             $params->get("firstName"),
             $params->get("lastName"),
             $params->get("updatedUsername"),
@@ -187,7 +182,6 @@ switch ($params->get("action"))
       {
          updateUser(
             $params->get("userId"),
-            $params->get("employeeNumber"),
             $params->get("firstName"),
             $params->get("lastName"),
             $params->get("updatedUsername"),
@@ -256,8 +250,6 @@ switch ($params->get("action"))
 <div id="config-modal" class="modal">
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
-      <label>Employee #</label>
-      <input id="employee-number-input" type="text" form="config-form" name="employeeNumber" value=""> 
       <label>First Name</label>
       <input id="first-name-input" type="text" form="config-form" name="firstName" value="">
       <label>Last Name</label>

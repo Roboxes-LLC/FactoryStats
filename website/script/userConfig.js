@@ -4,13 +4,10 @@ function setUserId(userId)
    input.setAttribute('value', userId);
 }
 
-function setUserInfo(userId, employeeNumber, firstName, lastName, username, role, email, authToken)
+function setUserInfo(userId, firstName, lastName, username, role, email, authToken)
 {
    var input = document.getElementById('user-id-input');
    input.setAttribute('value', userId);
-
-   input = document.getElementById('employee-number-input');
-   input.setAttribute('value', employeeNumber);
    
    input = document.getElementById('first-name-input');
    input.setAttribute('value', firstName);

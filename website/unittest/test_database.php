@@ -69,7 +69,6 @@ if ($database->isConnected())
    }
    
    $userInfo = new UserInfo();
-   $userInfo->employeeNumber = 101;
    $userInfo->username = "bbaggins";
    $userInfo->passwordHash = "ABCDEFGHIJKLMNOP";
    $userInfo->firstName = "Bilbo";

@@ -8,14 +8,9 @@ class UserInfo
 {
    const UNKNOWN_USER_ID = 0;
    
-   const UNKNOWN_EMPLOYEE_NUMBER = 0;
-   
-   const ADMIN_EMPLOYEE_NUMBER = 1;
-   
    const DUMMY_PASSWORD = "DUMMYPASSWORD";
    
    public $userId;
-   public $employeeNumber;
    public $username;
    public $passwordHash;
    public $firstName;
@@ -28,7 +23,6 @@ class UserInfo
    public function __construct()
    {
       $this->userId = UserInfo::UNKNOWN_USER_ID;
-      $this->employeeNumber = UserInfo::UNKNOWN_EMPLOYEE_NUMBER;
       $this->username = null;
       $this->passwordHash = null;
       $this->firstName = null;
@@ -153,7 +147,6 @@ class UserInfo
    private function initialize($row)
    {
       $this->userId = intval($row['userId']);
-      $this->employeeNumber = intval($row['employeeNumber']);
       $this->username = $row['username'];
       $this->passwordHash = $row['passwordHash'];
       $this->roles = intval($row['roles']);
@@ -182,7 +175,6 @@ else if (isset($_GET["username"]))
 if ($userInfo)
 {
    echo "userId: " .           $userInfo->userId .           "<br/>";
-   echo "employeeNumber: " .   $userInfo->employeeNumber .   "<br/>";
    echo "username: " .         $userInfo->username .         "<br/>";
    echo "passwordHash: " .     $userInfo->passwordHash .     "<br/>";
    echo "roles: " .            $userInfo->roles .            "<br/>";
