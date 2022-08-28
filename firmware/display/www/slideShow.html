@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+      <link rel="stylesheet" type="text/css" href="css/flex.css"/>
+      <link rel="stylesheet" type="text/css" href="css/pages.css"/>
+      
+      <script src="slideShow.js"></script>
+      <script>
+         function fetchSlides()
+         {
+            var requestURL = "presentation.json"
+   
+            var xhttp = new XMLHttpRequest();
+            xhttp.onload = function()
+            {
+               if (this.status == 200)
+               {
+                  try
+                  {
+                     if (this.responseText != "")
+                     {
+                        var json = JSON.parse(this.responseText);
+      
+                        var config = new SlideShowConfig();
+                        config.initializeFromTabRotateConfig(json);
+                        slideShow.setConfig(config);
+                     }
+                  }
+                  catch (exception)
+                  {
+                     if (exception.name == "SyntaxError")
+                     {
+                        console.log("JSON syntax error");
+                        console.log(this.responseText);
+                     }
+                     else
+                     {
+                        throw(exception);
+                     } 
+                  }
+               }
+               else
+               {
+                  console.log("No presentation available");
+               }
+            }
+            xhttp.onerror = function(e)
+            {
+               console.log("No presentation server available");
+            };
+   
+            xhttp.open("GET", requestURL, true);
+            xhttp.send();
+         }
+
+        var slideShow = null;
+
+         window.onload = function() {
+            slideShow = new SlideShow("body");
+            slideShow.start();
+
+            fetchSlides();
+            setInterval(fetchSlides, 5000);
+        }
+      </script>
+
+   </head>
+   <body id="body">
+      <!-- Blank Factory Stats page -->
+   </body>
+</html>

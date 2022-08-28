@@ -6,6 +6,7 @@ require_once 'common/params.php';
 require_once 'common/presentationInfo.php';
 require_once 'common/root.php';
 require_once 'common/slideInfo.php';
+require_once 'common/stationGroup.php';
 require_once 'common/upload.php';
 require_once 'common/version.php';
 
@@ -167,6 +168,7 @@ function addSlide(
    $url,
    $image,
    $shiftId,
+   $groupId,
    $stationFilter,
    $stationIds)
 {
@@ -181,6 +183,7 @@ function addSlide(
    $slideInfo->url = $url;
    $slideInfo->image = $image;
    $slideInfo->shiftId = $shiftId;
+   $slideInfo->groupId = $groupId;
    $slideInfo->stationFilter = $stationFilter;
    $slideInfo->stationIds = $stationIds;
    
@@ -201,6 +204,7 @@ function updateSlide(
    $url,
    $image,
    $shiftId,
+   $groupId,
    $stationFilter,
    $stationIds)
 {
@@ -216,6 +220,7 @@ function updateSlide(
       $slideInfo->url = $url;
       $slideInfo->image = $image;
       $slideInfo->shiftId = $shiftId;
+      $slideInfo->groupId = $groupId;
       $slideInfo->stationFilter = $stationFilter;
       $slideInfo->stationIds = $stationIds;
 
@@ -269,6 +274,7 @@ switch (getParams()->get("action"))
             $params->get("url"),
             $imageFile,
             $params->getInt("shift"),
+            $params->getInt("groupId"),
             $params->getInt("stationFilter"),
             array($params->getInt("station1"),
                   $params->getInt("station2"),
@@ -286,6 +292,7 @@ switch (getParams()->get("action"))
             $params->get("url"),
             $imageFile,
             $params->getInt("shift"),
+            $params->getInt("groupId"),
             $params->getInt("stationFilter"),
             array($params->getInt("station1"),
                   $params->getInt("station2"),
@@ -401,6 +408,10 @@ switch (getParams()->get("action"))
       
       <div id="workstation-summary-slide-params">
          <div class="flex-vertical input-block">
+            <label>Station Group</label>
+            <select id="station-group-input" form="config-form" name="groupId">
+               <?php echo StationGroup::getOptions(StationGroup::UNKNOWN_GROUP_ID); ?>
+            </select>         
             <label>State</label>
             <select id="station-filter-input" form="config-form" name="stationFilter">
                <?php echo StationFilter::getOptions(StationFilter::UNKNOWN); ?>
@@ -499,6 +510,7 @@ switch (getParams()->get("action"))
                document.getElementById('image-input').value = slideInfo.image;
                document.getElementById('image-thumbnail').src = "<?php echo CustomerInfo::getSlideImagesFolder(); ?>/" + slideInfo.image;
                document.getElementById('shift-input').value = slideInfo.shiftId;
+               document.getElementById('station-group-input').value = slideInfo.groupId;
                document.getElementById('station-filter-input').value = slideInfo.stationFilter;
                
                for (var i = 0; i < <?php echo SlideInfo::MAX_STATION_IDS; ?>; i++)
@@ -531,6 +543,7 @@ switch (getParams()->get("action"))
       document.getElementById('url-input').value = "";
       document.getElementById('image-thumbnail').src = "<?php echo $IMAGES_DIR; ?>/no-image-icon-6.png";
       document.getElementById('shift-input').value = <?php echo ShiftInfo::UNKNOWN_SHIFT_ID; ?>;
+      document.getElementById('station-group-input').value = <?php echo StationGroup::UNKNOWN_GROUP_ID; ?>;
       document.getElementById('station-filter-input').value = <?php echo StationFilter::UNKNOWN; ?>;
       
       for (var i = 0; i < <?php echo SlideInfo::MAX_STATION_IDS?>; i++)

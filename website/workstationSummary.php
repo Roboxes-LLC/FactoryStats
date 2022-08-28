@@ -22,11 +22,33 @@ if (!(Authentication::isAuthenticated() &&
    exit;
 }
 
-function renderStationSummaries($shiftId)
+function getGroupId()
+{
+   $groupId = StationGroup::UNKNOWN_GROUP_ID;
+   
+   $params = Params::parse();
+   
+   if ($params->keyExists("groupId"))
+   {
+      $groupId = $params->getInt("groupId");
+   }
+   
+   return ($groupId);
+}
+
+function renderStationSummaries($shiftId, $groupId = StationGroup::UNKNOWN_GROUP_ID)
 {
    echo "<div class=\"flex-horizontal main summary\">";
    
-   $result = FactoryStatsDatabase::getInstance()->getStations();
+   $result = null;
+   if ($groupId != StationGroup::UNKNOWN_GROUP_ID)
+   {
+      $result = FactoryStatsDatabase::getInstance()->getStationsForGroup($groupId);
+   }
+   else 
+   {
+      $result = FactoryStatsDatabase::getInstance()->getStations();
+   }
    
    foreach ($result as $row)
    {
@@ -108,7 +130,7 @@ HEREDOC;
    
    <?php if (!isKioskMode()) {include 'common/menu.php';}?>
    
-   <?php renderStationSummaries(ShiftInfo::getShiftId());?>
+   <?php renderStationSummaries(ShiftInfo::getShiftId(), getGroupId());?>
      
 </div>
 

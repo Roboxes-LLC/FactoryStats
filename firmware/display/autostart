@@ -1,7 +1,8 @@
 @lxpanel --profile LXDE-pi
 @pcmanfm --desktop --profile LXDE-pi
 @xscreensaver -no-splash
-@sudo -E /usr/bin/python /home/pi/factorystats/setHostname.py
+@sudo -E /usr/bin/python /home/pi/factorystats/utils/setHostname.py
 @sudo -E /usr/bin/python /home/pi/factorystats/webserver.py
 @/usr/bin/python /home/pi/factorystats/factorystats.py
+@/usr/bin/python3 /opt/keep-presence/src/keep-presence.py -s 60
 @bash /home/pi/factorystats/kiosk.sh

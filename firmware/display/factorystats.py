@@ -9,8 +9,17 @@ import zipfile
 # Working directory
 DIR = os.environ['HOME'] + "/factorystats"
 
+# Config directory
+CONFIG_DIR = DIR + "/config"
+
+# Utils directory
+UTILS_DIR = DIR + "/utils"
+
+# Temp directory
+TEMP_DIR = "/tmp/factorystats/"
+
 # getMac script
-GET_MAC = "%s/getMac.sh" % DIR
+GET_MAC = "%s/getMac.sh" % UTILS_DIR
 
 # GET_IP linux command
 GET_IP = "hostname  -I | cut -f1 -d' ' | tr -d '\n' | tr -d '\r'"
@@ -19,7 +28,7 @@ GET_IP = "hostname  -I | cut -f1 -d' ' | tr -d '\n' | tr -d '\r'"
 HOST_NAME = open("/etc/hostname").read().replace('\n','')
 
 # server address from file
-ORIG_SERVER = open("%s/server.txt" % DIR).read().replace('\n','')
+ORIG_SERVER = open("%s/server.txt" % CONFIG_DIR).read().replace('\n','')
 SERVER = ORIG_SERVER
 print("Read server: '%s'" % SERVER)
 
@@ -28,7 +37,7 @@ IP_ADDRESS = os.popen(GET_IP).read()
 print("Read IP address: '%s'" % IP_ADDRESS)
 
 # version from file
-VERSION = open("%s/version.txt" % DIR).read().replace('\n','')
+VERSION = open("%s/version.txt" % CONFIG_DIR).read().replace('\n','')
 print("Read version: '%s'" % VERSION)
 
 # MAC address, via script
@@ -183,13 +192,12 @@ def firmwareUpdate(imageName):
    url = getFirmwareUrl(SERVER, imageName)
    
    # Target directories
-   tempDir = "/tmp/factorystats/"
-   unzipDir = "%s%s/" % (tempDir, os.path.splitext(imageName)[0])
+   unzipDir = "%s%s/" % (TEMP_DIR, os.path.splitext(imageName)[0])
    
-   destination = "%s%s" % (tempDir, imageName)
+   destination = "%s%s" % (TEMP_DIR, imageName)
    
    # Make temp folder
-   os.system("mkdir %s" % tempDir);
+   os.system("mkdir %s" % TEMP_DIR);
    
    # Download file
    print("Downloading from %s ..." % url)
@@ -200,7 +208,7 @@ def firmwareUpdate(imageName):
    # Unzip
    print("Unzipping firmware ...")
    with zipfile.ZipFile(destination, 'r') as zip_ref:
-      zip_ref.extractall(tempDir)
+      zip_ref.extractall(TEMP_DIR)
       
    # Copy
    print("Copying files ...")

@@ -1,0 +1,1 @@
+sudo cp /etc/xdg/lxsession/LXDE-pi/autostart.orig /etc/xdg/lxsession/LXDE-pi/autostart
