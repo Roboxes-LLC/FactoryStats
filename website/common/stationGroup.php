@@ -38,10 +38,10 @@ class StationGroup
       return ($stationGroup);
    }
    
-   public function getOptions($selectedGroupId)
+   public static function getOptions($selectedGroupId)
    {
       $allWorkstations = StationGroup::UNKNOWN_GROUP_ID;      
-      $selected = ($stationGroup->groupId == $selectedGroupId) ? "selected" : "";
+      $selected = ($allWorkstations == $selectedGroupId) ? "selected" : "";
       
       $html = "<option value=\"$allWorkstations\" $selected>All workstations</option>";
       

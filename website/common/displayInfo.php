@@ -180,6 +180,18 @@ class DisplayInfo
       
       return ($displayStatus);
    }
+   
+   public static function generateUid()
+   {
+      $uid = null;
+      
+      do
+      {
+         $uid = strtoupper(dechex(rand(0x100000, 0xFFFFFF)));
+      } while (FactoryStatsGlobalDatabase::getInstance()->isDisplayRegistered($uid));
+      
+      return ($uid);
+   }
 }
 
 /*
@@ -205,4 +217,5 @@ class DisplayInfo
     }
  }
  */
+
 ?>

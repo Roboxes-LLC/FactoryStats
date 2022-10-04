@@ -67,10 +67,17 @@ class Authentication
       
       $params = Params::parse();
       
-      if ($params->keyExists("username") && $params->keyExists("password"))
+      // Basic HTTP authentication
+      if (isset($_SERVER['PHP_AUTH_USER']))
       {
-         $result = Authentication::authenticateUser($params->get("username"), $params->get("password"));            
+         $result = Authentication::authenticateUser($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
       }
+      // User/password in GET/PUT params.
+      else if ($params->keyExists("username") && $params->keyExists("password"))
+      {
+         $result = Authentication::authenticateUser($params->get("username"), $params->get("password"));
+      }
+      // Auth token in GET/PUT params.
       else if ($params->keyExists("authToken"))
       {
          $result = Authentication::authenticateToken($params->get("authToken"));

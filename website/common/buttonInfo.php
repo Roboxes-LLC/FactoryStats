@@ -141,9 +141,17 @@ class ButtonInfo
          {
             case ButtonAction::INCREMENT_COUNT:
             {
+               
                if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, 1);
+                  if (BreakInfo::isOnBreak($this->stationId, $shiftId))
+                  {
+                     BreakInfo::endBreak($this->stationId, $shiftId);
+                  }
+                  else
+                  {
+                     FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, 1);
+                  }
                }
                break;
             }
@@ -152,14 +160,20 @@ class ButtonInfo
             {
                if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, -1);
+                  if (BreakInfo::isOnBreak($this->stationId, $shiftId))
+                  {
+                     BreakInfo::endBreak($this->stationId, $shiftId);
+                  }
+                  else 
+                  {
+                     FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, -1);
+                  }
                }               
                break;
             }
             
             case ButtonAction::PAUSE_STATION:
             {
-               echo "StationId: " . $this->stationId . ", ShiftId: " . $shiftId . "<br>";
                if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
                   if (BreakInfo::isOnBreak($this->stationId, $shiftId))

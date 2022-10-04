@@ -1024,7 +1024,7 @@ class FactoryStatsDatabase extends PDODatabase
             $doubleClickAction,
             $holdAction,
             $lastContact,
-            $buttonInfo->enabled
+            $buttonInfo->enabled ? 1 : 0
          ]);
       
       return ($result);

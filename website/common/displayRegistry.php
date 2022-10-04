@@ -71,6 +71,30 @@ class DisplayRegistry
       
       return ($domain);
    }
+   
+   static function getAssociatedCustomerId($uid)
+   {
+      $customerId = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
+      
+      if ($subdomain)
+      {
+         $database = FactoryStatsGlobalDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $result = $database->getCustomerFromSubdomain($subdomain);
+            
+            if ($result && ($row = $result[0]))
+            {
+               $customerId = intval($row["customerId"]);
+            }
+         }
+      }
+      
+      return ($customerId);
+   }
 }
 
 ?>

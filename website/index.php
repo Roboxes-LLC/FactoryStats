@@ -85,7 +85,7 @@ if (Authentication::isAuthenticated())
 {
    if ($params->keyExists("redirect"))
    {
-      redirect($params->keyExists("redirect"));
+      redirect($params->get("redirect"));
    }
    else
    {

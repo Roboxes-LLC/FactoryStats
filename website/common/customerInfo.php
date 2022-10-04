@@ -36,13 +36,19 @@ class CustomerInfo
       }
       else
       {
-         // Attempt examine the URL for a customer subdomain.
+         // Examine the URL for a customer subdomain.
          $customerId = CustomerInfo::getCustomerIdFromUrl();
          
+         // Examine the params for a customer id or subdomain.
+         if ($customerId == CustomerInfo::UNKNOWN_CUSTOMER_ID)
+         {
+            $customerId = CustomerInfo::getCustomerIdFromParams();
+         }
+         
+         // Otherwise, go with the user's first associated customer.
          if (($customerId == CustomerInfo::UNKNOWN_CUSTOMER_ID) &&
              ($userId != UserInfo::UNKNOWN_USER_ID))
          {
-            // Otherwise, go with the user's first associated customer.
             $customerId = CustomerInfo::getCustomerIdFromUser($userId);
          }
 
@@ -155,11 +161,11 @@ class CustomerInfo
    {
       $customerInfo = null;
       
-      $database = FactoryStatsDatabase::getInstance();
+      $database = FactoryStatsGlobalDatabase::getInstance();
       
       if ($database && $database->isConnected())
       {
-         $result = getCustomerFromSubdomain(CustomerInfo::getSubdomain());
+         $result = $database->getCustomerFromSubdomain(CustomerInfo::getSubdomain());
          
          if ($result && ($row = $result[0]))  // Assume only one match.
          {
@@ -302,6 +308,39 @@ class CustomerInfo
             }
          }
       }      
+      
+      return ($customerId);
+   }
+   
+   private static function getCustomerIdFromParams()
+   {      
+      $customerId = CustomerInfo::UNKNOWN_CUSTOMER_ID;
+      
+      $params = Params::parse();
+      
+      if ($params->keyExists("customerId"))
+      {
+         if (CustomerInfo::load($params->getInt("customerId")))
+         {
+            $customerId = $params->getInt("customerId");
+         }
+      }
+      else if ($params->keyExists("subdomain"))
+      {
+         $subdomain = $params->get("subdomain");
+         
+         $database = FactoryStatsGlobalDatabase::getInstance();
+         
+         if ($database && $database->isConnected())
+         {
+            $result = $database->getCustomerFromSubdomain($subdomain);
+            
+            if ($result && ($row = $result[0]))
+            {
+               $customerId = intval($row["customerId"]);
+            }
+         } 
+      }
       
       return ($customerId);
    }

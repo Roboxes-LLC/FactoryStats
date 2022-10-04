@@ -334,6 +334,20 @@ $objectNamePlural = getObjectNamePlural();
       shiftHours = {
          <?php echo getShiftHours(); ?>
       };
+            
+      // Keyboard shortcuts.
+      document.addEventListener('keypress', function(event){
+         if (event.key == '+')
+         {
+            incrementCount();
+         }   
+      });
+      document.addEventListener('keypress', function(event){
+         if (event.key == '-')
+         {
+            decrementCount();
+         }   
+      });
    </script>
    
 <?php

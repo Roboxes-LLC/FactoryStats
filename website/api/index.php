@@ -139,6 +139,16 @@ $router->add("button", function($params) {
                $buttonInfo->handleButtonPress(intval($params["press"]));
             }
             
+            if ($buttonInfo->stationId != StationInfo::UNKNOWN_STATION_ID)
+            {
+               $workStationStatus = WorkstationStatus::getWorkstationStatus($buttonInfo->stationId, ShiftInfo::getShift(Time::now("Y-m-d H:i:s")));
+               
+               if ($workStationStatus)
+               {
+                  $result->count = $workStationStatus->count;
+               }
+            }
+            
             $result->buttonInfo = $buttonInfo;
             $result->success = true;
          }
@@ -154,6 +164,8 @@ $router->add("button", function($params) {
          $result->error = "No database connection";
       }
    }
+   
+   echo json_encode($result);
 });
 
 $router->add("buttonStatus", function($params) {
@@ -453,6 +465,156 @@ $router->add("display", function($params) {
          // Poor choice of naming here.  It is registered (now), just not associated with a subdomain.         
          $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();         
       }
+   }
+   // No valid UID specified in query.
+   else
+   {
+      $result->success = false;
+      $result->error = "Invalid parameters";
+   }
+   
+   echo json_encode($result);
+});
+
+$router->add("display2", function($params) {
+   $result = new stdClass();
+   $result->success = false;
+   
+   if (!Authentication::isAuthenticated())
+   {
+      $result->error = "Unauthorized access";
+   }
+   else if (isset($params["uid"]))
+   {
+      $result->success = true;
+      
+      $uid = $params["uid"];
+      
+      // Is this display registered?
+      if (DisplayRegistry::isRegistered($uid))
+      {
+         // Retrieve the associated customer (if any).
+         $customerId = DisplayRegistry::getAssociatedCustomerId($uid);
+
+         // Is this display associated with the currently authenticated customer?
+         if (($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID) &&
+             ($customerId == CustomerInfo::getCustomerId())) 
+         {
+            $database = FactoryStatsDatabase::getInstance();
+            
+            if ($database && $database->isConnected())
+            {
+               $queryResult = $database->getDisplayByUid($uid);
+               
+               $displayInfo = null;
+               
+               if ($queryResult && ($row = $queryResult[0]))
+               {
+                  // Load an existing display.
+                  $displayInfo = DisplayInfo::load($row["displayId"]);
+               }
+               else
+               {
+                  // Register a new display.
+                  $displayInfo = new DisplayInfo();
+                  
+                  $displayInfo->uid = $uid;
+                  
+                  $database->newDisplay($displayInfo);
+                  
+                  $displayInfo->displayId = $database->lastInsertId();
+               }
+               
+               if ($displayInfo)
+               {
+                  // Set IP address, if provided.
+                  if (isset($params["ipAddress"]))
+                  {
+                     $displayInfo->ipAddress = $params["ipAddress"];
+                  }
+                  
+                  // Set version, if provided.
+                  if (isset($params["version"]))
+                  {
+                     $displayInfo->version = $params["version"];
+                  }
+                  
+                  // Update last contact.
+                  $displayInfo->lastContact = Time::now("Y-m-d H:i:s");
+                  
+                  // Update display info in the database.
+                  $database->updateDisplay($displayInfo);
+                  
+                  $presentation = PresentationInfo::load($displayInfo->presentationId);
+                  
+                  // If a presentation has been configured for this display ...
+                  if ($presentation)
+                  {
+                     // If the display is enabled ...
+                     if ($displayInfo->enabled)
+                     {
+                        $result->presentation = $presentation->getTabRotateConfig();
+                     }
+                     // If the display is disabled ...
+                     else
+                     {
+                        $result->presentation = PresentationInfo::getDefaultPresentation($displayInfo->uid)->getTabRotateConfig();
+                     }
+                     
+                     $result->fullyConfigured = true;
+                  }
+                  // If no presentation has been configured ...
+                  else
+                  {
+                     $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();
+                  }
+                  
+                  // Mark for reset.
+                  if ($displayInfo->isResetPending())
+                  {
+                     $result->resetPending = true;
+                     
+                     $database->setDisplayResetTime($displayInfo->displayId, null);
+                  }
+                  
+                  if ($displayInfo->isUpgradePending())
+                  {
+                     $result->upgradePending = true;
+                     $result->firmwareImage = $displayInfo->firmwareImage;
+                     
+                     $database->setDisplayUpgradeTime($displayInfo->displayId, null, null);
+                  }
+               }
+            }
+         }
+         // The display is associated with another customer.
+         else if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
+         {
+            // Redirect to correct customer.
+            $result->customerId = $customerId;
+            $result->presentation = PresentationInfo::getRedirectingPresentation($uid)->getTabRotateConfig();
+         }
+         // No associated customer.
+         else
+         {
+            // Poor choice of naming here.  It is registered, just not associated with a subdomain.
+            $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();
+         }
+      }
+      // Unregistered display.
+      else
+      {
+         // Register with the display registry.
+         DisplayRegistry::register($uid);
+         
+         // Poor choice of naming here.  It is registered (now), just not associated with a subdomain.
+         $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();
+      }
+   }
+   else if (isset($params["generateUid"]))
+   {
+      $result->success = true;
+      $result->uid = DisplayInfo::generateUid();
    }
    // No valid UID specified in query.
    else

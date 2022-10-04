@@ -69,6 +69,21 @@ class PresentationInfo
       return ($presentation);
    }
    
+   public static function getUnauthorizedPresentation()
+   {
+      $presentation = new PresentationInfo();
+      
+      $slideInfo = new SlideInfo();
+      $slideInfo->slideType = SlideType::URL;
+      $slideInfo->duration = 0;
+      $slideInfo->url = $HTTP . "://{$_SERVER['HTTP_HOST']}/pages/unauthorized.php";
+      $slideInfo->enabled = true;
+      
+      $presentation->slides[] = $slideInfo;
+      
+      return ($presentation);
+   }
+   
    public static function getUnregisteredPresentation($uid)
    {
       global $DISPLAY_REGISTRY;
@@ -79,7 +94,7 @@ class PresentationInfo
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = $HTTP . "://$DISPLAY_REGISTRY.factorystats.com/pages/unregistered.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://{$_SERVER['HTTP_HOST']}/pages/unregistered.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
@@ -103,7 +118,7 @@ class PresentationInfo
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = $HTTP . "://$subdomain.factorystats.com/pages/redirecting.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://{$_SERVER['HTTP_HOST']}/pages/redirecting.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
@@ -127,7 +142,7 @@ class PresentationInfo
       $slideInfo = new SlideInfo();
       $slideInfo->slideType = SlideType::URL;
       $slideInfo->duration = 0;
-      $slideInfo->url = $HTTP . "://$subdomain.factorystats.com/pages/unconfigured.php?uid=$uid";
+      $slideInfo->url = $HTTP . "://{$_SERVER['HTTP_HOST']}/pages/unconfigured.php?uid=$uid";
       $slideInfo->enabled = true;
       
       $presentation->slides[] = $slideInfo;
