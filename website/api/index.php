@@ -482,7 +482,8 @@ $router->add("display2", function($params) {
    
    if (!Authentication::isAuthenticated())
    {
-      $result->error = "Unauthorized access";
+      $result->success = true;      
+      $result->displayState = DisplayState::UNAUTHORIZED;
    }
    else if (isset($params["uid"]))
    {
@@ -495,10 +496,11 @@ $router->add("display2", function($params) {
       {
          // Retrieve the associated customer (if any).
          $customerId = DisplayRegistry::getAssociatedCustomerId($uid);
+         $subdomain = DisplayRegistry::getAssociatedSubdomain($uid);
 
          // Is this display associated with the currently authenticated customer?
          if (($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID) &&
-             ($customerId == CustomerInfo::getCustomerId())) 
+             ($customerId == Authentication::getAuthenticatedCustomer()->customerId)) 
          {
             $database = FactoryStatsDatabase::getInstance();
             
@@ -562,11 +564,13 @@ $router->add("display2", function($params) {
                      }
                      
                      $result->fullyConfigured = true;
+                     $result->displayState = DisplayState::READY;
                   }
                   // If no presentation has been configured ...
                   else
                   {
-                     $result->presentation = PresentationInfo::getUnconfiguredPresentation($uid)->getTabRotateConfig();
+                     $result->subdomain = $subdomain;
+                     $result->displayState = DisplayState::UNCONFIGURED;
                   }
                   
                   // Mark for reset.
@@ -590,15 +594,22 @@ $router->add("display2", function($params) {
          // The display is associated with another customer.
          else if ($customerId != CustomerInfo::UNKNOWN_CUSTOMER_ID)
          {
-            // Redirect to correct customer.
-            $result->customerId = $customerId;
-            $result->presentation = PresentationInfo::getRedirectingPresentation($uid)->getTabRotateConfig();
+            if (Authentication::setCustomer($customerId))
+            {
+               // Redirect to correct customer.
+               $result->subdomain = $subdomain;
+               $result->displayState = DisplayState::REDIRECTING;
+            }
+            else 
+            {
+               $result->displayState = DisplayState::UNAUTHORIZED;
+            }
          }
          // No associated customer.
          else
          {
             // Poor choice of naming here.  It is registered, just not associated with a subdomain.
-            $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();
+            $result->displayState = DisplayState::UNREGISTERED;
          }
       }
       // Unregistered display.
@@ -608,7 +619,7 @@ $router->add("display2", function($params) {
          DisplayRegistry::register($uid);
          
          // Poor choice of naming here.  It is registered (now), just not associated with a subdomain.
-         $result->presentation = PresentationInfo::getUnregisteredPresentation($uid)->getTabRotateConfig();
+         $result->displayState = DisplayState::UNREGISTERED;
       }
    }
    else if (isset($params["generateUid"]))

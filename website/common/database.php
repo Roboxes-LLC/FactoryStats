@@ -385,7 +385,7 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       $statement = $this->pdo->prepare(
          "INSERT INTO $userTable " .
          "(username, passwordHash, roles, permissions, firstName, lastName, email, authToken) " .
-         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
       
       $result = $statement->execute(
          [

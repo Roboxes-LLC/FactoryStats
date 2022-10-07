@@ -78,11 +78,20 @@ class SlideShow
    start()
    {
       console.log("SlideShow.start");
-      this.isRunning = true;
-      clearTimeout(this.slideTimer);
-      this.currentSlide = this.slides.length;
-
-      this.nextSlide();
+      
+      if (this.slides.length > 0)
+      {
+         this.isRunning = true;
+         clearTimeout(this.slideTimer);
+         this.currentSlide = this.slides.length;
+   
+         this.nextSlide();
+      }
+      else
+      {
+         console.log("SlideShow.start: Cannot start empty slideshow");
+         this.stop();
+      }
    }
 
    stop()
@@ -197,7 +206,10 @@ class SlideShow
             this.stop();
          }
          
-         this.start();
+         if (this.slides.length > 0)
+         {
+            this.start();
+         }
       }
    }
 

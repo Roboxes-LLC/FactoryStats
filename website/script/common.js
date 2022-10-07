@@ -38,7 +38,7 @@ function parseBool(value)
    return ((value === true) || (value.toLowerCase() === "true"));
 }
 
-function ajaxRequest(requestUrl, callback)
+function ajaxRequest(requestUrl, callback, errorCallback)
 {
    var xhttp = new XMLHttpRequest();
    xhttp.onreadystatechange = function()
@@ -70,6 +70,12 @@ function ajaxRequest(requestUrl, callback)
          }
       }
    };
+   xhttp.onerror = function(error) {
+      if (errorCallback != null)
+      {
+         errorCallback(error);
+      }
+   }
    xhttp.open("GET", requestUrl, true);
    xhttp.send(); 
 }

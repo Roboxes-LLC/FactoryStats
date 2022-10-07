@@ -2,17 +2,36 @@ class Display
 {
    static SLOW_PING_INTERVAL = (30 * 1000);  // 30 seconds
    
-   static FAST_PING_INTERVAL = (10 * 1000);  // 30 seconds
+   static FAST_PING_INTERVAL = (10 * 1000);  // 10 seconds
+   
+   static PING_FAIL_THRESHOLD = 3;
+   
+   // HTML elements
+   static PageElements = {
+      "DISPLAY_DISCONNECTED": "display-disconnected",
+      "DISPLAY_UNAUTHORIZED": "display-unauthorized",
+      "DISPLAY_UNREGISTERED": "display-unregistered",
+      "DISPLAY_REDIRECTING":  "display-redirecting",
+      "DISPLAY_UNCONFIGURED": "display-unconfigured",
+      "UID":                  "uid",
+      "SUBDOMAIN":            "subdomain"
+   };
    
    constructor(containerId)
    {
-      this.customerId = null;
+      this.displayState = DisplayState.UNKNOWN;
+      
+      this.subdomain = null;
       
       this.uid = this.retrieveUid();
+
+      this.setUidElements(this.uid);
       
       this.fullyConfigured = false;
       
       this.slideShow = new SlideShow(containerId);
+      
+      this.pingFailCount = 0;
    }
    
    start()
@@ -51,24 +70,21 @@ class Display
          pingUrl = pingUrl + "?generateUid=true";
       }
       
-      if (this.customerId != null)
-      {
-         pingUrl = pingUrl + "&customerId=" + this.customerId;
-      }
-      
       try
       {
-         ajaxRequest(pingUrl, function(response){this.onPingReply(response)}.bind(this));
+         ajaxRequest(
+            pingUrl, 
+            function(response){this.onPingReply(response)}.bind(this),
+            function(error){this.onPingFailure(error)}.bind(this));
       }
       catch (exception)
       {
-         this.onPingFailure();
+         this.onPingFailure(exception);
       }
    }
    
    onPingReply(response)
    {
-      console.log(response);
       if (response.success)
       {
          // uid
@@ -77,16 +93,30 @@ class Display
             console.log("Display.onPingReply: UID = " + response.uid);
             
             this.uid = response.uid;
+            
             this.storeUid(this.uid);
+            
+            this.setUidElements(this.uid);
          }
          
-         // customerId
-         if ((typeof response.customerId !== 'undefined') &&
-             (this.customerId != response.customerId))
+         // subdomain
+         if ((typeof response.subdomain !== 'undefined') &&
+             (this.subdomain != response.subdomain))
          {
-            console.log("Display.onPingReply: customerId = " + response.customerId);
+            console.log("Display.onPingReply: subdomain = " + response.subdomain);
             
-            this.customerId = response.customerId;
+            this.subdomain = response.subdomain;
+            
+            this.setSubdomainElements(this.subdomain );
+         }
+         
+         // displayState
+         if ((typeof response.displayState !== 'undefined') &&
+             (this.displayState != response.displayState))
+         {
+            console.log("Display.onPingReply: displayState = " + response.displayState);
+            
+            this.setDisplayState(response.displayState);
          }
          
          // presentation
@@ -96,11 +126,10 @@ class Display
             slideShowConfig.initializeFromTabRotateConfig(response.presentation);
             
             this.slideShow.onConfigUpdate(slideShowConfig);
-            
-            if (!this.slideShow.isRunning)
-            {
-               this.slideShow.start();
-            }
+         }
+         else
+         {
+            this.slideShow.onConfigUpdate(new SlideShowConfig());
          }
          
          // fullyConfigured
@@ -118,11 +147,22 @@ class Display
             this.reset();
          }
       }
+      
+      this.pingFailCount = 0;
    }
    
-   onPingFailure(exception)
-   {
-      console.log("Display.onPingFailure");
+   onPingFailure(e)  // Exception or error
+   {            
+      this.pingFailCount++;
+
+      console.log("Display.onPingFailure: " + this.pingFailCount + " failures");
+      
+      if (this.pingFailCount >= Display.PING_FAIL_THRESHOLD)
+      {
+         this.slideShow.onConfigUpdate(new SlideShowConfig());
+         
+         this.setDisplayState(DisplayState.DISCONNECTED);
+      }
    }
    
    retrieveUid()
@@ -135,6 +175,75 @@ class Display
    storeUid(uid)
    {
       setCookie("uid", uid);
+   }
+   
+   setUidElements(uid)
+   {
+      var elements = document.getElementsByClassName("uid");
+      for (var element of elements)
+      {
+         element.innerHTML = uid;
+      }
+   }
+   
+   setSubdomainElements(subdomain)
+   {
+      var elements = document.getElementsByClassName("subdomain");
+      
+      for (var element of elements)
+      {
+         element.innerHTML = subdomain;
+      }
+   }
+   
+   setDisplayState(displayState)
+   {      
+      this.displayState = displayState;
+      
+      switch (this.displayState)
+      {
+         case DisplayState.READY:
+         case DisplayState.DISABLED:
+         {
+            this.hideInstructions();
+            break;
+         }
+
+         case DisplayState.DISCONNECTED:
+         {
+            this.showInstructions(Display.PageElements.DISPLAY_DISCONNECTED);
+            break;
+         }
+         
+         case DisplayState.UNAUTHORIZED:
+         {
+            this.showInstructions(Display.PageElements.DISPLAY_UNAUTHORIZED);
+            break;
+         }
+         
+         case DisplayState.UNREGISTERED:
+         {
+            this.showInstructions(Display.PageElements.DISPLAY_UNREGISTERED);
+            break;
+         }
+         
+         case DisplayState.REDIRECTING:
+         {
+            this.showInstructions(Display.PageElements.DISPLAY_REDIRECTING);
+            break;
+         }
+         
+         case DisplayState.UNCONFIGURED:
+         {
+            this.showInstructions(Display.PageElements.DISPLAY_UNCONFIGURED);
+            break;
+         }
+         
+         default:
+         {
+            console.log("Invalid display state: " + displayState);
+         }
+      }
    }
    
    reset()
@@ -157,5 +266,23 @@ class Display
       clearTimeout(this.displayTimer);
       
       this.displayTimer = setInterval(function(){this.ping()}.bind(this), pingInterval);   
+   }
+   
+   hideInstructions()
+   {
+      var elements = document.getElementsByClassName("instructions");
+      for (var element of elements)
+      {
+         element.classList.remove("show");
+      }
+   }
+   
+   showInstructions(elementId)
+   {
+      // Hide all instructions.
+      this.hideInstructions();
+      
+      // Show the selected instruction.
+      document.getElementById(elementId).classList.add("show");
    }
 }
