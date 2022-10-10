@@ -5,6 +5,7 @@
 #include "M5Defs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
+#include "ShopButton.hpp"
 #include "ShopSensor.hpp"
 #include "ShopServer.hpp"
 

@@ -16,7 +16,7 @@ const String LIMIT_SWITCH = "limitSwitch";
 const String BUTTON_A = "buttonA";
 const String BUTTON_B = "buttonB";
 
-class ShopSensor : public Component, TimerListener
+class ShopSensor : public Component, public TimerListener
 {
   
 public:  
