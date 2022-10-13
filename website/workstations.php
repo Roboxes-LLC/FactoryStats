@@ -112,11 +112,11 @@ function getScaling()
 
 function getChartSize($stationCount)
 {
-   $chartSizes = array(3, 2, 1, 1);  // large, medium, small, small
+   $chartSizes = array(ChartSize::LARGE, ChartSize::MEDIUM, ChartSize::SMALL, ChartSize::SMALL);
    
-   $chartSize = $chartSizes[0];  // small
+   $chartSize = ChartSize::SMALL;
    
-   if (($stationCount> 0) && ($stationCount <= 4))
+   if (($stationCount > 0) && ($stationCount <= 4))
    {
       $chartSize = $chartSizes[$stationCount - 1];
    }
@@ -243,9 +243,11 @@ HEREDOC;
    
    <script>
      <?php echo DisplaySize::getJavascript("DisplaySize") ?>
+     
+     <?php echo ChartSize::getJavascript("ChartSize") ?>
    
       // Store station ids
-      stationIds = [
+      var stationIds = [
          <?php echo getStationIdsVar(); ?>
       ];
       

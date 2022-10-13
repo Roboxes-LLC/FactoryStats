@@ -6,13 +6,6 @@ var MenuItem = {
    LAST : 3
 };
 
-// Enum for screen/chart sizes.
-var ChartSize = {
-   SMALL: 0,
-   MEDIUM: 1,
-   LARGE: 2
-};
-
 // Keep track of the current shift, as it is updated by the server.
 var currentShiftId = 0;
 
@@ -119,12 +112,19 @@ function update()
          {
             var json = JSON.parse(this.responseText);
             
-            for (const workstation of json.workstations)
+            if (json.success)
             {
-               updateWorkstation(workstation);
-            }
+               for (const workstation of json.workstations)
+               {
+                  updateWorkstation(workstation);
+               }
    
-            currentShiftId = parseInt(json.currentShiftId);
+               currentShiftId = parseInt(json.currentShiftId);
+            }
+            else
+            {
+               console.log("Status update failed: " + json.error);
+            }
          }
          catch (exception)
          {

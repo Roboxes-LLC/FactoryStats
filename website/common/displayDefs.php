@@ -61,6 +61,37 @@ abstract class DisplaySize
    } 
 }
 
+abstract class ChartSize
+{
+   const UNKNOWN = 0;
+   const FIRST = 1;
+   const SMALL = ChartSize::FIRST;
+   const MEDIUM = 2;
+   const LARGE = 3;
+   const LAST = 4;
+   const COUNT = ChartSize::LAST - ChartSize::FIRST;
+   
+   public static $values = array(ChartSize::SMALL, ChartSize::MEDIUM, ChartSize::LARGE);
+   
+   public static function getJavascript($enumName)
+   {
+      // Note: Keep synced with enum.
+      $varNames = array("UNKNOWN", "SMALL", "MEDIUM", "LARGE");
+      
+      $html = "var $enumName = {";
+      
+      for ($chartSize = ChartSize::UNKNOWN; $chartSize < ChartSize::LAST; $chartSize++)
+      {
+         $html .= "{$varNames[$chartSize]}: $chartSize";
+         $html .= ($chartSize < (ChartSize::LAST - 1) ? ", " : "");
+      }
+      
+      $html .= "};\n";
+      
+      return ($html);
+   }
+}
+
 abstract class DisplayStatus
 {
    const UNKNOWN = 0;
