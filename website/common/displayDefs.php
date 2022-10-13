@@ -1,5 +1,66 @@
 <?php
 
+abstract class DisplaySize
+{
+   const UNKNOWN = 0;
+   const FIRST = 1;
+   const AUTO = DisplaySize::FIRST;
+   const SMALL = 2;
+   const MEDIUM = 3;
+   const LARGE = 4;
+   const LAST = 5;
+   const COUNT = DisplaySize::LAST - DisplaySize::FIRST;
+
+   public static $values = array(DisplaySize::AUTO, DisplaySize::SMALL, DisplaySize::MEDIUM, DisplaySize::LARGE);
+
+   public static function getLabel($displaySize)
+   {
+      $labels = array("", "Auto", "Small", "Medium", "Large");
+      
+      return ($labels[$displaySize]);
+   }
+   
+   public static function getOptions($selectedDisplaySize)
+   {
+      $html = "<option style=\"display:none\">";
+      
+      foreach (DisplaySize::$values as $displaySize)
+      {
+         $selected = ($displaySize == $selectedDisplaySize) ? "selected" : "";
+         $label = DisplaySize::getLabel($displaySize);
+         
+         $html .= "<option value=\"$displaySize\" $selected>$label</option>";
+      }
+      
+      return ($html);
+   }
+   
+   public static function getClass($displaySize)
+   {
+      $classes = array("", "display-auto", "display-small", "display-medium", "display-large");
+      
+      return ($classes[$displaySize]);
+   }
+   
+   public static function getJavascript($enumName)
+   {
+      // Note: Keep synced with enum.
+      $varNames = array("UNKNOWN", "AUTO", "SMALL", "MEDIUM", "LARGE");
+      
+      $html = "var $enumName = {";
+      
+      for ($displaySize = DisplaySize::UNKNOWN; $displaySize < DisplaySize::LAST; $displaySize++)
+      {
+         $html .= "{$varNames[$displaySize]}: $displaySize";
+         $html .= ($displaySize < (DisplaySize::LAST - 1) ? ", " : "");
+      }
+      
+      $html .= "};\n";
+      
+      return ($html);
+   } 
+}
+
 abstract class DisplayStatus
 {
    const UNKNOWN = 0;

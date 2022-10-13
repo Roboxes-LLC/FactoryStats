@@ -19,6 +19,7 @@ class DisplayInfo
    public $name;
    public $ipAddress;
    public $version;
+   public $scaling;
    public $presentationId;
    public $lastContact;
    public $resetTime;
@@ -33,6 +34,7 @@ class DisplayInfo
       $this->name = "";
       $this->ipAddress = "";
       $this->version = "";
+      $this->scaling = DisplaySize::UNKNOWN;
       $this->presentationId = PresentationInfo::UNKNOWN_PRESENTATION_ID;
       $this->lastContact = null;
       $this->resetTime = null;
@@ -60,6 +62,7 @@ class DisplayInfo
             $displayInfo->name = $row['name'];
             $displayInfo->ipAddress = $row['ipAddress'];
             $displayInfo->version = $row['version'];
+            $displayInfo->scaling = $row['scaling'];
             $displayInfo->presentationId = intval($row['presentationId']);
             $displayInfo->lastContact = Time::fromMySqlDate($row['lastContact'], "Y-m-d H:i:s");
             $displayInfo->resetTime = $row['resetTime'] ? Time::fromMySqlDate($row['resetTime'], "Y-m-d H:i:s") : null; 
@@ -181,6 +184,7 @@ class DisplayInfo
        echo "ipAddress: " .      $displayInfo->ipAddress .      "<br/>";
        echo "version: " .        $displayInfo->version .        "<br/>";
        echo "name: " .           $displayInfo->roboxName .      "<br/>";
+       echo "scaling: " .        $displayInfo->scaling .        "<br/>";
        echo "presentationId: " . $displayInfo->presentationId . "<br/>";
        echo "lastContact: " .    $displayInfo->lastContact .    "<br/>";
        echo "enabled: " .        ($displayInfo->enabled ? "true" : "false") . "<br/>";

@@ -6,10 +6,12 @@ var MenuItem = {
    LAST : 3
 };
 
-// Constants for screen/chart sizes.
-const SMALL = 1;
-const MEDIUM = 2;
-const LARGE = 3;
+// Enum for screen/chart sizes.
+var ChartSize = {
+   SMALL: 0,
+   MEDIUM: 1,
+   LARGE: 2
+};
 
 // Keep track of the current shift, as it is updated by the server.
 var currentShiftId = 0;
@@ -274,45 +276,65 @@ function updateHourlyCount(stationId, hourlyCount, shiftStartTime, shiftEndTime)
    charts[stationId].update(hourlyCount);
 }
 
-function getScreenSize(screenWidth)
+function getConfiguredDisplaySize()
 {
-   var screenSize = SMALL;  // small
+   var displaySize = DisplaySize.AUTO;
+   
+   if (document.documentElement.classList.contains("display-small"))
+   {
+      displaySize = DisplaySize.SMALL;
+   }
+   else if (document.documentElement.classList.contains("display-medium"))
+   {
+      displaySize = DisplaySize.MEDIUM;
+   }
+   else if (document.documentElement.classList.contains("display-large"))
+   {
+      displaySize = DisplaySize.LARGE;
+   }
+   
+   return (displaySize);
+}
+
+function getDisplaySize(screenWidth)
+{
+   var displaySize = DisplaySize.SMALL;
    
    // Small
    // 768px - 1023px
    if (screenWidth < 1024)
    {
-      screenSize = SMALL;
+      displaySize = DisplaySize.SMALL;
    }
    // Medium
    // 1024px - 1365px
    else if (screenWidth < 1366)
    {
-      screenSize = SMALL;
+      displaySize = DisplaySize.SMALL;
    }
    // Large
    // 1366px - 1919px
    else if (screenWidth < 1920)
    {
-      screenSize = MEDIUM;      
+      displaySize = DisplaySize.MEDIUM;      
    }
    // X-Large
    // 1920px - 2559px
    else if (screenWidth < 2560)
    {
-      screenSize = MEDIUM;      
+      displaySize = DisplaySize.MEDIUM;      
    }
    // XX-Large
    // >= 2560px
    else 
    {
-      screenSize = LARGE; 
+      displaySize = DisplaySize.LARGE; 
    }
    
-   return (screenSize);
+   return (displaySize);
 }
 
-function getChartDimensions(screenSize, chartSize)
+function getChartDimensions(displaySize, chartSize)
 {
    var dimensions = 
    {
@@ -328,12 +350,15 @@ function getChartDimensions(screenSize, chartSize)
       /* large screen  */ [[50, 50, 50], [60, 60, 60], [80, 80, 80]]
    ];
    
-   if ((chartSize >= SMALL) && (chartSize <= LARGE) &&
-       (screenSize >= SMALL) && (screenSize <= LARGE))
+   if ((chartSize >= ChartSize.SMALL) && (chartSize <= ChartSize.LARGE) &&
+       (displaySize >= DisplaySize.SMALL) && (displaySize <= DisplaySize.LARGE))
    {
-      dimensions.titleFontSize = chartDimensions[screenSize - SMALL][chartSize - SMALL][0]; 
-      dimensions.hAxisFontSize = chartDimensions[screenSize - SMALL][chartSize - SMALL][1]; 
-      dimensions.annotationFontSize = chartDimensions[screenSize - SMALL][chartSize - SMALL][2];
+      var displayIndex = displaySize - DisplaySize.SMALL;
+      var chartIndex = chartSize - ChartSize.SMALL;
+      
+      dimensions.titleFontSize = chartDimensions[displayIndex][chartIndex][0]; 
+      dimensions.hAxisFontSize = chartDimensions[displayIndex][chartIndex][1]; 
+      dimensions.annotationFontSize = chartDimensions[displayIndex][chartIndex][2];
    }
    
    return (dimensions);
@@ -343,13 +368,17 @@ function resizeCharts()
 {
    document.getElementById("screen-res-div").innerHTML = screen.width  + "x" + screen.height;
 
-   var screenSize = getScreenSize(screen.width);
+   var displaySize = getConfiguredDisplaySize()
+   if (displaySize == DisplaySize.AUTO)
+   {
+      displaySize = getDisplaySize(screen.width);
+   }
 
    for (const stationId of stationIds)
    {
       var chartSize = charts[stationId].container.getAttribute("data-chart-size");
          
-      var chartDimensions = getChartDimensions(screenSize, chartSize);
+      var chartDimensions = getChartDimensions(displaySize, chartSize);
 
       charts[stationId].setChartFontSize(chartDimensions.titleFontSize, chartDimensions.hAxisFontSize, chartDimensions.annotationFontSize);
    }

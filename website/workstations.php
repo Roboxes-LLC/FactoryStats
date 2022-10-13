@@ -96,6 +96,20 @@ function getGridClass($stationCount)
    return ($gridClass);
 }
 
+function getScaling()
+{
+   $scaling = DisplaySize::AUTO;
+   
+   $params = Params::parse();
+   
+   if ($params->keyExists("scaling"))
+   {
+      $scaling = $params->getInt("scaling");
+   }
+   
+   return (DisplaySize::getClass($scaling));
+}
+
 function getChartSize($stationCount)
 {
    $chartSizes = array(3, 2, 1, 1);  // large, medium, small, small
@@ -200,6 +214,8 @@ HEREDOC;
 
 ?>
 
+<html class="<?php echo getScaling() ?>">
+
 <head>
 
    <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -226,6 +242,8 @@ HEREDOC;
    <?php if (isKioskMode()) {echo "<script src=\"script/kiosk.js\"" . versionQuery() . "></script>";}?>
    
    <script>
+     <?php echo DisplaySize::getJavascript("DisplaySize") ?>
+   
       // Store station ids
       stationIds = [
          <?php echo getStationIdsVar(); ?>

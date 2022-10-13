@@ -405,7 +405,7 @@ $router->add("display", function($params) {
                      // If the display is enabled ...
                      if ($displayInfo->enabled)
                      {
-                        $result->presentation = $presentation->getTabRotateConfig();
+                        $result->presentation = $presentation->getTabRotateConfig($displayInfo->scaling);
                         
                      }
                      // If the display is disabled ...
@@ -555,7 +555,7 @@ $router->add("display2", function($params) {
                      // If the display is enabled ...
                      if ($displayInfo->enabled)
                      {
-                        $result->presentation = $presentation->getTabRotateConfig();
+                        $result->presentation = $presentation->getTabRotateConfig($displayInfo->scaling);
                      }
                      // If the display is disabled ...
                      else
