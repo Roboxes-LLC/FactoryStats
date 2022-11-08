@@ -1,235 +1,224 @@
 @CHARSET "ISO-8859-1";
-
 .main.summary {
-   flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 
 .station-summary-div {
-   color: white;
-   border: 1px solid white;
-   width: 300px;
-   margin: 20px 20px 0px 0px;  /*top, right, bottom, left */   
-}   
+  color: white;
+  border: 1px solid white;
+  width: 300px;
+  margin: 20px 20px 0px 0px; /*top, right, bottom, left */
+}
 
 .station-summary-div.near-cycle-time {
-   /*background-color: rgba(255, 255, 0, 0.25);*/
-   background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(255, 255, 0, 0.30));
+  /*background-color: rgba(255, 255, 0, 0.25);*/
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(255, 255, 0, 0.3));
 }
 
 .station-summary-div.over-cycle-time {
-   /*background-color: rgba(255, 0, 0, 0.25);*/
-   background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(255, 0, 0, 0.30));
+  /*background-color: rgba(255, 0, 0, 0.25);*/
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(255, 0, 0, 0.3));
 }
 
 .station-summary-div.paused {
-   /*background-color: rgba(0, 0, 255, 0.25);*/
-   background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(20,163,219, 0.30));
+  /*background-color: rgba(0, 0, 255, 0.25);*/
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0), rgba(20, 163, 219, 0.3));
 }
 
 .station-label {
-   color: white;
-   font-size: 40px;
-   margin-bottom: 10px;
+  color: white;
+  font-size: 40px;
+  margin-bottom: 10px;
 }
-   
+
 .stat-label {
-   color: #14a3db;
-   font-size: 14px;
+  color: #14a3db;
+  font-size: 14px;
 }
 
 .stat-units {
-   color: white;
-   font-size: 8px;
+  color: white;
+  font-size: 8px;
 }
 
 .medium-stat {
-   color: white;
-   font-size: 40px;
-   margin-bottom: 10px;
+  color: white;
+  font-size: 40px;
+  margin-bottom: 10px;
 }
 
 .urgent-stat {
-   color: yellow;
+  color: yellow;
 }
 
-/* 
-Device = Most of the Smartphones Mobiles (Portrait)
-Screen = B/w 320px to 479px
-*/
-/*
-@media (min-width: 320px) and (max-width: 479px) {
-  
-   .hide-on-mobile {
-      display: none;
-   }
-   
-   .hide-on-tablet {
-      display: none;
-   }
-}
-*/
-
-/* 
-Device = Tablets, Ipads (portrait)
-Screen = B/w 768px to 1024px
-*/
-/*
-@media (min-width: 480px) and (max-width: 1024px) {
-   
-   .hide-on-tablet {
-      display: none;
-   }
-   
-   .stat-label {
-      font-size: 18px;
-   }
-   
-   .large-stat {
-      font-size: 50px;
-   }
-   
-   .left-panel {
-      background-image: none;
-      height: auto;
-      padding-left: 50px;
-   }   
-   
-   .right-panel {
-      height: auto;
-      margin-top: 50px;
-   } 
-}
-
-/* Screen-based formatting */
-
-/* Small - 768px */
-/*
-@media (min-width: 48em) {
-}
-*/
-
-/* Medium - 1024px */
-/* Temporary until all screen resolutions are supported */
+/* ************************************************************************** */
+/* ************************************************************************** */
+/* Screen widths */
 @media (max-width: 1919px) {
-   .station-summary-div {    
-      width: 275px;
-      margin: 15px 15px 0px 0px;  /*top, right, bottom, left */
-      border: 2px solid white;
-   }
-
-   .station-label {
-      font-size: 2em;
-      margin-bottom: 10px;
-   }
-
-   .stat-label {
-      font-size: 0.75em;
-   }
-   
-   .stat-units {
-      font-size: 0.75em;
-   }
-   
-   .large-stat {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-   }
-   
-   .medium-stat {
-      font-size: 1.5em;
-      margin-bottom: 10px;
-   }
+  .station-summary-div {
+    width: 275px;
+    margin: 15px 15px 0px 0px; /*top, right, bottom, left */
+    border: 2px solid white;
+  }
+  .station-label {
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 0.75em;
+  }
+  .stat-units {
+    font-size: 0.75em;
+  }
+  .large-stat {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+  }
+  .medium-stat {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+  }
 }
-
-/* Large - 1366px */
-/*
-@media (min-width: 85.375em) {
-}
-*/
-
-/* XLarge - 1920px */
-
 @media (min-width: 1920px) {
-   .station-summary-div {    
-      width: 420px;
-      margin: 20px 20px 0px 0px;  /*top, right, bottom, left */
-      border: 2px solid white;
-   }
-
-   .station-label {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-   }
-
-   .stat-label {
-      font-size: 1.25em;
-   }
-   
-   .stat-units {
-      font-size: 0.75em;
-   }
-   
-   .large-stat {
-      font-size: 3em;
-      margin-bottom: 10px;
-   }
-   
-   .medium-stat {
-      font-size: 2.25em;
-      margin-bottom: 10px;
-   }
+  .station-summary-div {
+    width: 420px;
+    margin: 20px 20px 0px 0px; /*top, right, bottom, left */
+    border: 2px solid white;
+  }
+  .station-label {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 1.25em;
+  }
+  .stat-units {
+    font-size: 0.75em;
+  }
+  .large-stat {
+    font-size: 3em;
+    margin-bottom: 10px;
+  }
+  .medium-stat {
+    font-size: 2.25em;
+    margin-bottom: 10px;
+  }
 }
-
-
-/* XXLarge - 2560px */
-/*
-@media (min-width: 160em) {
-}
-*/
-
-/* XXLarge - 2560px */
 @media (min-width: 2560px) {
-	
-	/* Header */
-   .header-image {
-      width: 1000px;
-   }   
-   .header {
-      border-width: 0.5em;
-   }
-   .header-input {
-      font-size: 7em;
-   }
-   
-   /* Station Summary */
-   
-	.station-summary-div {    
-	   width: 850px;
-      margin: 35px 35px 0px 0px;  /*top, right, bottom, left */
-	   border: 2px solid white;
-	   padding: 15px;
-	}
-
-	.station-label {
-	   font-size: 7em;
-	   margin-bottom: 10px;
-	}
-
-	.stat-label {
-	   font-size: 3em;
-	}
-	
-	.stat-units {
-      font-size: 0.75em;
-   }
-	
-	.large-stat {
-      font-size: 7em;
-      margin-bottom: 10px;
-   }
-	
-	.medium-stat {
-	   font-size: 5em;
-	   margin-bottom: 10px;
-	}
+  .header-image {
+    width: 1000px;
+  }
+  .header {
+    border-width: 0.5em;
+  }
+  .header-input {
+    font-size: 7em;
+  }
+  .station-summary-div {
+    width: 850px;
+    margin: 35px 35px 0px 0px; /*top, right, bottom, left */
+    border: 2px solid white;
+    padding: 15px;
+  }
+  .station-label {
+    font-size: 7em;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 3em;
+  }
+  .stat-units {
+    font-size: 0.75em;
+  }
+  .large-stat {
+    font-size: 7em;
+    margin-bottom: 10px;
+  }
+  .medium-stat {
+    font-size: 5em;
+    margin-bottom: 10px;
+  }
 }
+html.display-small .station-summary-div {
+  width: 275px;
+  margin: 15px 15px 0px 0px; /*top, right, bottom, left */
+  border: 2px solid white;
+}
+html.display-small .station-label {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+html.display-small .stat-label {
+  font-size: 0.75em;
+}
+html.display-small .stat-units {
+  font-size: 0.75em;
+}
+html.display-small .large-stat {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+html.display-small .medium-stat {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+html.display-medium .station-summary-div {
+  width: 420px;
+  margin: 20px 20px 0px 0px; /*top, right, bottom, left */
+  border: 2px solid white;
+}
+html.display-medium .station-label {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+html.display-medium .stat-label {
+  font-size: 1.25em;
+}
+html.display-medium .stat-units {
+  font-size: 0.75em;
+}
+html.display-medium .large-stat {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+html.display-medium .medium-stat {
+  font-size: 2.25em;
+  margin-bottom: 10px;
+}
+
+html.display-large .header-image {
+  width: 1000px;
+}
+html.display-large .header {
+  border-width: 0.5em;
+}
+html.display-large .header-input {
+  font-size: 7em;
+}
+html.display-large .station-summary-div {
+  width: 850px;
+  margin: 35px 35px 0px 0px; /*top, right, bottom, left */
+  border: 2px solid white;
+  padding: 15px;
+}
+html.display-large .station-label {
+  font-size: 7em;
+  margin-bottom: 10px;
+}
+html.display-large .stat-label {
+  font-size: 3em;
+}
+html.display-large .stat-units {
+  font-size: 0.75em;
+}
+html.display-large .large-stat {
+  font-size: 7em;
+  margin-bottom: 10px;
+}
+html.display-large .medium-stat {
+  font-size: 5em;
+  margin-bottom: 10px;
+}
+
+/*# sourceMappingURL=workstationSummary.css.map */

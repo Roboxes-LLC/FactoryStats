@@ -36,6 +36,20 @@ function getGroupId()
    return ($groupId);
 }
 
+function getScaling()
+{
+   $scaling = DisplaySize::AUTO;
+   
+   $params = Params::parse();
+   
+   if ($params->keyExists("scaling"))
+   {
+      $scaling = $params->getInt("scaling");
+   }
+   
+   return (DisplaySize::getClass($scaling));
+}
+
 function renderStationSummaries($shiftId, $groupId = StationGroup::UNKNOWN_GROUP_ID)
 {
    echo "<div class=\"flex-horizontal main summary\">";
@@ -104,7 +118,7 @@ HEREDOC;
 }
 ?>
 
-<html>
+<html class="<?php echo getScaling() ?>">
 
 <head>
 
