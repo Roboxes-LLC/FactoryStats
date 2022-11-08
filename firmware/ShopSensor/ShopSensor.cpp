@@ -119,6 +119,34 @@ void ShopSensor::setup()
    {
       Logger::logWarning(F("ShopSensor::setup: No available adapter."));   
    }
+
+   // Experimental.
+   Gesture* sw = new Gesture("swipe right", 160, DIR_LEFT, 30, true);
+   M5.Buttons.addHandler(ShopSensor::screenSwiped, E_GESTURE);
+   M5.Buttons.addHandler(ShopSensor::screenTouched, E_TAP);
+}
+
+void ShopSensor::screenSwiped(Event& e)
+{
+   Logger::logDebug("ShopSensor::screenSwiped");  // TODO: Remove
+
+   ShopSensor* shopSensor = (ShopSensor*)Robox::getComponent("shopSensor");
+   if (shopSensor)
+   {
+      shopSensor->onButtonUp(BUTTON_B);
+   }
+}
+
+
+void ShopSensor::screenTouched(Event& e)
+{
+   Logger::logDebug("ShopSensor::screenTouched");  // TODO: Remove
+
+   ShopSensor* shopSensor = (ShopSensor*)Robox::getComponent("shopSensor");
+   if (shopSensor)
+   {
+      shopSensor->onButtonUp(LIMIT_SWITCH);
+   }
 }
 
 void ShopSensor::handleMessage(
@@ -216,7 +244,7 @@ ConnectionManager* ShopSensor::getConnection()
 Display* ShopSensor::getDisplay()
 {
    static Display* display = 0;
-   
+
    if (!display)
    {
       display = (Display*)Robox::getComponent(displayId);
@@ -345,7 +373,7 @@ void ShopSensor::onButtonUp(
       if (display)
       {
          display->updateCount(totalCount, count);
-      
+
          setDisplayMode(Display::COUNT, DISPLAY_TIME);
       }
    }

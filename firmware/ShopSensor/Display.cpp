@@ -20,7 +20,12 @@ static const int DEFAULT_TEXT_COLOR = YELLOW;
 static const int DEFAULT_ACCENT_COLOR = BLUE;
 static const int DEFAULT_HIGHLIGHT_COLOR = WHITE;
 
-#ifdef M5STICKC_PLUS
+#ifdef M5TOUGH
+static const int FONT_SMALL = 2;
+static const int FONT_MEDIUM = 3;
+static const int FONT_LARGE = 4;
+static const int FONT_XLARGE = 5;
+#elif M5STICKC_PLUS
 static const int FONT_SMALL = 2;
 static const int FONT_MEDIUM = 3;
 static const int FONT_LARGE = 4;
@@ -565,6 +570,30 @@ void Display::drawPower()
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
       String status = String(batteryLevel) + "%";
       M5.Lcd.drawString(status, (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+   }
+}
+
+void Display::drawRectangle(
+   const Zone& rectangle,
+   const int& borderColor,
+   const int& borderSize,
+   const int& fillColor)
+{
+   if (borderSize == 0)
+   {
+      M5.Lcd.fillRect(rectangle.x, rectangle.y, rectangle.w, rectangle.h, fillColor);
+   }
+   else
+   {
+      // Border
+      M5.Lcd.fillRect(rectangle.x, rectangle.y, rectangle.w, rectangle.h, borderColor);
+
+      // Fill
+      M5.Lcd.fillRect((rectangle.x + borderSize),
+                      (rectangle.y + borderSize),
+                      (rectangle.w - borderSize),
+                      (rectangle.h - borderSize),
+                      fillColor);
    }
 }
 

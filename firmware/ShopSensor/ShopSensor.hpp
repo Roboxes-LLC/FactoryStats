@@ -1,5 +1,7 @@
 #pragma once
 
+#include <M5Tough.h>
+
 #include "Connection/ConnectionManager.hpp"
 #include "Messaging/Adapter.hpp"
 #include "Messaging/Component.hpp"
@@ -47,6 +49,9 @@ public:
       
    virtual void timeout(
       Timer* timer);      
+
+   static void screenTouched(Event& e);
+   static void screenSwiped(Event& e);
 
 protected:
 

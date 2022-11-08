@@ -2,6 +2,7 @@
 
 #include "Diagnostics.hpp"
 #include "Display.hpp"
+#include "DisplayM5Tough.hpp"
 #include "M5Defs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
@@ -14,7 +15,7 @@
 
 void setup()
 {
-#if defined(M5STICKC) || defined(M5STICKC_PLUS)
+#if defined(M5STICKC) || defined(M5STICKC_PLUS) || defined(M5TOUGH)
    M5.begin();
    M5.Lcd.fillScreen(WHITE);
 #endif

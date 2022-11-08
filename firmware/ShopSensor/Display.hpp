@@ -85,22 +85,28 @@ public:
       
    void redraw();
    
-private:
+protected:
 
-   void drawSplash();
+   virtual void drawSplash();
    
-   void drawId();   
+   virtual void drawId();
    
-   void drawConnection();
+   virtual void drawConnection();
    
-   void drawServer();
+   virtual void drawServer();
    
-   void drawCount();
+   virtual void drawCount();
    
-   void drawInfo();
+   virtual void drawInfo();
    
-   void drawPower();
+   virtual void drawPower();
    
+   void drawRectangle(
+      const Zone& rectangle,
+      const int& borderColor,
+      const int& borderSize,
+      const int& fillColor);
+
    void drawBattery(
       const int& x,
       const int& y,
