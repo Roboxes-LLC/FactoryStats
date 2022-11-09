@@ -1,5 +1,6 @@
 #include "Adapter/HttpClientAdapter.hpp"
 #include "Board/WifiBoard.hpp"
+#include "Component/Button.hpp"
 #include "Connection/ConnectionManager.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Address.hpp"
@@ -86,8 +87,8 @@ void ShopSensor::setup()
       
    Messaging::subscribe(this, ConnectionManager::CONNECTION);
    Messaging::subscribe(this, Power::POWER_INFO);
-   Messaging::subscribe(this, "buttonUp");
-   Messaging::subscribe(this, "buttonLongPress");
+   Messaging::subscribe(this, Roboxes::Button::BUTTON_UP);
+   Messaging::subscribe(this, Roboxes::Button::BUTTON_LONG_PRESS);
    
    updateTimer = Timer::newTimer(
       getId() + ".update",
@@ -130,12 +131,12 @@ void ShopSensor::handleMessage(
       onConnectionUpdate(message);
    }
    //  buttonUp
-   else if (message->getTopic() == "buttonUp")
+   else if (message->getTopic() == Roboxes::Button::BUTTON_UP)
    {
       onButtonUp(message->getSource());
    }
    //  buttonLongPress
-   else if (message->getTopic() == "buttonLongPress")
+   else if (message->getTopic() == Roboxes::Button::BUTTON_LONG_PRESS)
    {
       onButtonLongPress(message->getSource());
    }
