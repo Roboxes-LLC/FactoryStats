@@ -4,8 +4,6 @@ require_once 'common/displayInfo.php';
 require_once 'common/root.php';
 require_once 'common/stationInfo.php';
 
-Time::init();
-
 session_start();
 
 global $ROOT;

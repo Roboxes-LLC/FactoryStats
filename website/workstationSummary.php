@@ -9,8 +9,6 @@ require_once 'common/stationInfo.php';
 require_once 'common/workstationStatus.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 Authentication::authenticate();
@@ -21,6 +19,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function getGroupId()
 {

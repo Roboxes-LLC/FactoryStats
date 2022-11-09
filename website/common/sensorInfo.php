@@ -108,7 +108,7 @@ class SensorInfo
    {
       $isOnline = false;
       
-      $now = new DateTime("now", new DateTimeZone('America/New_York'));
+      $now = Time::getDateTime(Time::now());
       $lastContact = new DateTime($this->lastContact);
       
       // Determine the interval between the supplied date and the current time.

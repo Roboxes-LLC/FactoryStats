@@ -62,8 +62,6 @@ function getLoginFailureText($authenticationResult)
 
 // *****************************************************************************
 
-Time::init();
-
 session_start();
 
 $params = Params::parse();
@@ -92,6 +90,8 @@ if (Authentication::isAuthenticated())
       redirect("workstationSummary.php");
    }
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 if (Demo::isDemoSite())
 {

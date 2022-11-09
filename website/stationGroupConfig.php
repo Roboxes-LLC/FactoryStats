@@ -6,8 +6,6 @@ require_once 'common/params.php';
 require_once 'common/stationGroup.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 if (!(Authentication::isAuthenticated() &&
@@ -16,6 +14,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function renderTable()
 {
@@ -207,8 +207,6 @@ function updateStationGroup($groupId, $name, $stationIds)
 
 // *****************************************************************************
 //                              Action handling
-
-Time::init();
 
 $params = Params::parse();
 

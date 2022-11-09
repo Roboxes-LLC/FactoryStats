@@ -1702,9 +1702,9 @@ class FactoryStatsDatabase extends PDODatabase
    {
       $countTime = 0;
       
-      $now = new DateTime("now", new DateTimeZone('America/New_York'));
+      $now = Time::getDateTime(Time::now());
       
-      $updateTime = new DateTime($this->getUpdateTime($stationId), new DateTimeZone('America/New_York'));
+      $updateTime = Time::getDateTime($this->getUpdateTime($stationId));
       
       if ($updateTime)
       {

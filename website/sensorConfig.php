@@ -7,8 +7,6 @@ require_once 'common/sensorInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 if (!(Authentication::isAuthenticated() &&
@@ -17,6 +15,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function renderTable()
 {
@@ -60,7 +60,7 @@ HEREDOC;
          
          $rowId = "sensor-" . $sensorInfo->sensorId;
          
-         $dateTime = new DateTime($sensorInfo->lastContact, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($sensorInfo->lastContact);
          $lastContact = $dateTime->format("m/d/Y h:i A");
          
          $sensorTypeLabel = SensorType::getLabel($sensorInfo->sensorType);
@@ -156,8 +156,6 @@ function updateSensor($sensorId, $sensorType, $stationId, $enabled)
 
 // *****************************************************************************
 //                              Action handling
-
-Time::init();
 
 $params = Params::parse();
 

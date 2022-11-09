@@ -9,8 +9,6 @@ require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 if (!(Authentication::isAuthenticated() &&
@@ -19,6 +17,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function renderTable()
 {
@@ -52,7 +52,7 @@ HEREDOC;
 
          $id = "display-" . $displayInfo->displayId;
          
-         $dateTime = new DateTime($displayInfo->lastContact, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($displayInfo->lastContact);
          $formattedDateTime = $dateTime->format("m/d/Y h:i A");
          
          $displayStatus = $displayInfo->getDisplayStatus();

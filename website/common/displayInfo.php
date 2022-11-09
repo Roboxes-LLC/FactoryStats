@@ -79,7 +79,7 @@ class DisplayInfo
    {
       $isOnline = false;
       
-      $now = new DateTime("now", new DateTimeZone('America/New_York'));
+      $now = Time::getDateTime(Time::now());
       $lastContact = new DateTime($this->lastContact);
       
       // Determine the interval between the supplied date and the current time.
@@ -100,7 +100,7 @@ class DisplayInfo
       
       if ($this->resetTime)
       {
-         $now = new DateTime("now", new DateTimeZone('America/New_York'));
+         $now = Time::getDateTime(Time::now());
          $resetTime = new DateTime($this->resetTime);
          
          // Determine the interval between the supplied date and the current time.
@@ -122,7 +122,7 @@ class DisplayInfo
       
       if ($this->upgradeTime)
       {
-         $now = new DateTime("now", new DateTimeZone('America/New_York'));
+         $now = Time::getDateTime(Time::now());
          $upgradeTime = new DateTime($this->upgradeTime);
          
          // Determine the interval between the supplied date and the current time.

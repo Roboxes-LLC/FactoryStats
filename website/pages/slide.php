@@ -4,8 +4,6 @@ require_once '../common/authentication.php';
 require_once '../common/customerInfo.php';
 require_once '../common/slideInfo.php';
 
-Time::init();
-
 session_start();
 
 Authentication::authenticate();
@@ -16,6 +14,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function getParams()
 {

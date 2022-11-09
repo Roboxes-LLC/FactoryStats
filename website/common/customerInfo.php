@@ -156,27 +156,7 @@ class CustomerInfo
       
       return ("{$_SERVER['DOCUMENT_ROOT']}/$slideImagesFolder");
    }
-   
-   public static function getCustomerInfo()
-   {
-      $customerInfo = null;
       
-      $database = FactoryStatsGlobalDatabase::getInstance();
-      
-      if ($database && $database->isConnected())
-      {
-         $result = $database->getCustomerFromSubdomain(CustomerInfo::getSubdomain());
-         
-         if ($result && ($row = $result[0]))  // Assume only one match.
-         {
-            $customerInfo = new CustomerInfo();
-            $customerInfo->initializeFromDatabaseRow($row);
-         }
-      }
-      
-      return  ($customerInfo);
-   }
-   
    public static function load($customerId)
    {
       $customerInfo = null;
@@ -214,9 +194,11 @@ class CustomerInfo
       return ($html);
    }
    
-   static function getTimeZoneString($timeZoneId)
+   public static function getTimeZone()
    {
-      
+      return (($customerInfo = CustomerInfo::load(CustomerInfo::getCustomerId())) ? 
+                 $customerInfo->timeZone : 
+                 Time::DEFAULT_TIME_ZONE);
    }
    
    private function initializeFromDatabaseRow($row)

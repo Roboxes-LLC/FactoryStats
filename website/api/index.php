@@ -58,8 +58,6 @@ function getShifts()
 // *****************************************************************************
 //                                   Begin
 
-Time::init();
-
 session_start();
 
 Authentication::authenticate();
@@ -85,6 +83,8 @@ if (!Authentication::isAuthenticated())
    }
    */
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 $router = new Router();
 $router->setLogging(false);
@@ -187,7 +187,7 @@ $router->add("buttonStatus", function($params) {
          if ($buttonInfo)
          {
             $status = $buttonInfo->getButtonStatus();
-            $dateTime = new DateTime($buttonInfo->lastContact, new DateTimeZone('America/New_York'));
+            $dateTime = Time::getDateTime($buttonInfo->lastContact);
             $formattedDateTime = $dateTime->format("m/d/Y h:i A");
             
             $buttonStatus = new stdClass();
@@ -303,7 +303,7 @@ $router->add("sensorStatus", function($params) {
          if ($sensorInfo)
          {
             $status = $sensorInfo->getSensorStatus();
-            $dateTime = new DateTime($sensorInfo->lastContact, new DateTimeZone('America/New_York'));
+            $dateTime = Time::getDateTime($sensorInfo->lastContact);
             $formattedDateTime = $dateTime->format("m/d/Y h:i A");
             
             $sensorStatus = new stdClass();
@@ -653,7 +653,7 @@ $router->add("displayStatus", function($params) {
       {
          $displayInfo = DisplayInfo::load(intval($row["displayId"]));
          
-         $dateTime = new DateTime($displayInfo->lastContact, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($displayInfo->lastContact);
          $formattedDateTime = $dateTime->format("m/d/Y h:i A");
          
          $displayStatus = new stdClass();
@@ -903,7 +903,7 @@ $router->add("stationInfoSummary", function($params) {
       {
          if ($stationInfo->updateTime)
          {
-            $dateTime = new DateTime($stationInfo->updateTime, new DateTimeZone('America/New_York'));
+            $dateTime = Time::getDateTime($stationInfo->updateTime);
             $stationInfo->updateTime = $dateTime->format("m-d-Y h:i a");
          }
 

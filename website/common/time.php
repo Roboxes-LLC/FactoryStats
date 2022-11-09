@@ -2,38 +2,49 @@
 
 class Time
 {
-   static public function init()
+   public const DEFAULT_TIME_ZONE = "America/New_York";
+   
+   public const STANDARD_FORMAT = "Y-m-d H:i:s";
+   
+   static public function init($timeZone)
    {
-      date_default_timezone_set('America/New_York');
+      Time::$timeZone = $timeZone;
+      
+      date_default_timezone_set(Time::$timeZone);
    }
    
-   static public function now($format)
+   static public function now($format = Time::STANDARD_FORMAT)
    {
       $dateTime = new DateTime();
-      $dateTime->setTimezone(new DateTimeZone('America/New_York'));
+      $dateTime->setTimezone(new DateTimeZone(Time::$timeZone));
       
       return ($dateTime->format($format));
    }
    
+   public static function getDateTime($dateTimeString)
+   {
+      return  (new DateTime($dateTimeString, new DateTimeZone(Time::$timeZone)));
+   }
+   
    static public function toMySqlDate($dateString)
    {
-      $dateTime = new DateTime($dateString, new DateTimeZone('America/New_York'));
+      $dateTime = new DateTime($dateString, new DateTimeZone(Time::$timeZone));
       $dateTime->setTimezone(new DateTimeZone('UTC'));
       
-      return ($dateTime->format("Y-m-d H:i:s"));
+      return ($dateTime->format(Time::STANDARD_FORMAT));
    }
    
    static public function fromMySqlDate($dateString, $format)
    {
       $dateTime = new DateTime($dateString, new DateTimeZone('UTC'));
-      $dateTime->setTimezone(new DateTimeZone('America/New_York'));
+      $dateTime->setTimezone(new DateTimeZone(Time::$timeZone));
       
       return ($dateTime->format($format));
    }
    
    static public function toJavascriptDate($dateString)
    {
-      $dateTime = new DateTime($dateString, new DateTimeZone('America/New_York'));
+      $dateTime = new DateTime($dateString, new DateTimeZone(Time::$timeZone));
       
       return ($dateTime->format("Y-m-d"));
    }
@@ -42,7 +53,7 @@ class Time
    static public function startOfHour($dateTime)
    {
       $startDateTime = new DateTime($dateTime);
-      $startDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      $startDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
       
       return ($startDateTime->format("Y-m-d H:00:00"));
    }
@@ -50,7 +61,7 @@ class Time
    static public function endOfHour($dateTime)
    {
       $endDateTime = new DateTime($dateTime);
-      $endDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      $endDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
       
       $endDateTime->add(new DateInterval("PT1H"));  // period, time, 1 hour
       return ($endDateTime->format("Y-m-d H:00:00"));
@@ -59,7 +70,7 @@ class Time
    static public function startOfDay($dateTime)
    {
       $startDateTime = new DateTime($dateTime);
-      $startDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      $startDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
       
       return ($startDateTime->format("Y-m-d 00:00:00"));
    }
@@ -67,7 +78,7 @@ class Time
    static public function midDay($dateTime)
    {
        $midDateTime = new DateTime($dateTime);
-       $midDateTime->setTimezone(new DateTimeZone('America/New_York'));
+       $midDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
        
        return ($midDateTime->format("Y-m-d 12:00:00"));
    }
@@ -75,7 +86,7 @@ class Time
    static public function endOfDay($dateTime)
    {
       $endDateTime = new DateTime($dateTime);
-      $endDateTime->setTimezone(new DateTimeZone('America/New_York'));
+      $endDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
       
       return ($endDateTime->format("Y-m-d 23:59:59"));
    }
@@ -86,7 +97,7 @@ class Time
       
       $incrementedDateTime->add(new DateInterval("PT{$hours}H"));  // period, time, 1 hour
       
-      return ($incrementedDateTime->format("Y-m-d H:i:s"));
+      return ($incrementedDateTime->format(Time::STANDARD_FORMAT));
    }
    
    static public function incrementDay($dateTime)
@@ -95,7 +106,7 @@ class Time
       
       $incrementedDateTime->add(new DateInterval("P1D"));  // period, 1 day
       
-      return ($incrementedDateTime->format("Y-m-d H:i:s"));
+      return ($incrementedDateTime->format(Time::STANDARD_FORMAT));
    }
    
    static public function decrementDay($dateTime)
@@ -104,7 +115,7 @@ class Time
        
        $decrementedDateTime->sub(new DateInterval("P1D"));  // period, 1 day
        
-       return ($decrementedDateTime->format("Y-m-d H:i:s"));
+       return ($decrementedDateTime->format(Time::STANDARD_FORMAT));
    }
    
    static public function differenceSeconds($startTime, $endTime)
@@ -128,10 +139,12 @@ class Time
    
    static public function isToday($dateTime)
    {
-      $now = Time::now("Y-m-d H:i:s");
+      $now = Time::now();
       
       return (Time::between($dateTime, Time::startOfDay($now), Time::endOfDay($now)));
    }
+   
+   private static $timeZone = Time::DEFAULT_TIME_ZONE;
 }
 
 /*
