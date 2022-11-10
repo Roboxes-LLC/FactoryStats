@@ -1105,8 +1105,8 @@ class FactoryStatsDatabase extends PDODatabase
       $lastContact = Time::toMySqlDate($displayInfo->lastContact);
       
       $statement = $this->pdo->prepare(
-         "INSERT INTO display (uid, ipAddress, version, name, presentationId, lastContact, enabled) " .
-         "VALUES (?, ?, ?, ?, ?, ?, ?);");
+         "INSERT INTO display (uid, ipAddress, version, name, scaling, presentationId, lastContact, enabled) " .
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
       
       $result = $statement->execute(
          [
@@ -1114,6 +1114,7 @@ class FactoryStatsDatabase extends PDODatabase
             $displayInfo->ipAddress,
             $displayInfo->version,
             $displayInfo->name,
+            $displayInfo->scaling,
             $displayInfo->presentationId,
             $lastContact,
             $displayInfo->enabled ? 1 : 0
@@ -1128,15 +1129,16 @@ class FactoryStatsDatabase extends PDODatabase
       
       $statement = $this->pdo->prepare(
          "UPDATE display " .
-         "SET uid = ?, ipAddress = ?, version = ?, name = ?, presentationId = ?, lastContact = ?, enabled = ? " .
+         "SET uid = ?, ipAddress = ?, version = ?, name = ?, scaling = ?, presentationId = ?, lastContact = ?, enabled = ? " .
          "WHERE displayId = ?;");
-      
+
       $result = $statement->execute(
          [
             $displayInfo->uid,
             $displayInfo->ipAddress,
             $displayInfo->version,
             $displayInfo->name,
+            $displayInfo->scaling,
             $displayInfo->presentationId,
             $lastContact,
             $displayInfo->enabled ? 1 : 0,
@@ -1700,9 +1702,9 @@ class FactoryStatsDatabase extends PDODatabase
    {
       $countTime = 0;
       
-      $now = new DateTime("now", new DateTimeZone('America/New_York'));
+      $now = Time::getDateTime(Time::now());
       
-      $updateTime = new DateTime($this->getUpdateTime($stationId), new DateTimeZone('America/New_York'));
+      $updateTime = Time::getDateTime($this->getUpdateTime($stationId));
       
       if ($updateTime)
       {

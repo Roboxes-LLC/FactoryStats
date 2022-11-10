@@ -18,7 +18,7 @@ $IMAGES_DIR = "$ROOT/images";
 $DISPLAY_FIRMWARE_DIR = "./firmware/display";
 
 // HTTP/HTTPS prefix
-//$HTTP = "http";  // Select for local testing.
-$HTTP = "https";   // Select for production.
+$HTTP = "http";  // Select for local testing.
+//$HTTP = "https";   // Select for production.
 
 ?>

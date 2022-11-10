@@ -150,7 +150,7 @@ class PresentationInfo
       return ($presentation);
    }
    
-   public function getTabRotateConfig()
+   public function getTabRotateConfig($scaling = DisplaySize::AUTO)
    {
       $tabRotateConfig = new stdClass();
       
@@ -166,7 +166,7 @@ class PresentationInfo
          
          if ($slideInfo->enabled)
          {
-            $website->url = $slideInfo->getUrl();
+            $website->url = $slideInfo->getUrl($scaling);
             $website->duration = $slideInfo->duration;
             $website->tabReloadIntervalSeconds = $slideInfo->reloadInterval;
             

@@ -10,8 +10,6 @@ require_once 'common/stationGroup.php';
 require_once 'common/upload.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 if (!(Authentication::isAuthenticated() &&
@@ -20,6 +18,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function getParams()
 {

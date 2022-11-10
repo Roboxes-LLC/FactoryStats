@@ -123,7 +123,7 @@ class BreakInfo
 }
 
 /*
-Time::init();
+Time::init("America/New_York");
 
 if (isset($_GET["breakId"]))
 {

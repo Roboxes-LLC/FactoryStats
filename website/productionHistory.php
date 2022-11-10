@@ -1,6 +1,7 @@
 <?php
 
 require_once 'common/breakInfo.php';
+require_once 'common/customerInfo.php';
 require_once 'common/dailySummary.php';
 require_once 'common/database.php';
 require_once 'common/demo.php';
@@ -10,8 +11,6 @@ require_once 'common/shiftInfo.php';
 require_once 'common/stationInfo.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 if (!(Authentication::isAuthenticated() &&
@@ -20,6 +19,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 class Table
 {
@@ -149,7 +150,7 @@ function getDailyCountData()
       $shiftInfo = ShiftInfo::load($dailySummary->shiftId);
       $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
        
-      $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
+      $dateTime = Time::getDateTime($dailySummary->date);
       $dateString = $dateTime->format("m-d-Y");
        
       $hours = floor(($dailySummary->averageCountTime / 3600));
@@ -161,14 +162,14 @@ function getDailyCountData()
       $firstEntryString = "---";
       if ($dailySummary->firstEntry)
       {
-         $dateTime = new DateTime($dailySummary->firstEntry, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($dailySummary->firstEntry);
          $firstEntryString = $dateTime->format("h:i A");
       }
        
       $lastEntryString = "---";
       if ($dailySummary->lastEntry)
       {
-         $dateTime = new DateTime($dailySummary->lastEntry, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($dailySummary->lastEntry);
          $lastEntryString = $dateTime->format("h:i A");
       }
        
@@ -236,9 +237,7 @@ function getHourlyCountData()
           $shiftInfo = ShiftInfo::load($row["shiftId"]);
           $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
            
-          $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], 
-                                   "Y-m-d H:i:s"),
-                                   new DateTimeZone('America/New_York'));
+          $dateTime = Time::getDateTime(Time::fromMySqlDate($row["dateTime"], Time::STANDARD_FORMAT));
           $dateString = $dateTime->format("m-d-Y");
           $hourString = $dateTime->format("h A");
             
@@ -285,9 +284,7 @@ function getBreakData()
          $shiftInfo = ShiftInfo::load($row["shiftId"]);
          $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
            
-         $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], 
-                                       "Y-m-d H:i:s"),
-                                       new DateTimeZone('America/New_York'));
+         $startDateTime = Time::getDateTime(Time::fromMySqlDate($row["startTime"], Time::STANDARD_FORMAT));
          $dateString = $startDateTime->format("m-d-Y");
          $startTimeString = $startDateTime->format("h:i A");
            
@@ -295,9 +292,7 @@ function getBreakData()
          $durationString = "---";
          if ($row["endTime"] != null)
          {
-            $endDateTime = new DateTime(Time::fromMySqlDate($row["endTime"], 
-                                        "Y-m-d H:i:s"),
-                                        new DateTimeZone('America/New_York'));
+            $endDateTime = Time::getDateTime(Time::fromMySqlDate($row["endTime"], Time::STANDARD_FORMAT));
             $endTimeString = $endDateTime->format("h:i A");
                
             $interval = $startDateTime->diff($endDateTime);
@@ -398,7 +393,7 @@ HEREDOC;
       $shiftInfo = ShiftInfo::load($dailySummary->shiftId);
       $shiftName = $shiftInfo ? $shiftInfo->shiftName : "---";
             
-      $dateTime = new DateTime($dailySummary->date, new DateTimeZone('America/New_York'));
+      $dateTime = Time::getDateTime($dailySummary->date);
       $dateString = $dateTime->format("m-d-Y");
       
       $hours = floor(($dailySummary->averageCountTime / 3600));
@@ -410,14 +405,14 @@ HEREDOC;
       $firstEntryString = "---";
       if ($dailySummary->firstEntry)
       {
-         $dateTime = new DateTime($dailySummary->firstEntry, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($dailySummary->firstEntry);
          $firstEntryString = $dateTime->format("h:i A");
       }
       
       $lastEntryString = "---";
       if ($dailySummary->lastEntry)
       {
-         $dateTime = new DateTime($dailySummary->lastEntry, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($dailySummary->lastEntry);
          $lastEntryString = $dateTime->format("h:i A");
       }
       
@@ -529,9 +524,7 @@ HEREDOC;
             {
                $stationInfo = StationInfo::load($row["stationId"]);
                 
-               $dateTime = new DateTime(Time::fromMySqlDate($row["dateTime"], 
-                                        "Y-m-d H:i:s"),
-                                        new DateTimeZone('America/New_York'));
+               $dateTime = Time::getDateTime(Time::fromMySqlDate($row["dateTime"], Time::STANDARD_FORMAT)); 
                $dateString = $dateTime->format("m-d-Y");
                $hourString = $dateTime->format("h A");
                 
@@ -628,9 +621,7 @@ HEREDOC;
                  
                $stationInfo = StationInfo::load($row["stationId"]);
                  
-               $startDateTime = new DateTime(Time::fromMySqlDate($row["startTime"], 
-                                             "Y-m-d H:i:s"),
-                                             new DateTimeZone('America/New_York'));
+               $startDateTime = Time::getDateTime(Time::fromMySqlDate($row["startTime"], Time::STANDARD_FORMAT));
                $dateString = $startDateTime->format("m-d-Y");
                $startTimeString = $startDateTime->format("h:i A");
                  
@@ -638,9 +629,7 @@ HEREDOC;
                $durationString = "---";
                if ($row["endTime"] != null)
                {
-                  $endDateTime = new DateTime(Time::fromMySqlDate($row["endTime"], 
-                                              "Y-m-d H:i:s"),
-                                              new DateTimeZone('America/New_York'));
+                  $endDateTime = Time::getDateTime(Time::fromMySqlDate($row["endTime"], Time::STANDARD_FORMAT));
                   $endTimeString = $endDateTime->format("h:i A");
                     
                   $interval = $startDateTime->diff($endDateTime);

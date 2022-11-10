@@ -9,8 +9,6 @@ require_once 'common/params.php';
 require_once 'common/stationInfo.php';
 require_once 'common/version.php';
 
-Time::init();
-
 session_start();
 
 if (!(Authentication::isAuthenticated() &&
@@ -19,6 +17,8 @@ if (!(Authentication::isAuthenticated() &&
    header('Location: index.php?action=logout');
    exit;
 }
+
+Time::init(CustomerInfo::getTimeZone());
 
 function renderTable()
 {
@@ -52,7 +52,7 @@ HEREDOC;
 
          $id = "display-" . $displayInfo->displayId;
          
-         $dateTime = new DateTime($displayInfo->lastContact, new DateTimeZone('America/New_York'));
+         $dateTime = Time::getDateTime($displayInfo->lastContact);
          $formattedDateTime = $dateTime->format("m/d/Y h:i A");
          
          $displayStatus = $displayInfo->getDisplayStatus();
@@ -71,7 +71,7 @@ HEREDOC;
             <td>$formattedDateTime</td>
             <td class="$displayStatusClass">$displayStatusLabel</td>
             <td><div class="display-led $ledClass"></div></td>
-            <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, '$displayInfo->name', $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setDisplayConfig($displayInfo->displayId, '$displayInfo->name', $displayInfo->scaling, $displayInfo->presentationId, $displayInfo->enabled); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-reset-modal');"">Reset</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('select-firmware-modal');"">Upgrade</button></div></td>
             <td><button class="config-button" onclick="setDisplayId($displayInfo->displayId); showModal('confirm-delete-modal');">Delete</button></div></td>
@@ -112,10 +112,11 @@ function deleteDisplay($displayId)
    }
 }
 
-function updateDisplay($displayId, $name, $presentationId, $enabled)
+function updateDisplay($displayId, $name, $scaling, $presentationId, $enabled)
 {
    $displayInfo = DisplayInfo::load($displayId);
    $displayInfo->name = $name;
+   $displayInfo->scaling = $scaling;
    $displayInfo->presentationId = $presentationId;
    $displayInfo->enabled = $enabled;
 
@@ -219,7 +220,7 @@ switch ($params->get("action"))
 
    case "update":
    {
-      updateDisplay($params->getInt("displayId"), $params->get("name"), $params->getInt("presentationId"), $params->getBool("enabled"));
+      updateDisplay($params->getInt("displayId"), $params->get("name"), $params->getInt("scaling"), $params->getInt("presentationId"), $params->getBool("enabled"));
       break;
    }
    
@@ -333,6 +334,13 @@ switch ($params->get("action"))
          <label>Description</label>
          <input id="name-input" type="text" form="config-form" name="name">
       </div>
+
+      <div class="flex-vertical input-block">
+         <label>Scaling</label>
+         <select id="scaling-input" form="config-form" name="scaling" oninput="onPresentationIdChanged(parseInt(this.value))">
+            <?php echo DisplaySize::getOptions(null);?>
+         </select>
+      </div>
       
       <div class="flex-vertical input-block">
          <label>Presentation</label>
@@ -409,11 +417,12 @@ switch ($params->get("action"))
       input.value = displayId;
    }
 
-   function setDisplayConfig(displayId, name, presentationId, enabled)
+   function setDisplayConfig(displayId, name, scaling, presentationId, enabled)
    {
       setDisplayId(displayId);
       
       document.getElementById('name-input').value = name;
+      document.getElementById('scaling-input').value = scaling;
       document.getElementById('presentation-id-input').value = presentationId;
       document.getElementById('enabled-input').checked = enabled;
       

@@ -118,7 +118,7 @@ class SlideInfo
       return ($slideInfo);
    }
    
-   public function getUrl()
+   public function getUrl($scaling = DisplaySize::UNKNOWN)
    {
       global $ROOT;
       global $HTTP;
@@ -168,6 +168,11 @@ class SlideInfo
                $url .= "&stationFilter=" . $this->stationFilter;
             }
             
+            if ($scaling != DisplaySize::UNKNOWN)
+            {
+               $url .= "&scaling=" . $scaling;
+            }
+            
             // TODO: Better solution for this!
             $url .= "&authToken=jO9xT7iKvBwUsZDD56fV9UzFPin3qyvp";
             
@@ -189,6 +194,11 @@ class SlideInfo
             if ($this->shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
             {
                $url .= "&shiftId=" . $this->shiftId;
+            }
+            
+            if ($scaling != DisplaySize::UNKNOWN)
+            {
+               $url .= "&scaling=" . $scaling;
             }
             
             // TODO: Better solution for this!            
