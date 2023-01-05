@@ -8,12 +8,19 @@
 #include "ConfigPage.hpp"
 #include "Diagnostics.hpp"
 #include "Display.hpp"
+#include "DisplayM5Tough.hpp"
+#include "FactoryStatsDefs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
 #include "Version.hpp"
 
 static const int DISPLAY_TIME = 5000;  // 5 seconds
+
+static const bool NO_REDRAW = false;
+
+static const bool START_BREAK = true;
+static const bool END_BREAK = false;
 
 // ************************************************
 //                     Public
@@ -37,7 +44,10 @@ ShopSensor::ShopSensor(
       adapterId(adapterId),
       count(0),
       totalCount(0),
-      updateCount(0)
+      updateCount(0),
+      stationId(UNKNOWN_STATION_ID),
+      configuredBreakId(UNKNOWN_BREAK_ID),
+      breakId(UNKNOWN_BREAK_ID)
 {
   this->pingPeriod = (this->pingPeriod > 0) ? this->pingPeriod : 1;
 }
@@ -56,7 +66,9 @@ ShopSensor::ShopSensor(
       adapterId(message->getString("adapter")),
       count(0),
       totalCount(0),
-      updateCount(0)
+      updateCount(0),
+      configuredBreakId(UNKNOWN_BREAK_ID),
+      breakId(UNKNOWN_BREAK_ID)
 {
    pingPeriod = (pingPeriod > 0) ? pingPeriod : 1;
 }
@@ -74,12 +86,14 @@ void ShopSensor::setup()
    
    String server = Robox::getProperties().getString("server");
    
+   configuredBreakId = Robox::getProperties().getInt("breakId");
+
    Display* display = getDisplay();
    if (display)
    {
-      display->updateId(uid);
+      display->updateId(uid, NO_REDRAW);
       
-      display->updateServer(server, false);
+      display->updateServer(server, false, NO_REDRAW);
 
       // Show the splash screen (temporarily).
       setDisplayMode(Display::SPLASH, DISPLAY_TIME);
@@ -119,34 +133,6 @@ void ShopSensor::setup()
    if (!getAdapter())
    {
       Logger::logWarning(F("ShopSensor::setup: No available adapter."));   
-   }
-
-   // Experimental.
-   Gesture* sw = new Gesture("swipe right", 160, DIR_LEFT, 30, true);
-   M5.Buttons.addHandler(ShopSensor::screenSwiped, E_GESTURE);
-   M5.Buttons.addHandler(ShopSensor::screenTouched, E_TAP);
-}
-
-void ShopSensor::screenSwiped(Event& e)
-{
-   Logger::logDebug("ShopSensor::screenSwiped");  // TODO: Remove
-
-   ShopSensor* shopSensor = (ShopSensor*)Robox::getComponent("shopSensor");
-   if (shopSensor)
-   {
-      shopSensor->onButtonUp(BUTTON_B);
-   }
-}
-
-
-void ShopSensor::screenTouched(Event& e)
-{
-   Logger::logDebug("ShopSensor::screenTouched");  // TODO: Remove
-
-   ShopSensor* shopSensor = (ShopSensor*)Robox::getComponent("shopSensor");
-   if (shopSensor)
-   {
-      shopSensor->onButtonUp(LIMIT_SWITCH);
    }
 }
 
@@ -192,7 +178,7 @@ void ShopSensor::timeout(
    if (timer == updateTimer)
    {
       bool updateRequired =
-         ((count > 0) ||                       // Update if there is a count
+         ((count != 0) ||                      // Update if there is a count
           (updateCount == 0) ||                // Initial update
           ((updateCount % pingPeriod) == 0));  // Always update on ping periods
       
@@ -333,6 +319,25 @@ void ShopSensor::toggledDisplayMode()
    }
 }
 
+void ShopSensor::toggleBreak(
+   const bool& isPaused)
+{
+   if ((breakId == UNKNOWN_BREAK_ID) && (isPaused == true))
+   {
+      breakId = configuredBreakId;
+   }
+   else if ((breakId == UNKNOWN_BREAK_ID) && (isPaused == true))
+   {
+      breakId = UNKNOWN_BREAK_ID;
+   }
+
+   Display* display = getDisplay();
+   if (display)
+   {
+      display->updateBreak(breakId);
+   }
+}
+
 void ShopSensor::onConnectionUpdate(
    MessagePtr message)
 {
@@ -366,7 +371,9 @@ void ShopSensor::onButtonUp(
 {
    Logger::logDebug("ShopSensor::onButtonUp: Button [%s] pressed.", buttonId.c_str());
    
-   if ((buttonId == LIMIT_SWITCH) || (buttonId == BUTTON_A))
+   if ((buttonId == LIMIT_SWITCH) ||
+       (buttonId == BUTTON_A) ||
+       (buttonId == INCREMENT_BUTTON))
    {
       count++;
       
@@ -378,6 +385,28 @@ void ShopSensor::onButtonUp(
          setDisplayMode(Display::COUNT, DISPLAY_TIME);
       }
    }
+   else if (buttonId == DECREMENT_BUTTON)
+   {
+      count--;
+
+      Display* display = getDisplay();
+      if (display)
+      {
+         display->updateCount(totalCount, count);
+
+         setDisplayMode(Display::COUNT, DISPLAY_TIME);
+      }
+   }
+   else if (buttonId == PAUSE_BUTTON)
+   {
+      toggleBreak(START_BREAK);
+   }
+   /*
+   else if (buttonId == PLAY_BUTTON)
+   {
+      toggleBreak(END_BREAK);
+   }
+   */
    else if (buttonId == BUTTON_B)
    {
       toggledDisplayMode();
@@ -468,8 +497,20 @@ void ShopSensor::onServerResponse(MessagePtr message)
       {
          totalCount = message->getInt("totalCount");
 
+         if (message->isSet("stationId"))
+         {
+            stationId = message->getInt("stationId");
+         }
+
+         if (message->isSet("stationLabel"))
+         {
+            stationLabel = message->getString("stationLabel");
+         }
+
          display->updateServer(true);
          
+         display->updateStation(stationId, stationLabel, NO_REDRAW);
+
          display->updateCount(totalCount, count);
       }
       else

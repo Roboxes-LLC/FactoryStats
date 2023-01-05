@@ -310,6 +310,8 @@ $router->add("sensorStatus", function($params) {
             
             $sensorStatus->sensorId = $sensorInfo->sensorId;
             $sensorStatus->lastContact = $formattedDateTime;
+            $sensorStatus->ipAddress = $sensorInfo->ipAddress;
+            $sensorStatus->version = $sensorInfo->version;
             $sensorStatus->sensorStatus = $status;
             $sensorStatus->sensorStatusLabel = SensorStatus::getLabel($status);
             $sensorStatus->sensorStatusClass = SensorStatus::getClass($status);

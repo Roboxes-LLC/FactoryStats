@@ -131,19 +131,30 @@ class SensorInfo
          {
             case SensorType::COUNTER:
             {
-               if (($this->stationId != StationInfo::UNKNOWN_STATION_ID) &&
-                   (isset($sensorPayload["count"])))
+               if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  $count = intval($sensorPayload["count"]);
+                  $result->stationId = $this->stationId;
                   
-                  if ($count != 0)
+                  $stationInfo = StationInfo::load($this->stationId);
+                  if ($stationInfo)
                   {
-                     $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
+                     $result->stationLabel = StationInfo::load($this->stationId)->label;
+                  }
+
+                  if (isset($sensorPayload["count"]))
+                  {
+                     $count = intval($sensorPayload["count"]);
                      
-                     FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
+                     if ($count != 0)
+                     {
+                        $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
+                        
+                        FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
+                     }
+                     
+                     $result->ackedCount = $count;
                   }
                   
-                  $result->ackedCount = $count;
                   $result->totalCount = $this->getCountForSensor();
                }
                break;
