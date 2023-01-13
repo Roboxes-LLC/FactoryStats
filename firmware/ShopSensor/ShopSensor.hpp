@@ -1,5 +1,7 @@
 #pragma once
 
+#include "M5Defs.hpp"
+
 #include "Connection/ConnectionManager.hpp"
 #include "Messaging/Adapter.hpp"
 #include "Messaging/Component.hpp"
@@ -15,6 +17,15 @@
 const String LIMIT_SWITCH = "limitSwitch";
 const String BUTTON_A = "buttonA";
 const String BUTTON_B = "buttonB";
+#ifdef M5TOUGH
+const String INCREMENT_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbINCREMENT];
+const String DECREMENT_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbDECREMENT];
+const String PAUSE_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbPAUSE];
+#else
+const String INCREMENT_BUTTON = "increment";
+const String DECREMENT_BUTTON = "decrement";
+const String PAUSE_BUTTON = "pause";
+#endif
 
 class ShopSensor : public Component, TimerListener
 {
@@ -64,6 +75,8 @@ protected:
       
    void toggledDisplayMode();      
          
+   void toggleBreak();
+
    void onConnectionUpdate(
       MessagePtr message);
 
@@ -89,6 +102,8 @@ protected:
    
    static String getRequestUrl(
       const String& apiMessageId);
+
+   bool isOnBreak() const;
 
    // **************************************************************************
 
@@ -126,6 +141,16 @@ protected:
    int totalCount;
    
    long updateCount;
+
+   int stationId;
+
+   String stationLabel;
+
+   String configuredBreakCode;
+
+   String pendingBreakCode;
+
+   int breakId;  // Station is considered paused if breakId != NO_BREAK_ID;
 };
 
 REGISTER(ShopSensor, ShopSensor)

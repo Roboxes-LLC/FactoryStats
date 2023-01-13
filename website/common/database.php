@@ -733,7 +733,7 @@ class FactoryStatsDatabase extends PDODatabase
       $params[] = Time::toMySqlDate($endDateTime);
             
       $statement = $this->pdo->prepare(
-         "SELECT stationId, shiftId, dateTime, count FROM count " .
+         "SELECT * FROM count " .
          "WHERE $stationClause $shiftClause dateTime BETWEEN ? AND ? " .
          "ORDER BY stationId ASC, dateTime ASC;");
       
@@ -742,56 +742,97 @@ class FactoryStatsDatabase extends PDODatabase
       return ($result);
    }
    
-   public function updateCount($stationId, $shiftId, $screenCount)
+   public function updateCount($stationId, $shiftId, $count)
    {
       $now = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
       $nowHour = Time::toMySqlDate(Time::now("Y-m-d H:00:00"));
       
-      // Calculate the time since the update (in seconds).
-      $countTime = $this->calculateCountTime($stationId);
-      
-      // Determine if we have an entry for this station/hour.
-      $statement = $this->pdo->prepare(
-         "SELECT * from count " .
-         "WHERE stationId = ? AND shiftId = ? AND dateTime = ?;");
-
-      $result = $statement->execute([$stationId, $shiftId, $nowHour]) ? $statement->fetchAll() : null;
-
-      if (!$result || (count($result) == 0))
+      // Incremented count
+      if ($count > 0)
       {
-         $statement = $this->pdo->prepare(
-            "INSERT INTO count " .
-            "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
-            "VALUES (?, ?, ?, ?, ?, ?, ?);");
+         // Calculate the time since the update (in seconds).
+         $countTime = $this->calculateCountTime($stationId);
          
-         $result = $statement->execute(
-            [
-               $stationId,
-               $shiftId, 
-               $nowHour,
-               $screenCount,
-               $countTime,
-               $now,
-               $now
-            ]);
-      }
-      // Updated entry.
-      else
-      {
+         // Determine if we have an entry for this station/hour.
          $statement = $this->pdo->prepare(
-            "UPDATE count SET " .
-            "count = count + ?, countTime = countTime + ?, lastEntry = ? " .
+            "SELECT * from count " .
             "WHERE stationId = ? AND shiftId = ? AND dateTime = ?;");
+   
+         $result = $statement->execute([$stationId, $shiftId, $nowHour]) ? $statement->fetchAll() : null;
+   
+         if (!$result || (count($result) == 0))
+         {
+            $statement = $this->pdo->prepare(
+               "INSERT INTO count " .
+               "(stationId, shiftId, dateTime, count, countTime, firstEntry, lastEntry) " .
+               "VALUES (?, ?, ?, ?, ?, ?, ?);");
+            
+            $result = $statement->execute(
+               [
+                  $stationId,
+                  $shiftId, 
+                  $nowHour,
+                  $count,
+                  $countTime,
+                  $now,
+                  $now
+               ]);
+         }
+         // Updated entry.
+         else
+         {
+            $statement = $this->pdo->prepare(
+               "UPDATE count SET " .
+               "count = count + ?, countTime = countTime + ?, lastEntry = ? " .
+               "WHERE stationId = ? AND shiftId = ? AND dateTime = ?;");
+            
+            $result = $statement->execute(
+               [
+                  $count,
+                  $countTime,
+                  $now,
+                  $stationId,
+                  $shiftId,
+                  $nowHour
+               ]);
+         }
+      }
+      // Decremented count
+      // Note: Rather than add a negative entry, we'll deduct from the last entry from this shift.
+      else if ($count < 0)
+      {
+         $shiftInfo = ShiftInfo::load($shiftId);
          
-         $result = $statement->execute(
-            [
-               $screenCount,
-               $countTime,
-               $now,
-               $stationId,
-               $shiftId,
-               $nowHour
-            ]);
+         if ($shiftInfo)
+         {
+            $shiftTimes = $shiftInfo->getShiftTimes(Time::now("Y-m-d"));
+            
+            $hourlyCounts = FactoryStatsDatabase::getHourlyCounts($stationId, $shiftId, $shiftTimes->startDateTime, $shiftTimes->endDateTime);
+            
+            // Retrieve the last entry.
+            $lastEntry = end($hourlyCounts);
+            
+            if ($lastEntry)
+            {
+               $entryId = intval($lastEntry["entryId"]);
+               
+               // Compute the decremented count for this horly period.
+               $updatedCount = max((intval($lastEntry["count"]) + $count), 0);
+               
+               if ($updatedCount > 0)
+               {
+                  // Decrement the count for this entry.
+                  $statement = $this->pdo->prepare("UPDATE count SET count = ? WHERE entryId = ?;");
+                  $result = $statement->execute([$updatedCount, $entryId]);
+               }
+               else
+               {
+                  // Delete the count for this entry.
+                  $statement = $this->pdo->prepare("DELETE FROM count WHERE entryId = ?;");
+                  $result = $statement->execute([$entryId]);
+               }
+            }
+         }
       }
       
       // Store a new updateTime for this station.
@@ -906,6 +947,15 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare("SELECT * from breakdescription WHERE breakDescriptionId = ?;");
       
       $result = $statement->execute([$breakDescriptionId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getBreakDescriptionFromCode($breakCode)
+   {
+      $statement = $this->pdo->prepare("SELECT * from breakdescription WHERE code = ?;");
+      
+      $result = $statement->execute([$breakCode]) ? $statement->fetchAll() : null;
       
       return ($result);
    }
@@ -1285,7 +1335,7 @@ class FactoryStatsDatabase extends PDODatabase
             $sensorInfo->sensorType,
             $sensorInfo->stationId, 
             Time::toMySqlDate($sensorInfo->lastContact),
-            $sensorInfo->enabled
+            $sensorInfo->enabled ? 1 : 0
          ]);
       
       return ($result);
@@ -1307,7 +1357,7 @@ class FactoryStatsDatabase extends PDODatabase
             $sensorInfo->sensorType,
             $sensorInfo->stationId,
             Time::toMySqlDate($sensorInfo->lastContact),
-            $sensorInfo->enabled,
+            $sensorInfo->enabled ? 1 : 0,
             $sensorInfo->sensorId,
          ]);
       

@@ -36,3 +36,9 @@ makefile
 databaseBackup/
 thirdParty/
 .scannerwork/
+
+#esp-idf
+firmware/ShopSensor/build/
+CMakeLists.txt
+sdkconfig
+dependencies.lock

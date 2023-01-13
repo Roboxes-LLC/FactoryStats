@@ -123,7 +123,11 @@ void Power::powerOff()
 
 void Power::update()
 {
+#ifdef M5TOUGH
+   isUsbPowerSource = M5.Axp.isACIN();
+#else
    isUsbPowerSource = (M5.Axp.GetIusbinData() > 0);
+#endif
    
    if (isUsbPowerSource)
    {

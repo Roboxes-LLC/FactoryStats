@@ -8,12 +8,25 @@
 #include "ConfigPage.hpp"
 #include "Diagnostics.hpp"
 #include "Display.hpp"
+#include "DisplayM5Tough.hpp"
+#include "FactoryStatsDefs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
 #include "Version.hpp"
 
 static const int DISPLAY_TIME = 5000;  // 5 seconds
+
+static const bool NO_REDRAW = false;
+
+static const int NO_BREAK_ID = UNKNOWN_BREAK_ID;
+
+static const String NO_BREAK_CODE = UNKNOWN_BREAK_CODE;
+
+static const String NO_PENDING_BREAK_CODE = "NO_CODE";
+
+static const bool START_BREAK = true;
+static const bool END_BREAK = false;
 
 // ************************************************
 //                     Public
@@ -37,7 +50,12 @@ ShopSensor::ShopSensor(
       adapterId(adapterId),
       count(0),
       totalCount(0),
-      updateCount(0)
+      updateCount(0),
+      stationId(UNKNOWN_STATION_ID),
+      stationLabel(UNKNOWN_STATION_LABEL),
+      configuredBreakCode(UNKNOWN_BREAK_CODE),
+      pendingBreakCode(NO_PENDING_BREAK_CODE),
+      breakId(NO_BREAK_ID)
 {
   this->pingPeriod = (this->pingPeriod > 0) ? this->pingPeriod : 1;
 }
@@ -56,7 +74,12 @@ ShopSensor::ShopSensor(
       adapterId(message->getString("adapter")),
       count(0),
       totalCount(0),
-      updateCount(0)
+      updateCount(0),
+      stationId(UNKNOWN_STATION_ID),
+      stationLabel(UNKNOWN_STATION_LABEL),
+      configuredBreakCode(UNKNOWN_BREAK_CODE),
+      pendingBreakCode(NO_PENDING_BREAK_CODE),
+      breakId(NO_BREAK_ID)
 {
    pingPeriod = (pingPeriod > 0) ? pingPeriod : 1;
 }
@@ -73,13 +96,15 @@ void ShopSensor::setup()
    uid = getUid();
    
    String server = Robox::getProperties().getString("server");
-   
+
+   configuredBreakCode = Robox::getProperties().getString("breakCode");
+
    Display* display = getDisplay();
    if (display)
    {
-      display->updateId(uid);
+      display->updateId(uid, NO_REDRAW);
       
-      display->updateServer(server, false);
+      display->updateServer(server, false, NO_REDRAW);
 
       // Show the splash screen (temporarily).
       setDisplayMode(Display::SPLASH, DISPLAY_TIME);
@@ -164,13 +189,15 @@ void ShopSensor::timeout(
    if (timer == updateTimer)
    {
       bool updateRequired =
-         ((count > 0) ||                       // Update if there is a count
-          (updateCount == 0) ||                // Initial update
-          ((updateCount % pingPeriod) == 0));  // Always update on ping periods
+         ((count != 0) ||                                 // Update if there is a count
+          (pendingBreakCode != NO_PENDING_BREAK_CODE) ||  // Update if there is a break
+          (updateCount == 0) ||                           // Initial update
+          ((updateCount % pingPeriod) == 0));             // Always update on ping periods
       
       if (updateRequired && isConnected() && sendUpdate())
       {
          count = 0;
+         pendingBreakCode = NO_PENDING_BREAK_CODE;
       }
       
       updateCount++;
@@ -217,7 +244,7 @@ ConnectionManager* ShopSensor::getConnection()
 Display* ShopSensor::getDisplay()
 {
    static Display* display = 0;
-   
+
    if (!display)
    {
       display = (Display*)Robox::getComponent(displayId);
@@ -305,6 +332,26 @@ void ShopSensor::toggledDisplayMode()
    }
 }
 
+void ShopSensor::toggleBreak()
+{
+   if (!isOnBreak())
+   {
+      // Toggle on.
+      pendingBreakCode = configuredBreakCode;
+   }
+   else
+   {
+      // Toggle off.
+      pendingBreakCode = NO_BREAK_CODE;
+   }
+
+   Display* display = getDisplay();
+   if (display)
+   {
+      display->updateBreak(isOnBreak());
+   }
+}
+
 void ShopSensor::onConnectionUpdate(
    MessagePtr message)
 {
@@ -338,17 +385,49 @@ void ShopSensor::onButtonUp(
 {
    Logger::logDebug("ShopSensor::onButtonUp: Button [%s] pressed.", buttonId.c_str());
    
-   if ((buttonId == LIMIT_SWITCH) || (buttonId == BUTTON_A))
+   if ((buttonId == LIMIT_SWITCH) ||
+       (buttonId == BUTTON_A) ||
+       (buttonId == INCREMENT_BUTTON))
    {
       count++;
       
+      if (isOnBreak())
+      {
+         toggleBreak();
+      }
+
       Display* display = getDisplay();
       if (display)
       {
          display->updateCount(totalCount, count);
-      
+
+#if defined(M5STICKC) || defined (M5STICKC_PLUS)
          setDisplayMode(Display::COUNT, DISPLAY_TIME);
+#endif
       }
+   }
+   else if (buttonId == DECREMENT_BUTTON)
+   {
+      count--;
+
+      if (isOnBreak())
+      {
+         toggleBreak();
+      }
+
+      Display* display = getDisplay();
+      if (display)
+      {
+         display->updateCount(totalCount, count);
+
+#if defined(M5STICKC) || defined (M5STICKC_PLUS)
+         setDisplayMode(Display::COUNT, DISPLAY_TIME);
+#endif
+      }
+   }
+   else if (buttonId == PAUSE_BUTTON)
+   {
+      toggleBreak();
    }
    else if (buttonId == BUTTON_B)
    {
@@ -391,15 +470,15 @@ bool ShopSensor::sendUpdate()
    MessagePtr message = Messaging::newMessage();
    if (message)
    {
-      message->setMessageId("sensor");
+      message->setMessageId(SENSOR_UPDATE_MESSAGE_ID);
       message->setSource(getId());
       message->setDestination(adapterId);
-      message->setTransaction(uid);
+      message->setTransaction(SENSOR_UPDATE_MESSAGE_ID);
       
       // Specify HTTP parameters.
       message->set(HttpClientAdapter::REQUEST_TYPE, HttpClientAdapter::GET);
       message->set(HttpClientAdapter::ENCODING, HttpClientAdapter::URL_ENCODING);
-      //message->set("subdomain", "flexscreentest");  // TODO: For local testing.  Remove.
+      message->set("subdomain", "flexscreentest");  // TODO: For local testing.  Remove.
 
       String url = getRequestUrl("sensor");
       if (url != "")
@@ -410,7 +489,13 @@ bool ShopSensor::sendUpdate()
       message->set("uid", uid);
       message->set("version", VERSION);
       message->set("ipAddress", getIpAddress());
+
       message->set("count", count);
+
+      if (pendingBreakCode != NO_PENDING_BREAK_CODE)
+      {
+         message->set("breakCode", pendingBreakCode);
+      }
 
       success = Messaging::send(message);
 
@@ -432,17 +517,47 @@ void ShopSensor::onServerResponse(MessagePtr message)
    int responseCode =  message->getInt(HttpClientAdapter::RESPONSE_CODE);
    
    Logger::logDebug(F("ShopSensor::onServerResponse: Got server response for client [%s]: %d."), uid, responseCode);
-   
+
    Display* display = getDisplay();
    if (display)
    {
       if (responseCode == 200)
       {
-         totalCount = message->getInt("totalCount");
+         if (message->getTransaction() == SENSOR_UPDATE_MESSAGE_ID)
+         {
+            totalCount = message->getInt("totalCount");
 
-         display->updateServer(true);
-         
-         display->updateCount(totalCount, count);
+            if (message->isSet("stationId"))
+            {
+               stationId = message->getInt("stationId");
+            }
+            else
+            {
+               stationId = UNKNOWN_STATION_ID;
+            }
+
+            if (message->isSet("stationLabel"))
+            {
+               stationLabel = message->getString("stationLabel");
+            }
+            else
+            {
+               stationLabel = UNKNOWN_STATION_LABEL;
+            }
+
+            if (message->isSet("breakId"))
+            {
+               breakId = message->getInt("breakId");
+            }
+
+            display->updateServer(true);
+
+            display->updateStation(stationId, stationLabel, NO_REDRAW);
+
+            display->updateBreak(isOnBreak(), NO_REDRAW);
+
+            display->updateCount(totalCount, count);
+         }
       }
       else
       {
@@ -501,4 +616,20 @@ String ShopSensor::getRequestUrl(
    }
 
    return (url);
+}
+
+bool ShopSensor::isOnBreak() const
+{
+   bool isStationOnBreak = false;
+
+   if (pendingBreakCode != NO_PENDING_BREAK_CODE)
+   {
+      isStationOnBreak = (pendingBreakCode != NO_BREAK_CODE);
+   }
+   else
+   {
+      isStationOnBreak = (breakId != NO_BREAK_ID);
+   }
+
+   return (isStationOnBreak);
 }

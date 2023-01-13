@@ -131,20 +131,65 @@ class SensorInfo
          {
             case SensorType::COUNTER:
             {
-               if (($this->stationId != StationInfo::UNKNOWN_STATION_ID) &&
-                   (isset($sensorPayload["count"])))
+               if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
-                  $count = intval($sensorPayload["count"]);
-                  
-                  if ($count != 0)
+                  $result->stationId = $this->stationId;
+                
+                  // Station label
+                  $stationInfo = StationInfo::load($this->stationId);
+                  if ($stationInfo)
                   {
-                     $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
-                     
-                     FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
+                     $result->stationLabel = StationInfo::load($this->stationId)->label;
                   }
                   
-                  $result->ackedCount = $count;
+                  $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
+                                    
+                  // ***********************************************************
+                  // Count processing
+
+                  if (isset($sensorPayload["count"]))
+                  {
+                     $count = intval($sensorPayload["count"]);
+                     
+                     if ($count != 0)
+                     {
+                        FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
+                     }
+                     
+                     $result->ackedCount = $count;
+                  }
+                  
                   $result->totalCount = $this->getCountForSensor();
+
+                  // ***********************************************************                  
+                  //  Break processing
+                  
+                  if (isset($sensorPayload["breakCode"]))
+                  {
+                     $breakCode = $sensorPayload["breakCode"];
+                     
+                     if ($breakCode != BreakDescription::UNKNOWN_CODE)
+                     {
+                        $breakDescription = BreakDescription::getBreakDescriptionFromCode($breakCode);
+                        if ($breakDescription)
+                        {                     
+                           // Start break
+                           BreakInfo::startBreak($this->stationId, $shiftId, $breakDescription->breakDescriptionId);                           
+                        }
+                        else
+                        {
+                           // Bad break code.
+                        }
+                     }
+                     else
+                     {
+                        // End break
+                        BreakInfo::endBreak($this->stationId, $shiftId);
+                     }
+                  }
+                  
+                  $breakInfo = BreakInfo::getCurrentBreak($this->stationId, $shiftId);
+                  $result->breakId = ($breakInfo ? $breakInfo->breakId : BreakInfo::UNKNOWN_BREAK_ID);
                }
                break;
             }

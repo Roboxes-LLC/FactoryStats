@@ -1,4 +1,5 @@
 #include "Display.hpp"
+#include "FactoryStatsDefs.hpp"
 #include "M5Defs.hpp"
 
 // For reference:
@@ -14,26 +15,6 @@ BC_DATUM = Bottom centre
 BR_DATUM = Bottom right
 */
 
-static const int DEFAULT_FONT = 1;
-static const int DEFAULT_BACKGROUND_COLOR = BLACK;
-static const int DEFAULT_TEXT_COLOR = YELLOW;
-static const int DEFAULT_ACCENT_COLOR = BLUE;
-static const int DEFAULT_HIGHLIGHT_COLOR = WHITE;
-
-#ifdef M5STICKC_PLUS
-static const int FONT_SMALL = 2;
-static const int FONT_MEDIUM = 3;
-static const int FONT_LARGE = 4;
-static const int FONT_XLARGE = 5;
-#else
-static const int FONT_SMALL = 1;
-static const int FONT_MEDIUM = 2;
-static const int FONT_LARGE = 3;
-static const int FONT_XLARGE = 4;
-#endif
-
-static const int MARGIN = 5;
-
 Display::Display(
    const String& id) :
       Component(id),
@@ -47,6 +28,8 @@ Display::Display(
       isServerConnected(false),
       totalCount(0),
       pendingCount(0),
+      stationId(UNKNOWN_STATION_ID),
+      onBreak(false),
       upTime(0),
       freeMemory(0),
       batteryLevel(0),
@@ -56,7 +39,7 @@ Display::Display(
       penY(0)
 {
 }
-   
+
 Display::Display(
    MessagePtr message) :
       Component(message),
@@ -70,6 +53,8 @@ Display::Display(
       isServerConnected(false),
       totalCount(0),
       pendingCount(0),
+      stationId(UNKNOWN_STATION_ID),
+      onBreak(false),
       upTime(0),
       freeMemory(0),
       batteryLevel(0),
@@ -89,6 +74,14 @@ void Display::setup()
    M5.begin();
    M5.Lcd.setRotation(1);
    M5.Lcd.setTextFont(font);
+
+   Serial.begin(9600);  // M5.begin() sets it 115200
+
+   // Calculate useful positions.
+   content = Zone(0, 0, M5.Lcd.width(), (M5.Lcd.height() - FOOTER));
+   center = Point((content.x + (content.w / 2)), (content.y + (content.h / 2)));
+   topMiddle = Point(center.x, content.y);
+   bottomMiddle = Point(center.x, (content.y + content.h));
    
    setMode(SPLASH);
    
@@ -105,7 +98,7 @@ void Display::handleMessage(
 {
 }
 
- Display::DisplayMode Display::getMode()
+Display::DisplayMode Display::getMode()
 {
    return (mode);
 }   
@@ -139,22 +132,24 @@ void Display::toggleMode()
 }
       
 void Display::updateSplash(
-   const String& splashImage)
+   const String& splashImage,
+   const bool& shouldRedraw)
 {
    this->splashImage = splashImage;
    
-   if (mode == SPLASH)
+   if (shouldRedraw && (mode == SPLASH))
    {
       redraw();
    }
 }
    
 void Display::updateId(
-   const String& uid)
+   const String& uid,
+   const bool& shouldRedraw)
 {
    this->uid = uid;
    
-   if (mode == ID)
+   if (shouldRedraw && (mode == ID))
    {
       redraw();
    }
@@ -166,7 +161,8 @@ void Display::updateConnection(
    const bool& isConnected,
    const bool& isAccessPoint,
    const String& ipAddress,
-   const String& apIpAddress)
+   const String& apIpAddress,
+   const bool& shouldRedraw)
 {
    this->ssid = ssid;
    this->accessPoint = accessPoint;
@@ -175,7 +171,7 @@ void Display::updateConnection(
    this->ipAddress = ipAddress;
    this->apIpAddress = apIpAddress;
    
-   if (mode == CONNECTION)
+   if (shouldRedraw && ((mode == CONNECTION) || (mode == COUNT)))
    {
       redraw();
    }
@@ -183,23 +179,25 @@ void Display::updateConnection(
    
 void Display::updateServer(
    const String& url,
-   const bool& isConnected)
+   const bool& isConnected,
+   const bool& shouldRedraw)
 {
    this->serverUrl = url;
    this->isServerConnected = isConnected;
    
-   if (mode == SERVER)
+   if (shouldRedraw && (mode == SERVER))
    {
       redraw();
    }
 }
 
 void Display::updateServer(
-   const bool& isConnected)
+   const bool& isConnected,
+   const bool& shouldRedraw)
 {
    this->isServerConnected = isConnected;
    
-   if (mode == SERVER)
+   if (shouldRedraw && (mode == SERVER))
    {
       redraw();
    }
@@ -207,29 +205,57 @@ void Display::updateServer(
    
 void Display::updateCount(
    const int& totalCount,
-   const int& pendingCount)
+   const int& pendingCount,
+   const bool& shouldRedraw)
 {
    this->totalCount = totalCount;
    this->pendingCount = pendingCount;
    
-   if (mode == COUNT)
+   if (shouldRedraw && (mode == COUNT))
    {
       redraw();
    }
-}   
+}
+
+void Display::updateStation(
+   const int& stationId,
+   const String& stationLabel,
+   const bool& shouldRedraw)
+{
+   this->stationId = stationId;
+   this->stationLabel = stationLabel;
+
+   if (shouldRedraw && (mode == COUNT))
+   {
+      redraw();
+   }
+}
+
+void Display::updateBreak(
+   const bool& onBreak,
+   const bool& shouldRedraw)
+{
+   this->onBreak = onBreak;
+
+   if (shouldRedraw && (mode == COUNT))
+   {
+      redraw();
+   }
+}
    
 void Display::updateInfo(
    const String& version,
    const String& macAddress,
    const int& upTime,
-   const int& freeMemory)      
+   const int& freeMemory,
+   const bool& shouldRedraw)
 {
    this->version = version;
    this->macAddress = macAddress;
    this->upTime = upTime;
    this->freeMemory = freeMemory;
    
-   if (mode == INFO)
+   if (shouldRedraw && (mode == INFO))
    {
       redraw();
    }
@@ -238,13 +264,14 @@ void Display::updateInfo(
 void Display::updatePower(
    const int& batteryLevel,
    const bool& isUsbPower,
-   const bool& isCharging)      
+   const bool& isCharging,
+   const bool& shouldRedraw)
 {
    this->batteryLevel = batteryLevel;
    this->isUsbPower = isUsbPower;
    this->isCharging = isCharging;
    
-   if (mode == POWER)
+   if (shouldRedraw && (mode == POWER))
    {
       redraw();
    }
@@ -308,13 +335,13 @@ void Display::drawSplash()
 {
    M5.Lcd.fillScreen(backgroundColor);
 
-   // UID
+   // Factory Stats
    M5.Lcd.setTextColor(accentColor);
    M5.Lcd.setTextSize(FONT_XLARGE);
-   M5.Lcd.setTextDatum(BC_DATUM);  // Middle/center
-   M5.Lcd.drawString("FACTORY", (M5.Lcd.width() / 2), (M5.Lcd.height() / 2) - MARGIN, font);
-   M5.Lcd.setTextDatum(TC_DATUM);  // Middle/center
-   M5.Lcd.drawString("STATS", (M5.Lcd.width() / 2), (M5.Lcd.height() / 2) + MARGIN, font);
+   M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
+   M5.Lcd.drawString("FACTORY", center.x, (center.y - MARGIN), font);
+   M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
+   M5.Lcd.drawString("STATS", center.x, (center.y + MARGIN), font);
 }
 
 void Display::drawId()
@@ -325,13 +352,13 @@ void Display::drawId()
    M5.Lcd.setTextColor(accentColor);
    M5.Lcd.setTextSize(FONT_MEDIUM);
    M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
-   M5.Lcd.drawString("Sensor ID", (M5.Lcd.width() / 2), MARGIN, font);
+   M5.Lcd.drawString("Sensor ID", topMiddle.x, (topMiddle.y + MARGIN), font);
 
    // UID
    M5.Lcd.setTextColor(textColor);
    M5.Lcd.setTextSize(FONT_XLARGE);
    M5.Lcd.setTextDatum(MC_DATUM);  // Middle/center
-   M5.Lcd.drawString(uid, (M5.Lcd.width() / 2), (M5.Lcd.height() / 2), font);
+   M5.Lcd.drawString(uid, center.x, center.y, font);
 }   
 
 void Display::drawConnection()
@@ -345,11 +372,11 @@ void Display::drawConnection()
 
    if (isAccessPoint && !isConnected)
    {
-      M5.Lcd.drawString("Wifi Setup", (M5.Lcd.width() / 2), MARGIN, font);
+      M5.Lcd.drawString("Wifi Setup", topMiddle.x, (topMiddle.y + MARGIN), font);
    }
    else
    {
-      M5.Lcd.drawString("Connection", (M5.Lcd.width() / 2), MARGIN, font);
+      M5.Lcd.drawString("Connection", topMiddle.x, (topMiddle.y + MARGIN), font);
    }
    
    M5.Lcd.setTextColor(textColor);
@@ -359,36 +386,36 @@ void Display::drawConnection()
       // SSID
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(MC_DATUM);  // Middle/center
-      M5.Lcd.drawString(ssid, (M5.Lcd.width() / 2), (M5.Lcd.height() / 2), font);
+      M5.Lcd.drawString(ssid, center.x, center.y, font);
    
       // IP address
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
-      M5.Lcd.drawString(ipAddress, (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+      M5.Lcd.drawString(ipAddress, bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
    }
    else if (isAccessPoint)
    {
       // SSID
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(MC_DATUM);  // Middle/center
-      M5.Lcd.drawString(accessPoint, (M5.Lcd.width() / 2), (M5.Lcd.height() / 2), font);
+      M5.Lcd.drawString(accessPoint, center.x, center.y, font);
    
       // IP address
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
-      M5.Lcd.drawString(apIpAddress, (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+      M5.Lcd.drawString(apIpAddress, bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
    }
    else
    {
       // SSID
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(MC_DATUM);  // Middle/center
-      M5.Lcd.drawString(ssid, (M5.Lcd.width() / 2), (M5.Lcd.height() / 2), font);
+      M5.Lcd.drawString(ssid, center.x, center.y, font);
    
       // "Connecting..."
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
-      M5.Lcd.drawString("Connecting...", (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+      M5.Lcd.drawString("Connecting...", bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
    }
 }
 
@@ -400,10 +427,10 @@ void Display::drawServer()
    M5.Lcd.setTextColor(accentColor);
    M5.Lcd.setTextSize(FONT_MEDIUM);
    M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
-   M5.Lcd.drawString("Server", (M5.Lcd.width() / 2), MARGIN, font);
+   M5.Lcd.drawString("Server", topMiddle.x, (topMiddle.y + MARGIN), font);
 
    // Server
-   M5.Lcd.setCursor(0, ((M5.Lcd.height() / 2) - MARGIN), font);
+   M5.Lcd.setCursor(0, (center.y - MARGIN), font);
    M5.Lcd.setTextSize(FONT_SMALL);
    M5.Lcd.setTextColor(highlightColor);
    M5.Lcd.printf("%s\n", serverUrl.c_str());
@@ -413,7 +440,7 @@ void Display::drawServer()
    M5.Lcd.setTextColor(textColor);
    M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
    String status = (serverUrl == "") ? "UNCONFIGURED" : (isServerConnected ? "CONNECTED" : "OFFLINE");
-   M5.Lcd.drawString(status, (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+   M5.Lcd.drawString(status, bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
 }  
 
 void Display::drawCount()
@@ -455,6 +482,12 @@ void Display::drawInfo()
    static const int SECONDS_PER_HOUR = (60 * 60);
    static const int SECONDS_PER_MINUTE = 60;
    static const int BYTES_IN_KILOBYTES = 1024;
+
+#ifdef M5TOUGH
+   static const int SPACER = 60;
+#else
+   static const int SPACER = 30;
+#endif
    
    M5.Lcd.fillScreen(backgroundColor);
 
@@ -462,9 +495,9 @@ void Display::drawInfo()
    M5.Lcd.setTextColor(accentColor);
    M5.Lcd.setTextSize(FONT_MEDIUM);
    M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
-   M5.Lcd.drawString("Info", (M5.Lcd.width() / 2), MARGIN, font);
+   M5.Lcd.drawString("Info", topMiddle.x, (topMiddle.y + MARGIN), font);
 
-   M5.Lcd.setCursor(0, 30, font);
+   M5.Lcd.setCursor(0, SPACER, font);
    M5.Lcd.setTextSize(FONT_SMALL);
 
    // Version
@@ -516,14 +549,18 @@ void Display::drawInfo()
 
 void Display::drawPower()
 {
-#ifdef M5STICKC
+#if defined(M5STICKC)
    static const int BATTERY_X = 35;
    static const int BATTERY_Y = 20;
    static const float BATTERY_SCALE = 4.5;
-#else  // M5STICKC_PLUS
+#elif defined(M5STICKC_PLUS)
    static const int BATTERY_X = 55;
    static const int BATTERY_Y = 35;
    static const float BATTERY_SCALE = 7.0;
+#elif defined(M5TOUGH)
+   static const int BATTERY_X = 75;
+   static const int BATTERY_Y = 60;
+   static const float BATTERY_SCALE = 10;
 #endif   
 
    M5.Lcd.fillScreen(backgroundColor);
@@ -532,7 +569,7 @@ void Display::drawPower()
    M5.Lcd.setTextColor(accentColor);
    M5.Lcd.setTextSize(FONT_MEDIUM);
    M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
-   M5.Lcd.drawString("Power", (M5.Lcd.width() / 2), MARGIN, font);
+   M5.Lcd.drawString("Power", topMiddle.x, (topMiddle.y + MARGIN), font);
 
    M5.Lcd.setCursor(0, 30, font);
    M5.Lcd.setTextSize(FONT_SMALL);
@@ -544,14 +581,14 @@ void Display::drawPower()
       M5.Lcd.setTextColor(highlightColor);
       M5.Lcd.setTextSize(FONT_LARGE);
       M5.Lcd.setTextDatum(MC_DATUM);  // Middle/center
-      M5.Lcd.drawString("USB", (M5.Lcd.width() / 2), (M5.Lcd.height() / 2), font);
+      M5.Lcd.drawString("USB", center.x, center.y, font);
       
       // Charging status
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextColor(textColor);
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
       String status = (isCharging ? "CHARGING ..." : "CHARGED");
-      M5.Lcd.drawString(status, (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+      M5.Lcd.drawString(status, bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
    }
    else
    {
@@ -559,12 +596,11 @@ void Display::drawPower()
       drawBattery(BATTERY_X, BATTERY_Y, BATTERY_SCALE, highlightColor, batteryLevel);
       
       // Battery level
-      bool isCharging = true;
       M5.Lcd.setTextSize(FONT_MEDIUM);
       M5.Lcd.setTextColor(textColor);
       M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
       String status = String(batteryLevel) + "%";
-      M5.Lcd.drawString(status, (M5.Lcd.width() / 2), (M5.Lcd.height() - MARGIN), font);
+      M5.Lcd.drawString(status, bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
    }
 }
 
@@ -627,4 +663,3 @@ void Display::moveTo(
    penX = (penX + (x * scale));
    penY = (penY + (y * scale));
 }
-
