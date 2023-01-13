@@ -951,6 +951,15 @@ class FactoryStatsDatabase extends PDODatabase
       return ($result);
    }
    
+   public function getBreakDescriptionFromCode($breakCode)
+   {
+      $statement = $this->pdo->prepare("SELECT * from breakdescription WHERE code = ?;");
+      
+      $result = $statement->execute([$breakCode]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
    public function getBreakDescriptions()
    {
       $statement = $this->pdo->prepare("SELECT * from breakdescription;");

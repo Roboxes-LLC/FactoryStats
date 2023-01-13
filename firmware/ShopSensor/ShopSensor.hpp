@@ -75,8 +75,7 @@ protected:
       
    void toggledDisplayMode();      
          
-   void toggleBreak(
-      const bool& isPaused);
+   void toggleBreak();
 
    void onConnectionUpdate(
       MessagePtr message);
@@ -103,6 +102,8 @@ protected:
    
    static String getRequestUrl(
       const String& apiMessageId);
+
+   bool isOnBreak() const;
 
    // **************************************************************************
 
@@ -145,9 +146,11 @@ protected:
 
    String stationLabel;
 
-   int configuredBreakId;
+   String configuredBreakCode;
 
-   int breakId;  // Station is considered paused if breakId != 0;
+   String pendingBreakCode;
+
+   int breakId;  // Station is considered paused if breakId != NO_BREAK_ID;
 };
 
 REGISTER(ShopSensor, ShopSensor)

@@ -3,6 +3,10 @@
 
 #include "IncrementButton.hpp"
 
+static const int COUNT_TEXT_SIZE = 7;
+
+static const int PENDING_COUNT_TEXT_SIZE = 2;
+
 static const int BUTTON_RADIUS = 80;
 
 static const int BUTTON_VERTICAL_OFFSET = 10;
@@ -20,7 +24,8 @@ IncrementButton::IncrementButton(
   ButtonColors on) :
      Button(x, y, w, h, rot1, name, off, on),
      totalCount(0),
-     pendingCount(0)
+     pendingCount(0),
+     onBreak(false)
 {
   this->drawFn = IncrementButton::drawButton;
 }
@@ -38,6 +43,11 @@ void IncrementButton::setCount(int totalCount, int pendingCount)
 {
   this->totalCount = totalCount;
   this->pendingCount = pendingCount;
+}
+
+void IncrementButton::setOnBreak(const bool& onBreak)
+{
+  this->onBreak = onBreak;
 }
 
 void IncrementButton::customDraw(ButtonColors bc)
@@ -58,13 +68,19 @@ void IncrementButton::customDraw(ButtonColors bc)
 
    // Total count
    M5.Lcd.setTextColor(bc.text);
-   M5.Lcd.setTextSize(7);  // TODO
+   M5.Lcd.setTextSize(COUNT_TEXT_SIZE);
    M5.Lcd.setTextDatum(MC_DATUM);  // Middle/center
    M5.Lcd.drawString(String(totalCount + pendingCount), center.x, center.y, 1);  // TODO: font
 
-   if (pendingCount != 0)
+   if (onBreak)
    {
-      M5.Lcd.setTextSize(2);  // TODO
+      M5.Lcd.setTextSize(PENDING_COUNT_TEXT_SIZE);
+      M5.Lcd.setTextDatum(MC_DATUM);  // Bottom/center
+      M5.Lcd.drawString("Paused", center.x, (center.y + PENDING_COUNT_OFFSET), 1);  // TODO: font
+   }
+   else if (pendingCount != 0)
+   {
+      M5.Lcd.setTextSize(PENDING_COUNT_TEXT_SIZE);
       M5.Lcd.setTextDatum(MC_DATUM);  // Bottom/center
       M5.Lcd.drawString("Tx:" + String(pendingCount), center.x, (center.y + PENDING_COUNT_OFFSET), 1);  // TODO: font
    }

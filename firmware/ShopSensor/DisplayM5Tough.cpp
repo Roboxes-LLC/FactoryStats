@@ -5,6 +5,8 @@
 #include "DisplayM5Tough.hpp"
 #include "FactoryStatsDefs.hpp"
 #include "IncrementButton.hpp"
+#include "Logger/Logger.hpp"
+#include "PauseButton.hpp"
 #include "Robox.hpp"
 
 static const ButtonColors ON_COLORS = {DEFAULT_ACCENT_COLOR, DEFAULT_TEXT_COLOR, DEFAULT_HIGHLIGHT_COLOR};    // bg, text, outline
@@ -12,6 +14,7 @@ static const ButtonColors OFF_COLORS = {DEFAULT_BACKGROUND_COLOR, DEFAULT_TEXT_C
 
 const char* DisplayM5Tough::ButtonId[dbCOUNT]
 {
+   "",  // Background
    "pause",
    "",
    "increment",
@@ -23,6 +26,7 @@ const char* DisplayM5Tough::ButtonId[dbCOUNT]
 
 const char* DisplayM5Tough::ButtonText[dbCOUNT] =
 {
+   "",  // Background
    "| |",
    "Info",
    "+1",
@@ -36,13 +40,15 @@ DisplayM5Tough* DisplayM5Tough::instance = nullptr;
 
 DisplayM5Tough::DisplayM5Tough(
    const String& id) :
-      Display(id)
+      Display(id),
+      isSetup(false)
 {
 }
 
 DisplayM5Tough::DisplayM5Tough(
    MessagePtr message) :
-      Display(message)
+      Display(message),
+      isSetup(false)
 {
 
 }
@@ -60,6 +66,9 @@ void DisplayM5Tough::setup()
   center = Point((content.x + (content.w / 2)), (content.y + (content.h / 2)));
 
   createButtons();
+
+  // Ready to draw.
+  isSetup = true;
 
   redraw();
 }
@@ -84,28 +93,29 @@ void DisplayM5Tough::updateCount(
    Display::updateCount(totalCount, pendingCount, shouldRedraw);
 }
 
+void DisplayM5Tough::updateBreak(
+   const bool& onBreak,
+   const bool& shouldRedraw)
+{
+   (static_cast<PauseButton*>(displayButtons[dbPAUSE]))->setOnBreak(onBreak);
+   (static_cast<IncrementButton*>(displayButtons[dbINCREMENT]))->setOnBreak(onBreak);
+
+   Display::updateBreak(onBreak, shouldRedraw);
+}
+
 void DisplayM5Tough::redraw()
 {
-  M5.Lcd.setTextFont(1);  // Necessary because buttons use Free Fonts.
+  if (isSetup)
+  {
+     M5.Lcd.setTextFont(1);  // Necessary because buttons use Free Fonts.
 
-  Display::redraw();
+     Display::redraw();
+  }
 }
 
 void DisplayM5Tough::dispatchButton(Event& e)
 {  
-      /*
-      dbFIRST,
-      dbPAUSE = dbFIRST,
-      dbSETTINGS,
-      dbDECREMENT,
-      dbHOME,
-      dbPREVIOUS,
-      dbNEXT,
-      dbLAST,
-      dbCOUNT = dbLAST - dbFIRST  
-      */
-
-   Serial.printf("Button pressed: %s\n", e.objName());
+   Logger::logDebug(F("DisplayM5Tough::dispatchButton: Button pressed: %s"), e.objName());
 
    if (strcmp(e.objName(), ButtonText[dbPAUSE]) == 0)
    {
@@ -204,7 +214,14 @@ void DisplayM5Tough::drawServer()
 
 void DisplayM5Tough::drawCount()
 {
-   M5.Lcd.fillScreen(backgroundColor);
+   if (onBreak)
+   {
+      M5.Lcd.fillScreen(accentColor);
+   }
+   else
+   {
+      M5.Lcd.fillScreen(backgroundColor);
+   }
 
    M5.Lcd.setTextSize(FONT_MEDIUM);
    M5.Lcd.setTextDatum(BC_DATUM);  // Bottom/center
@@ -245,7 +262,11 @@ void DisplayM5Tough::drawPower()
 
 void DisplayM5Tough::createButtons()
 {
-   displayButtons[dbPAUSE] = new Button(20, 200, 80, 40, false, ButtonText[dbPAUSE], OFF_COLORS, ON_COLORS, MC_DATUM);
+   // Background button is purely to catch guestures outside of the actual defined buttons.
+   // See code in M5Buttons::which() for the reason for this.
+   displayButtons[dbBACKGROUND] = new Button(0, 0, 0, 0, false, ButtonText[dbBACKGROUND], OFF_COLORS, ON_COLORS);
+
+   displayButtons[dbPAUSE] = new PauseButton(20, 200, 80, 40, false, ButtonText[dbPAUSE], OFF_COLORS, ON_COLORS);
    displayButtons[dbSETTINGS] = new Button(120, 200, 80, 40, false, ButtonText[dbSETTINGS], OFF_COLORS, ON_COLORS, MC_DATUM);
    displayButtons[dbINCREMENT] = new IncrementButton(0, 0, M5.Lcd.width(), (M5.Lcd.height() - FOOTER), false, ButtonText[dbINCREMENT], OFF_COLORS, ON_COLORS);
    displayButtons[dbDECREMENT] = new Button(220, 200, 80, 40, false, ButtonText[dbDECREMENT], OFF_COLORS, ON_COLORS, MC_DATUM);

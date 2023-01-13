@@ -3,11 +3,11 @@
 #include "M5Defs.hpp"
 #ifdef M5TOUGH
 
-class IncrementButton : public Button
+class PauseButton : public Button
 {
 public:
 
-   IncrementButton(
+   PauseButton(
       int16_t x, 
       int16_t y, 
       int16_t w, 
@@ -17,11 +17,9 @@ public:
       ButtonColors off,
       ButtonColors on);
 
-   virtual ~IncrementButton();
+   virtual ~PauseButton();
 
    static void drawButton(Button& button, ButtonColors bc);
-
-   void setCount(int totalCount, int pendingCount);
 
    void setOnBreak(const bool& onBreak);
     
@@ -29,11 +27,7 @@ private:
 
    void customDraw(ButtonColors bc);
 
-   int totalCount;
-
-   int pendingCount;
-
-   int onBreak;
+   bool onBreak;
 };
 
 #endif

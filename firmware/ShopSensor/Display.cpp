@@ -29,7 +29,7 @@ Display::Display(
       totalCount(0),
       pendingCount(0),
       stationId(UNKNOWN_STATION_ID),
-      breakId(UNKNOWN_BREAK_ID),
+      onBreak(false),
       upTime(0),
       freeMemory(0),
       batteryLevel(0),
@@ -54,7 +54,7 @@ Display::Display(
       totalCount(0),
       pendingCount(0),
       stationId(UNKNOWN_STATION_ID),
-      breakId(UNKNOWN_BREAK_ID),
+      onBreak(false),
       upTime(0),
       freeMemory(0),
       batteryLevel(0),
@@ -232,10 +232,10 @@ void Display::updateStation(
 }
 
 void Display::updateBreak(
-   const int& breakId,
+   const bool& onBreak,
    const bool& shouldRedraw)
 {
-   this->breakId = breakId;
+   this->onBreak = onBreak;
 
    if (shouldRedraw && (mode == COUNT))
    {

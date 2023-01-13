@@ -6,6 +6,8 @@ class BreakDescription
 {
    const UNKNOWN_DESCRIPTION_ID = 0;
    
+   const UNKNOWN_CODE = "";
+   
    public $breakDescriptionId = BreakDescription::UNKNOWN_DESCRIPTION_ID;
    public $code;
    public $description;
@@ -23,12 +25,29 @@ class BreakDescription
          if ($result && ($row = $result[0]))
          {
             $breakDescription = new BreakDescription();
-            
-            $breakDescription->breakDescriptionId = intval($row['breakDescriptionId']);
-            $breakDescription->code = $row['code'];
-            $breakDescription->description = $row['description'];
+
+            $breakDescription->initialize($row);
          }
       }
+      
+      return ($breakDescription);
+   }
+   
+   public static function getBreakDescriptionFromCode($breakCode)
+   {
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $result = $database->getBreakDescriptionFromCode($breakCode);
+         
+         if ($result && ($row = $result[0]))
+         {
+            $breakDescription = new BreakDescription();
+            
+            $breakDescription->initialize($row);
+         }
+      }         
       
       return ($breakDescription);
    }
@@ -54,6 +73,13 @@ class BreakDescription
       }
       
       return ($html);
+   }
+   
+   public function initialize($row)
+   {
+      $this->breakDescriptionId = intval($row['breakDescriptionId']);
+      $this->code = $row['code'];
+      $this->description = $row['description'];
    }
 }
 

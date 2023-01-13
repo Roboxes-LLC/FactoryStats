@@ -114,7 +114,7 @@ public:
       const bool& shouldRedraw = true);
 
    virtual void updateBreak(
-      const int& breakId,
+      const bool& onBreak,
       const bool& shouldRedraw = true);
       
    void updateInfo(
@@ -168,7 +168,7 @@ protected:
    void moveTo(
       const int& x, 
       const int& y,
-      const float& scale);      
+      const float& scale);
       
    // ********************************************************************
 
@@ -230,7 +230,7 @@ protected:
 
    String stationLabel;
 
-   int breakId;
+   int onBreak;
 
    // Diagnostics
    

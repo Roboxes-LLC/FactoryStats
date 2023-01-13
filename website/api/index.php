@@ -755,7 +755,16 @@ $router->add("break", function($params) {
    $result = new stdClass();
 
    $stationId = $params->getInt("stationId");
-   $shiftId = $params->getInt("shiftId");
+   
+   $shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+   if ($params->keyExists("shiftId"))
+   {
+      $shiftId = $params->getInt("shiftId");
+   }
+   else
+   {
+      $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
+   }
 
    if (($stationId != StationInfo::UNKNOWN_STATION_ID) &&
        ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID))

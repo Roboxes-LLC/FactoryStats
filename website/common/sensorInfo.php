@@ -134,12 +134,18 @@ class SensorInfo
                if ($this->stationId != StationInfo::UNKNOWN_STATION_ID)
                {
                   $result->stationId = $this->stationId;
-                  
+                
+                  // Station label
                   $stationInfo = StationInfo::load($this->stationId);
                   if ($stationInfo)
                   {
                      $result->stationLabel = StationInfo::load($this->stationId)->label;
                   }
+                  
+                  $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
+                                    
+                  // ***********************************************************
+                  // Count processing
 
                   if (isset($sensorPayload["count"]))
                   {
@@ -147,8 +153,6 @@ class SensorInfo
                      
                      if ($count != 0)
                      {
-                        $shiftId = ShiftInfo::getShift(Time::now("Y-m-d H:i:s"));
-                        
                         FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
                      }
                      
@@ -156,6 +160,36 @@ class SensorInfo
                   }
                   
                   $result->totalCount = $this->getCountForSensor();
+
+                  // ***********************************************************                  
+                  //  Break processing
+                  
+                  if (isset($sensorPayload["breakCode"]))
+                  {
+                     $breakCode = $sensorPayload["breakCode"];
+                     
+                     if ($breakCode != BreakDescription::UNKNOWN_CODE)
+                     {
+                        $breakDescription = BreakDescription::getBreakDescriptionFromCode($breakCode);
+                        if ($breakDescription)
+                        {                     
+                           // Start break
+                           BreakInfo::startBreak($this->stationId, $shiftId, $breakDescription->breakDescriptionId);                           
+                        }
+                        else
+                        {
+                           // Bad break code.
+                        }
+                     }
+                     else
+                     {
+                        // End break
+                        BreakInfo::endBreak($this->stationId, $shiftId);
+                     }
+                  }
+                  
+                  $breakInfo = BreakInfo::getCurrentBreak($this->stationId, $shiftId);
+                  $result->breakId = ($breakInfo ? $breakInfo->breakId : BreakInfo::UNKNOWN_BREAK_ID);
                }
                break;
             }

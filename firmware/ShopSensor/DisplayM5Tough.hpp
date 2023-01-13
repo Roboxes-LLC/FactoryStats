@@ -16,7 +16,8 @@ public:
    enum DisplayButton
    {
       dbFIRST,
-      dbPAUSE = dbFIRST,
+      dbBACKGROUND = dbFIRST,
+      dbPAUSE,
       dbSETTINGS,
       dbINCREMENT,
       dbDECREMENT,
@@ -41,6 +42,10 @@ public:
    virtual void updateCount(
       const int& totalCount,
       const int& pendingCount,
+      const bool& shouldRedraw = true);
+
+   virtual void updateBreak(
+      const bool& onBreak,
       const bool& shouldRedraw = true);
 
    void redraw();
@@ -74,6 +79,8 @@ private:
    static const char* ButtonText[dbCOUNT];
 
    static DisplayM5Tough* instance;
+
+   bool isSetup;
 
    Button* displayButtons[dbCOUNT];
 };
