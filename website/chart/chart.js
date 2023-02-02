@@ -33,7 +33,6 @@ class HourlyStatsChart
    {
       var chartOptions = {
          legend: 'none',
-         title: 'Counts By Hour',
          hAxis: {
             title: 'Counts By Hour',
             titleTextStyle:
@@ -73,7 +72,9 @@ class HourlyStatsChart
                color: 'white'
             }
          },
-         backgroundColor: '#000000',
+         backgroundColor: {
+            fill: 'transparent'
+         }
       };
       
       return (chartOptions);
