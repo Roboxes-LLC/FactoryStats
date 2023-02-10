@@ -478,7 +478,7 @@ bool ShopSensor::sendUpdate()
       // Specify HTTP parameters.
       message->set(HttpClientAdapter::REQUEST_TYPE, HttpClientAdapter::GET);
       message->set(HttpClientAdapter::ENCODING, HttpClientAdapter::URL_ENCODING);
-      message->set("subdomain", "flexscreentest");  // TODO: For local testing.  Remove.
+      //message->set("subdomain", "flexscreentest");  // TODO: For local testing.  Remove.
 
       String url = getRequestUrl("sensor");
       if (url != "")

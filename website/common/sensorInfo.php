@@ -206,14 +206,22 @@ class SensorInfo
    {
       $count = 0;
       
-      $now = Time::now("Y-m-d H:i:s");
+      $dateTime = Time::now("Y-m-d H:i:s");
       
-      $shiftId = ShiftInfo::getShift($now);
+      $shiftId = ShiftInfo::getShift($dateTime);
       $shiftInfo = ShiftInfo::load($shiftId);
       
       if ($shiftInfo)
       {
-         $evaluationTimes = $shiftInfo->getEvaluationTimes($now, $now);
+         // If we're viewing a shift that spans days, we may actually want to compile the stats from the previous day,
+         // depending on the when this is being viewed.
+         if ($shiftInfo->shiftSpansDays() &&
+             ($dateTime < Time::midDay($dateTime)))
+         {
+            $dateTime = Time::decrementDay($dateTime);
+         }
+         
+         $evaluationTimes = $shiftInfo->getEvaluationTimes($dateTime, $dateTime);
       
          $count = FactoryStatsDatabase::getInstance()->getCount(
             $this->stationId,
