@@ -43,29 +43,36 @@ HEREDOC;
       {
          $userInfo = UserInfo::load(intval($row["userId"]));
          
-         $name = $userInfo->getFullName();
-         
-         $roleName = "Unassigned";
-         $role = Role::getRole($userInfo->roles);
-         if ($role)
+         // TODO: Rework.
+         // A special "display" user authToken is hardcoded in SlideInfo::getUrl() and used when loading
+         // Factory Stats pages into the slideshow.  Until this is reworked, hide this special user
+         // from viewing/editing.         
+         if ($userInfo->userId != UserInfo::DISPLAY_USER_ID)
          {
-            $roleName = $role->roleName;
-         }
-         
-         $siteCount = count($userInfo->getCustomers());
-         
-         echo 
+            $name = $userInfo->getFullName();
+            
+            $roleName = "Unassigned";
+            $role = Role::getRole($userInfo->roles);
+            if ($role)
+            {
+               $roleName = $role->roleName;
+            }
+            
+            $siteCount = count($userInfo->getCustomers());
+            
+            echo 
 <<<HEREDOC
-         <tr>
-            <td>$name</td>
-            <td>$userInfo->username</td>
-            <td>$roleName</td>
-            <td>$userInfo->email</td>
-            <td>$siteCount</td>
-            <td><button class="config-button" onclick="setUserInfo($userInfo->userId, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
-            <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
-         </tr>
+            <tr>
+               <td>$name</td>
+               <td>$userInfo->username</td>
+               <td>$roleName</td>
+               <td>$userInfo->email</td>
+               <td>$siteCount</td>
+               <td><button class="config-button" onclick="setUserInfo($userInfo->userId, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
+               <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
+            </tr>
 HEREDOC;
+         }
       }
    }
    

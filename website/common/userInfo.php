@@ -8,6 +8,11 @@ class UserInfo
 {
    const UNKNOWN_USER_ID = 0;
    
+   // TODO: Rework.
+   // A special "display" user authToken is hardcoded in SlideInfo::getUrl() and used when loading
+   // Factory Stats pages into the slideshow.  This should be reworked so that this hack can be removed.
+   const DISPLAY_USER_ID = 13;
+   
    const DUMMY_PASSWORD = "DUMMYPASSWORD";
    
    public $userId;

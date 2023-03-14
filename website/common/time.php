@@ -69,24 +69,21 @@ class Time
    
    static public function startOfDay($dateTime)
    {
-      $startDateTime = new DateTime($dateTime);
-      $startDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
+      $startDateTime = new DateTime($dateTime, new DateTimeZone(Time::$timeZone));
       
       return ($startDateTime->format("Y-m-d 00:00:00"));
    }
    
    static public function midDay($dateTime)
    {
-       $midDateTime = new DateTime($dateTime);
-       $midDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
+      $midDateTime = new DateTime($dateTime, new DateTimeZone(Time::$timeZone));
        
-       return ($midDateTime->format("Y-m-d 12:00:00"));
+      return ($midDateTime->format("Y-m-d 12:00:00"));
    }
    
    static public function endOfDay($dateTime)
    {
-      $endDateTime = new DateTime($dateTime);
-      $endDateTime->setTimezone(new DateTimeZone(Time::$timeZone));
+      $endDateTime = new DateTime($dateTime, new DateTimeZone(Time::$timeZone));
       
       return ($endDateTime->format("Y-m-d 23:59:59"));
    }
