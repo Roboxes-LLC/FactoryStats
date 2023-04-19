@@ -106,6 +106,8 @@ void ShopSensor::setup()
       
       display->updateServer(server, false, NO_REDRAW);
 
+      display->setRotation(static_cast<Rotation>(Robox::getProperties().getInt("rotation")));
+
       // Show the splash screen (temporarily).
       setDisplayMode(Display::SPLASH, DISPLAY_TIME);
    }
@@ -332,6 +334,36 @@ void ShopSensor::toggledDisplayMode()
    }
 }
 
+void ShopSensor::rotateDisplay()
+{
+   Display* display = getDisplay();
+   if (display)
+   {
+      // Retrieve the current rotation.
+      Rotation rotation = display->getRotation();
+
+      // Rotate.
+      // Note: Only two orientations are supported.
+      if (rotation == Rotation::CW_90)
+      {
+         rotation = CW_270;
+      }
+      else
+      {
+         rotation = CW_90;
+      }
+
+      // Store the new rotation.
+      Properties& properties = Robox::getProperties();
+      properties.set("rotation", rotation);
+      properties.save();
+
+      display->setRotation(rotation);
+
+      display->redraw();
+   }
+}
+
 void ShopSensor::toggleBreak()
 {
    if (!isOnBreak())
@@ -432,6 +464,10 @@ void ShopSensor::onButtonUp(
    else if (buttonId == BUTTON_B)
    {
       toggledDisplayMode();
+   }
+   else if (buttonId == ROTATE_BUTTON)
+   {
+      rotateDisplay();
    }
 }
 

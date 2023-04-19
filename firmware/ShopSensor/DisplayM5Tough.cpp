@@ -21,7 +21,8 @@ const char* DisplayM5Tough::ButtonId[dbCOUNT]
    "decrement",
    "",
    "",
-   ""
+   "",
+   "rotate"
 };
 
 const char* DisplayM5Tough::ButtonText[dbCOUNT] =
@@ -33,7 +34,8 @@ const char* DisplayM5Tough::ButtonText[dbCOUNT] =
    "-1",
    "Count",
    "<",
-   ">"
+   ">",
+   "Rotate"
 };
 
 DisplayM5Tough* DisplayM5Tough::instance = nullptr;
@@ -180,9 +182,26 @@ void DisplayM5Tough::dispatchButton(Event& e)
 
       getInstance()->setMode(newMode);
    }
+   else if (strcmp(e.objName(), ButtonText[dbROTATE]) == 0)
+   {
+      MessagePtr message = Messaging::newMessage();
+      if (message)
+      {
+         message->setTopic(Roboxes::Button::BUTTON_UP);
+         message->setSource(ButtonId[dbROTATE]);
+
+         Messaging::publish(message);
+      }
+   }
 }
 
 // *****************************************************************************
+
+bool DisplayM5Tough::skipMode(
+   const DisplayMode& mode) const
+{
+   return (mode == DisplayMode::SPLASH);
+}
 
 void DisplayM5Tough::drawSplash()
 {
@@ -260,6 +279,13 @@ void DisplayM5Tough::drawPower()
    drawFooter();
 }
 
+void DisplayM5Tough::drawRotation()
+{
+   Display::drawRotation();
+
+   drawFooter();
+}
+
 void DisplayM5Tough::createButtons()
 {
    // Background button is purely to catch guestures outside of the actual defined buttons.
@@ -273,6 +299,7 @@ void DisplayM5Tough::createButtons()
    displayButtons[dbPREVIOUS] = new Button(20, 200, 80, 40, false, ButtonText[dbPREVIOUS], OFF_COLORS, ON_COLORS, MC_DATUM);
    displayButtons[dbHOME] = new Button(120, 200, 80, 40, false, ButtonText[dbHOME], OFF_COLORS, ON_COLORS, MC_DATUM);
    displayButtons[dbNEXT] = new Button(220, 200, 80, 40, false, ButtonText[dbNEXT], OFF_COLORS, ON_COLORS, MC_DATUM);
+   displayButtons[dbROTATE] = new Button((center.x - 75), (center.y - 50), 150, 100, false, ButtonText[dbROTATE], OFF_COLORS, ON_COLORS, MC_DATUM);
    
    for (auto displayButton : displayButtons)
    {
@@ -308,6 +335,15 @@ void DisplayM5Tough::drawFooter()
       case INFO:
       case POWER:
       {
+         displayButtons[dbPREVIOUS]->draw();
+         displayButtons[dbHOME]->draw();
+         displayButtons[dbNEXT]->draw();
+         break;
+      }
+
+      case ROTATION:
+      {
+         displayButtons[dbROTATE]->draw();
          displayButtons[dbPREVIOUS]->draw();
          displayButtons[dbHOME]->draw();
          displayButtons[dbNEXT]->draw();

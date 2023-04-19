@@ -24,6 +24,7 @@ public:
       dbHOME,
       dbPREVIOUS,
       dbNEXT,
+      dbROTATE,
       dbLAST,
       dbCOUNT = dbLAST - dbFIRST      
    };
@@ -54,6 +55,9 @@ public:
    
 protected:
 
+   virtual bool skipMode(
+      const DisplayMode& mode) const;
+
    void drawSplash();
    
    void drawId();   
@@ -67,6 +71,8 @@ protected:
    void drawInfo();
    
    void drawPower();
+
+   void drawRotation();
 
 private:
 

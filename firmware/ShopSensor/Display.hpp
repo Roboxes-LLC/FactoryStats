@@ -40,7 +40,8 @@ public:
 
    enum DisplayMode
    {
-      DISPLAY_MODE_FIRST = 0,
+      UNKNOWN,
+      DISPLAY_MODE_FIRST = 1,
       SPLASH = DISPLAY_MODE_FIRST,
       COUNT,
       DISPLAY_MODE_INFO_FIRST,
@@ -49,7 +50,8 @@ public:
       SERVER,
       INFO,
       POWER,
-      DISPLAY_MODE_INFO_LAST = POWER,
+      ROTATION,
+      DISPLAY_MODE_INFO_LAST = ROTATION,
       DISPLAY_MODE_LAST      
    };
    
@@ -76,7 +78,12 @@ public:
       const DisplayMode& mode);
       
    void toggleMode();      
-      
+
+   virtual void setRotation(
+      const Rotation& rotation);
+
+   virtual Rotation getRotation() const;
+
    void updateSplash(
       const String& splashImage,
       const bool& shouldRedraw = true);
@@ -134,6 +141,9 @@ public:
    
 protected:
 
+   virtual bool skipMode(
+      const DisplayMode& mode) const;
+
    virtual void drawSplash();
    
    virtual void drawId();
@@ -147,6 +157,8 @@ protected:
    virtual void drawInfo();
    
    virtual void drawPower();
+
+   virtual void drawRotation();
 
    void drawBattery(
       const int& x,
