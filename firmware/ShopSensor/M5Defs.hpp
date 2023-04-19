@@ -56,3 +56,19 @@ struct Zone
    int h;
 };
 #endif
+
+enum Rotation
+{
+   CW_FIRST,
+   CW_0 = CW_FIRST,  // 0
+   CW_90,   // 1
+   CW_180,  // 2
+   CW_270,  // 3
+   CW_LAST = CW_270,
+   CCW_FIRST,
+   CCW_0 = CCW_FIRST,  // 4
+   CCW_90,   // 5
+   CCW_180,  // 6
+   CCW_270,  // 7
+   CCW_LAST = CCW_270
+};

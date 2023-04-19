@@ -18,6 +18,7 @@ BR_DATUM = Bottom right
 Display::Display(
    const String& id) :
       Component(id),
+      mode(DisplayMode::UNKNOWN),
       font(DEFAULT_FONT),
       backgroundColor(DEFAULT_BACKGROUND_COLOR),
       textColor(DEFAULT_TEXT_COLOR),
@@ -43,6 +44,7 @@ Display::Display(
 Display::Display(
    MessagePtr message) :
       Component(message),
+      mode(DisplayMode::UNKNOWN),
       font(DEFAULT_FONT),
       backgroundColor(DEFAULT_BACKGROUND_COLOR),
       textColor(DEFAULT_TEXT_COLOR),
@@ -83,8 +85,6 @@ void Display::setup()
    topMiddle = Point(center.x, content.y);
    bottomMiddle = Point(center.x, (content.y + content.h));
    
-   setMode(SPLASH);
-   
    redraw();
 }
 
@@ -122,13 +122,24 @@ void Display::toggleMode()
       mode = DISPLAY_MODE_FIRST;
    }
    
-   // Skip splash screen.
-   if (mode == SPLASH)
+   // Skip certain screens, based on display type.
+   if (skipMode(mode))
    {
       toggleMode();
    }
    
    redraw();
+}
+
+void Display::setRotation(
+   const Rotation& rotation)
+{
+   M5.Lcd.setRotation(rotation);
+}
+
+Rotation Display::getRotation() const
+{
+   return (static_cast<Rotation>(M5.Lcd.getRotation()));
 }
       
 void Display::updateSplash(
@@ -321,15 +332,30 @@ void Display::redraw()
       {
          drawPower();
          break;
-      }      
+      }
+
+      case ROTATION:
+      {
+         drawRotation();
+         break;
+      }
       
       default:
       {
+         M5.Lcd.fillScreen(backgroundColor);
+         break;
       }
    }
 }
    
 // *****************************************************************************
+
+bool Display::skipMode(
+   const DisplayMode& mode) const
+{
+   return ((mode == DisplayMode::SPLASH) ||
+           (mode == DisplayMode::ROTATION));  // Skip ROTATE mode in M5Stick.
+}
 
 void Display::drawSplash()
 {
@@ -602,6 +628,17 @@ void Display::drawPower()
       String status = String(batteryLevel) + "%";
       M5.Lcd.drawString(status, bottomMiddle.x, (bottomMiddle.y - MARGIN), font);
    }
+}
+
+void Display::drawRotation()
+{
+   M5.Lcd.fillScreen(backgroundColor);
+
+   // Label
+   M5.Lcd.setTextColor(accentColor);
+   M5.Lcd.setTextSize(FONT_MEDIUM);
+   M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
+   M5.Lcd.drawString("Rotation", topMiddle.x, (topMiddle.y + MARGIN), font);
 }
 
 void Display::drawBattery(

@@ -21,6 +21,7 @@ const String BUTTON_B = "buttonB";
 const String INCREMENT_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbINCREMENT];
 const String DECREMENT_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbDECREMENT];
 const String PAUSE_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbPAUSE];
+const String ROTATE_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbROTATE];
 #else
 const String INCREMENT_BUTTON = "increment";
 const String DECREMENT_BUTTON = "decrement";
@@ -74,6 +75,8 @@ protected:
       const int& duration = 0);
       
    void toggledDisplayMode();      
+
+   void rotateDisplay();
          
    void toggleBreak();
 
@@ -133,7 +136,7 @@ protected:
    String powerId;
    
    String adapterId;
-   
+
    // Status
 
    int count;
