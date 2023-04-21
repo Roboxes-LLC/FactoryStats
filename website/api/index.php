@@ -55,6 +55,26 @@ function getShifts()
    return ($shifts);
 }
 
+function getBreakDescriptions()
+{
+   $breakDescriptions = array();   
+   
+   $breakDescription = new BreakDescription();
+   
+   $result = FactoryStatsDatabase::getInstance()->getBreakDescriptions();
+   
+   foreach ($result as $row)
+   {
+      $breakDescription = new BreakDescription();
+      
+      $breakDescription->initialize($row);
+      
+      $breakDescriptions[] = $breakDescription;
+   }
+   
+   return ($breakDescriptions);
+}
+
 // *****************************************************************************
 //                                   Begin
 
@@ -802,6 +822,37 @@ $router->add("break", function($params) {
       }
    }
 
+   echo json_encode($result);
+});
+
+$router->add("breakDescriptions", function($params) {
+   $result = new stdClass();
+   
+   $result->success = true;
+   
+   $breakDescriptions = getBreakDescriptions();
+   
+   if ($params->getBool("flatten"))
+   {
+      // break.0.id = 1
+      // break.0.code = "001"
+      // break.0.description = "Bathroom"
+      
+      $index = 0;
+      foreach ($breakDescriptions as $breakDescription)
+      {
+         $result->{"break." . $index . ".id"} = $breakDescription->breakDescriptionId;
+         $result->{"break." . $index . ".code"} = $breakDescription->code;
+         $result->{"break." . $index . ".desc"} = $breakDescription->description;
+         
+         $index++;
+      }
+   }
+   else
+   {
+      $result->breakDescriptions = getBreakDescriptions();
+   }
+   
    echo json_encode($result);
 });
 

@@ -10,23 +10,9 @@
 #include "Timer/TimerListener.hpp"
 #include "WebServer/WebpageServer.hpp"
 
+#include "BreakManager.hpp"
 #include "Display.hpp"
 #include "Power.hpp"
-
-// Component names
-const String LIMIT_SWITCH = "limitSwitch";
-const String BUTTON_A = "buttonA";
-const String BUTTON_B = "buttonB";
-#ifdef M5TOUGH
-const String INCREMENT_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbINCREMENT];
-const String DECREMENT_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbDECREMENT];
-const String PAUSE_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbPAUSE];
-const String ROTATE_BUTTON = DisplayM5Tough::ButtonId[DisplayM5Tough::dbROTATE];
-#else
-const String INCREMENT_BUTTON = "increment";
-const String DECREMENT_BUTTON = "decrement";
-const String PAUSE_BUTTON = "pause";
-#endif
 
 class ShopSensor : public Component, TimerListener
 {
@@ -41,7 +27,8 @@ public:
       const String& connectionId,
       const String& displayId,
       const String& powerId,
-      const String& adapterId);
+      const String& adapterId,
+      const String& breakManagerId);
       
    // Constructor.
    ShopSensor(
@@ -64,12 +51,14 @@ protected:
 
    ConnectionManager* getConnection();
 
-   Display* getDisplay();
+   Display* getDisplay() const;
    
-   Power* getPower();
+   Power* getPower() const;
    
-   Adapter* getAdapter();
+   Adapter* getAdapter() const;
    
+   BreakManager* getBreakManager() const;
+
    void setDisplayMode(
       const Display::DisplayMode& displayMode,
       const int& duration = 0);
@@ -77,8 +66,6 @@ protected:
    void toggledDisplayMode();      
 
    void rotateDisplay();
-         
-   void toggleBreak();
 
    void onConnectionUpdate(
       MessagePtr message);
@@ -102,11 +89,19 @@ protected:
    static String getIpAddress();
    
    static String getUid();
-   
-   static String getRequestUrl(
-      const String& apiMessageId);
 
    bool isOnBreak() const;
+
+   void confirmBreak(
+      const int& confirmedBreakId) const;
+
+   bool hasPendingBreak() const;
+
+   void clearPendingBreak() const;
+
+   String getPendingBreakCode() const;
+
+   void toggleBreak() const;
 
    // **************************************************************************
 
@@ -136,6 +131,8 @@ protected:
    String powerId;
    
    String adapterId;
+
+   String breakManagerId;
 
    // Status
 

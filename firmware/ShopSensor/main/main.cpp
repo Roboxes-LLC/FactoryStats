@@ -6,6 +6,7 @@
 #include "Connection/ConnectionManager.cpp"
 #include "Robox.hpp"
 
+#include "BreakManager.hpp"
 #include "ConfigPage.hpp"
 #include "Diagnostics.hpp"
 #include "DisplayM5Tough.hpp"
