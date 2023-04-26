@@ -2,11 +2,11 @@
 #include "BreakDefs.hpp"
 #include "BreakManager.hpp"
 #include "Component/Button.hpp"
-#include "Connection/ConnectionManager.hpp"
 #include "FactoryStatsDefs.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Address.hpp"
 #include "Messaging/Messaging.hpp"
+#include "MessagingDefs.hpp"
 #include "Robox.hpp"
 
 // *****************************************************************************
@@ -50,7 +50,7 @@ void BreakManager::setup()
 
    defaultBreakCode = Robox::getProperties().getString("breakCode");
 
-   Messaging::subscribe(this, ConnectionManager::CONNECTION);
+   Messaging::subscribe(this, SERVER_STATUS);
    Messaging::subscribe(this, Roboxes::Button::BUTTON_UP);
 
    if (!getDisplay())
@@ -67,15 +67,22 @@ void BreakManager::setup()
 void BreakManager::handleMessage(
    MessagePtr message)
 {
-   // WIFI_CONNECTED, WIFI_DISCONNECTED
-   if (message->getTopic() == ConnectionManager::CONNECTION)
+   // SERVER_AVAILABLE
+   if (message->getMessageId() == SERVER_AVAILABLE)
    {
-      onConnectionUpdate(message);
+      onServerAvailable();
    }
    //  BUTTON_UP
    else if (message->getTopic() == Roboxes::Button::BUTTON_UP)
    {
-      onButtonUp(message->getSource());
+      if (message->getSource() == SOFT_BUTTON)
+      {
+         onSoftButtonUp(message->getInt("buttonId"));
+      }
+      else
+      {
+         onButtonUp(message->getSource());
+      }
    }
    //  HTTP_RESPONSE
    else if (message->getMessageId() == HttpClientAdapter::HTTP_RESPONSE)
@@ -176,10 +183,15 @@ Adapter* BreakManager::getAdapter()
    return (adapter);
 }
 
-void BreakManager::onConnectionUpdate(
-   MessagePtr message)
+bool BreakManager::hasDefaultBreakCode() const
 {
-   if (message->getMessageId() == ConnectionManager::WIFI_CONNECTED)
+   return ((defaultBreakCode != "") &&
+           (defaultBreakCode != NO_BREAK_CODE));
+}
+
+void BreakManager::onServerAvailable()
+{
+   if (breakDescriptionList.size() == 0)
    {
       sendBreakDescriptionsRequest();
    }
@@ -188,21 +200,77 @@ void BreakManager::onConnectionUpdate(
 void BreakManager::onButtonUp(
    const String& buttonId)
 {
-   Logger::logDebug("BreakManager::onButtonUp: Button [%s] pressed.", buttonId.c_str());
-
    if ((buttonId == LIMIT_SWITCH) ||
-       (buttonId == BUTTON_A) ||
-       (buttonId == INCREMENT_BUTTON) ||
-       (buttonId == DECREMENT_BUTTON))
+       (buttonId == BUTTON_A))
    {
       if (isOnBreak())
       {
          toggleBreak();
       }
    }
-   else if (buttonId == PAUSE_BUTTON)
+}
+
+void BreakManager::onSoftButtonUp(
+   const int& buttonId)
+{
+   switch (buttonId)
    {
-      toggleBreak();
+      case DisplayM5Tough::DisplayButton::dbINCREMENT:
+      case DisplayM5Tough::DisplayButton::dbDECREMENT:
+      {
+         if (isOnBreak())
+         {
+            toggleBreak();
+         }
+         break;
+      }
+
+      case DisplayM5Tough::DisplayButton::dbPAUSE:
+      {
+         if (isOnBreak())
+         {
+            toggleBreak();
+         }
+         else if (hasDefaultBreakCode())
+         {
+           toggleBreak();
+         }
+         else
+         {
+            Display* display = getDisplay();
+            if (display)
+            {
+               display->setMode(Display::DisplayMode::PAUSE);
+            }
+         }
+         break;
+      }
+
+      default:
+      {
+         if (buttonId >= BASE_BREAK_BUTTON_ID)
+         {
+            int breakButtonId = (buttonId - BASE_BREAK_BUTTON_ID);
+
+            String breakCode = getBreakCode(breakButtonId);
+
+            if (breakCode != NO_BREAK_CODE)
+            {
+               // Set break code.
+               pendingBreakCode = breakCode;
+
+               //  Update the display.
+               Display* display = getDisplay();
+               if (display)
+               {
+                  display->updateBreak(isOnBreak());
+
+                  display->setMode(Display::DisplayMode::COUNT);
+               }
+            }
+         }
+         break;
+      }
    }
 }
 
@@ -267,7 +335,13 @@ bool BreakManager::sendBreakDescriptionsRequest()
 void BreakManager::processBreakDescriptions(
    MessagePtr message)
 {
-   Logger::logDebug("BreakManager::processBreakDescriptions");
+   // break.0.id = 1
+   // break.0.code = "001"
+   // break.0.desc = "Bathroom"
+
+   BreakDescription breakDescription;
+
+   breakDescriptionList.clear();
 
    for (Message::Iterator it = message->begin(); it != message->end(); it++)
    {
@@ -276,8 +350,51 @@ void BreakManager::processBreakDescriptions(
 
       if (paramName.indexOf("break.") == 0)
       {
-         Logger::logDebug("%s -> %s", it->first.c_str(), it->second.c_str());
+         if (it->first.indexOf("id") != -1)
+         {
+            // No need to record this.
+         }
+         else if (it->first.indexOf("code") != -1)
+         {
+            breakDescription.code = it->second;
+         }
+         else if (it->first.indexOf("desc") != -1)
+         {
+            breakDescription.description = it->second;
+
+            // This assumes that the message contains the id, code, and desc properties for
+            // each break description together, and in that order.
+            breakDescriptionList.push_back(breakDescription);
+         }
       }
    }
 
+   // Update the break buttons.
+   DisplayM5Tough* display = (DisplayM5Tough*)getDisplay();
+   if (display)
+   {
+      display->updateBreakDescriptions(breakDescriptionList);
+   }
 }
+
+String BreakManager::getBreakCode(
+   const int& buttonId) const
+{
+   String breakCode = NO_BREAK_CODE;
+
+   int index = 0;
+
+   for (BreakDescriptionList::Iterator it = breakDescriptionList.begin();
+                                       it != breakDescriptionList.end();
+                                       it++, index++)
+   {
+      if (index == buttonId)
+      {
+         breakCode = it->code;
+         continue;
+      }
+   }
+
+   return (breakCode);
+}
+

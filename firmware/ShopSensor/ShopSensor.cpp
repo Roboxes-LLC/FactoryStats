@@ -13,6 +13,7 @@
 #include "Display.hpp"
 #include "DisplayM5Tough.hpp"
 #include "FactoryStatsDefs.hpp"
+#include "MessagingDefs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
@@ -44,6 +45,7 @@ ShopSensor::ShopSensor(
       powerId(powerId),
       adapterId(adapterId),
       breakManagerId(breakManagerId),
+      serverAvailable(false),
       count(0),
       totalCount(0),
       updateCount(0),
@@ -66,6 +68,7 @@ ShopSensor::ShopSensor(
       powerId(message->getString("power")),
       adapterId(message->getString("adapter")),
       breakManagerId(message->getString("breakManager")),
+      serverAvailable(false),
       count(0),
       totalCount(0),
       updateCount(0),
@@ -85,7 +88,7 @@ void ShopSensor::setup()
    Component::setup();
    
    uid = getUid();
-   
+
    String server = Robox::getProperties().getString("server");
 
    Display* display = getDisplay();
@@ -149,7 +152,14 @@ void ShopSensor::handleMessage(
    //  BUTTON_UP
    else if (message->getTopic() == Roboxes::Button::BUTTON_UP)
    {
-      onButtonUp(message->getSource());
+      if (message->getSource() == SOFT_BUTTON)
+      {
+         onSoftButtonUp(message->getInt("buttonId"));
+      }
+      else
+      {
+         onButtonUp(message->getSource());
+      }
    }
    //  BUTTON_LONG_PRESS
    else if (message->getTopic() == Roboxes::Button::BUTTON_LONG_PRESS)
@@ -396,52 +406,72 @@ void ShopSensor::onConnectionUpdate(
 void ShopSensor::onButtonUp(
    const String& buttonId)
 {
-   Logger::logDebug("ShopSensor::onButtonUp: Button [%s] pressed.", buttonId.c_str());
+   Logger::logDebug(F("ShopSensor::onButtonUp: Button [%s] pressed."), buttonId.c_str());
    
    if ((buttonId == LIMIT_SWITCH) ||
-       (buttonId == BUTTON_A) ||
-       (buttonId == INCREMENT_BUTTON))
+       (buttonId == BUTTON_A))
    {
-      count++;
-
-      Display* display = getDisplay();
-      if (display)
-      {
-         display->updateCount(totalCount, count);
-
-#if defined(M5STICKC) || defined (M5STICKC_PLUS)
-         setDisplayMode(Display::COUNT, DISPLAY_TIME);
-#endif
-      }
-   }
-   else if (buttonId == DECREMENT_BUTTON)
-   {
-      count--;
-
-      Display* display = getDisplay();
-      if (display)
-      {
-         display->updateCount(totalCount, count);
-
-#if defined(M5STICKC) || defined (M5STICKC_PLUS)
-         setDisplayMode(Display::COUNT, DISPLAY_TIME);
-#endif
-      }
+      onCountChanged(1);
    }
    else if (buttonId == BUTTON_B)
    {
       toggledDisplayMode();
    }
-   else if (buttonId == ROTATE_BUTTON)
+}
+
+void ShopSensor::onSoftButtonUp(
+   const int& buttonId)
+{
+   switch (buttonId)
    {
-      rotateDisplay();
+      case DisplayM5Tough::DisplayButton::dbINCREMENT:
+      {
+         Logger::logDebug(F("ShopSensor::onSoftButtonUp: INCREMENT pressed."), buttonId);
+         onCountChanged(1);
+         break;
+      }
+
+      case DisplayM5Tough::DisplayButton::dbDECREMENT:
+      {
+         Logger::logDebug(F("ShopSensor::onSoftButtonUp: DECREMENT pressed."), buttonId);
+         onCountChanged(-1);
+         break;
+      }
+
+      case DisplayM5Tough::DisplayButton::dbROTATE:
+      {
+         Logger::logDebug(F("ShopSensor::onSoftButtonUp: ROTATE pressed."), buttonId);
+         rotateDisplay();
+         break;
+      }
+
+      default:
+      {
+         break;
+      }
    }
 }
 
 void ShopSensor::onButtonLongPress(
    const String& buttonId)
 {
-   Logger::logDebug("ShopSensor::onButtonLongPress: Button [%s] long-pressed.", buttonId.c_str());
+   Logger::logDebug(F("ShopSensor::onButtonLongPress: Button [%s] long-pressed."), buttonId.c_str());
+}
+
+void ShopSensor::onCountChanged(
+   const int& deltaCount)
+{
+   count += deltaCount;
+
+   Display* display = getDisplay();
+   if (display)
+   {
+      display->updateCount(totalCount, count);
+
+#if defined(M5STICKC) || defined(M5STICKC_PLUS)
+     setDisplayMode(Display::COUNT, DISPLAY_TIME);
+#endif
+   }
 }
 
 void ShopSensor::onPowerInfo(
@@ -455,7 +485,7 @@ void ShopSensor::onPowerInfo(
       
       if (!isUsbPower && Robox::getProperties().getBool("requireUsbPower"))
       {
-         Logger::logDebug("ShopSensor::onPowerInfo: Powering-off after loss of USB power");
+         Logger::logDebug(F("ShopSensor::onPowerInfo: Powering-off after loss of USB power"));
          
          Power* power = getPower();
          if (power)
@@ -554,7 +584,9 @@ void ShopSensor::onServerResponse(MessagePtr message)
                confirmBreak(message->getInt("breakId"));
             }
 
-            display->updateServer(true);
+            setServerAvailable(true);
+
+            display->updateServer(serverAvailable, NO_REDRAW);
 
             display->updateStation(stationId, stationLabel, NO_REDRAW);
 
@@ -565,9 +597,41 @@ void ShopSensor::onServerResponse(MessagePtr message)
       }
       else
       {
-         display->updateServer(false);
+         setServerAvailable(false);
+
+         display->updateServer(serverAvailable);
       }
    }
+}
+
+void ShopSensor::setServerAvailable(
+   const bool& serverAvailable)
+{
+   bool serverAvailableChanged = (this->serverAvailable != serverAvailable);
+
+   this->serverAvailable = serverAvailable;
+
+   if (serverAvailableChanged)
+   {
+      sendServerStatus();
+   }
+}
+
+bool ShopSensor::sendServerStatus()
+{
+   bool success = false;
+
+   MessagePtr message = Messaging::newMessage();
+   if (message)
+   {
+      message->setTopic(SERVER_STATUS);
+      message->setMessageId(serverAvailable ? SERVER_AVAILABLE : SERVER_UNAVAILABLE);
+      message->setSource(getId());
+
+      success = Messaging::publish(message);
+   }
+
+   return (success);
 }
 
 bool ShopSensor::isConnected()

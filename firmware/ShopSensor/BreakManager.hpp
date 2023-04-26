@@ -5,6 +5,7 @@
 #include "Messaging/Component.hpp"
 #include "Messaging/ComponentFactory.hpp"
 
+#include "BreakDescription.hpp"
 #include "ComponentDefs.hpp"
 #include "Display.hpp"
 #include "M5Defs.hpp"
@@ -58,11 +59,15 @@ private:
 
    Adapter* getAdapter();
 
-   void onConnectionUpdate(
-      MessagePtr message);
+    bool hasDefaultBreakCode() const;
+
+   void onServerAvailable();
 
    void onButtonUp(
       const String& buttonId);
+
+   void onSoftButtonUp(
+      const int& buttonId);
 
    virtual void onServerResponse(
       MessagePtr message);
@@ -71,6 +76,9 @@ private:
 
    void processBreakDescriptions(
       MessagePtr message);
+
+   String getBreakCode(
+      const int& buttonId) const;
 
    String displayId;
 
@@ -84,6 +92,8 @@ private:
    String pendingBreakCode;
 
    int breakId;  // Station is considered paused if breakId != NO_BREAK_CODE;
+
+   BreakDescriptionList breakDescriptionList;
 };
 
 REGISTER(BreakManager, BreakManager)

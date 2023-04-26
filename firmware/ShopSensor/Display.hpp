@@ -52,6 +52,7 @@ public:
       POWER,
       ROTATION,
       DISPLAY_MODE_INFO_LAST = ROTATION,
+      PAUSE,
       DISPLAY_MODE_LAST      
    };
    
@@ -160,6 +161,8 @@ protected:
 
    virtual void drawRotation();
 
+   virtual void drawPause();
+
    void drawBattery(
       const int& x,
       const int& y,
@@ -189,6 +192,10 @@ protected:
    Point center;
    Point topMiddle;
    Point bottomMiddle;
+   Point topLeft;
+   Point topRight;
+   Point bottomLeft;
+   Point bottomRight;
    
    DisplayMode mode;
    

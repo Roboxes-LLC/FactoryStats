@@ -13,6 +13,7 @@
 #include "IncrementButton.hpp"
 #include "Power.hpp"
 #include "ShopSensor.hpp"
+#include "Tester.hpp"
 
 void setup()
 {

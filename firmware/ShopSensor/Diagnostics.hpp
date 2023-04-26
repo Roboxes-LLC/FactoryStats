@@ -45,8 +45,6 @@ protected:
    int getUpTime();
 
    int getFreeMemory();
-   
-   ConnectionManager* getConnection();
 
    Display* getDisplay();
    

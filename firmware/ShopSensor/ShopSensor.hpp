@@ -72,23 +72,36 @@ protected:
 
    void onButtonUp(
       const String& buttonId);
+
+   void onSoftButtonUp(
+      const int& buttonId);
       
    void onButtonLongPress(
       const String& buttonId);
 
-   virtual void onServerResponse(
-      MessagePtr message);      
-      
+   void onCountChanged(
+      const int& deltaCount);
+
    virtual void onPowerInfo(
       MessagePtr message);      
       
    virtual bool sendUpdate();
+
+   virtual void onServerResponse(
+      MessagePtr message);
+
+   void setServerAvailable(
+      const bool& serverAvailable);
+
+   bool sendServerStatus();
       
    static bool isConnected();
    
    static String getIpAddress();
    
    static String getUid();
+
+   // Break handling
 
    bool isOnBreak() const;
 
@@ -135,6 +148,8 @@ protected:
    String breakManagerId;
 
    // Status
+
+   bool serverAvailable;
 
    int count;
    

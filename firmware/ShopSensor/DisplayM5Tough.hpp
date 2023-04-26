@@ -3,6 +3,12 @@
 #include "M5Defs.hpp"
 #ifdef M5TOUGH
 
+// https://github.com/m5stack/M5Core2/issues/79
+#undef min
+
+#include "STL/List.hpp"
+
+#include "BreakDescription.hpp"
 #include "Display.hpp"
 
 class DisplayM5Tough : public Display
@@ -25,6 +31,9 @@ public:
       dbPREVIOUS,
       dbNEXT,
       dbROTATE,
+      dbPAGE_LEFT,
+      dbPAGE_RIGHT,
+      dbCANCEL,
       dbLAST,
       dbCOUNT = dbLAST - dbFIRST      
    };
@@ -48,6 +57,13 @@ public:
    virtual void updateBreak(
       const bool& onBreak,
       const bool& shouldRedraw = true);
+
+   virtual void updateBreakDescriptions(
+      const BreakDescriptionList& breakDescriptions,
+      const bool& shouldRedraw = true);
+
+   void advanceBreakPage(
+      const int& deltaPageIndex);
 
    void redraw();
 
@@ -74,21 +90,38 @@ protected:
 
    void drawRotation();
 
+   void drawPause();
+
 private:
 
    void createButtons();
 
+   void createBreakButtons(
+      const BreakDescriptionList& breakDescriptions);
+
+   void hideButtons();
+
+   void hideBreakButtons();
+
+   void showBreakButtons();
+
+   int getBreakPageCount() const;
+
    void drawHeader();
 
    void drawFooter();
-
-   static const char* ButtonText[dbCOUNT];
 
    static DisplayM5Tough* instance;
 
    bool isSetup;
 
    Button* displayButtons[dbCOUNT];
+
+   typedef List<Button*> ButtonList;
+
+   ButtonList buttons;
+
+   int breakPageIndex;
 };
 
 REGISTER(DisplayM5Tough, DisplayM5Tough)
