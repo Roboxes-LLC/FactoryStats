@@ -191,7 +191,8 @@ bool BreakManager::hasDefaultBreakCode() const
 
 void BreakManager::onServerAvailable()
 {
-   if (breakDescriptionList.size() == 0)
+   if (!hasDefaultBreakCode() &&
+       (breakDescriptionList.size() == 0))  // Haven't retrieved them yet.
    {
       sendBreakDescriptionsRequest();
    }
@@ -215,6 +216,7 @@ void BreakManager::onSoftButtonUp(
 {
    switch (buttonId)
    {
+#ifdef M5TOUGH
       case DisplayM5Tough::DisplayButton::dbINCREMENT:
       case DisplayM5Tough::DisplayButton::dbDECREMENT:
       {
@@ -245,6 +247,7 @@ void BreakManager::onSoftButtonUp(
          }
          break;
       }
+#endif
 
       default:
       {
@@ -369,12 +372,14 @@ void BreakManager::processBreakDescriptions(
       }
    }
 
+#ifdef M5TOUGH
    // Update the break buttons.
    DisplayM5Tough* display = (DisplayM5Tough*)getDisplay();
    if (display)
    {
       display->updateBreakDescriptions(breakDescriptionList);
    }
+#endif
 }
 
 String BreakManager::getBreakCode(

@@ -126,8 +126,12 @@ void Tester::runAction(
          if (message)
          {
             message->setTopic(Roboxes::Button::BUTTON_UP);
+#ifdef M5TOUGH
             message->setSource(SOFT_BUTTON);
             message->set("buttonId", DisplayM5Tough::DisplayButton::dbINCREMENT);
+#else
+            message->setSource(LIMIT_SWITCH);
+#endif
 
             Messaging::publish(message);
          }
@@ -136,15 +140,16 @@ void Tester::runAction(
 
       case TestAction::DECREMENT:
       {
+#ifdef M5TOUGH
          MessagePtr message = Messaging::newMessage();
          if (message)
          {
             message->setTopic(Roboxes::Button::BUTTON_UP);
             message->setSource(SOFT_BUTTON);
             message->set("buttonId", DisplayM5Tough::DisplayButton::dbDECREMENT);
-
             Messaging::publish(message);
          }
+#endif
          break;
       }
 

@@ -1,6 +1,7 @@
 #include "Adapter/HttpClientAdapter.hpp"
 #include "Board/WifiBoard.hpp"
 #include "Component/Button.hpp"
+#include "Component/Door.hpp"
 #include "Connection/ConnectionManager.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Address.hpp"
@@ -11,7 +12,9 @@
 #include "ConfigPage.hpp"
 #include "Diagnostics.hpp"
 #include "Display.hpp"
+#ifdef M5TOUGH
 #include "DisplayM5Tough.hpp"
+#endif
 #include "FactoryStatsDefs.hpp"
 #include "MessagingDefs.hpp"
 #include "Power.hpp"
@@ -108,6 +111,8 @@ void ShopSensor::setup()
    Messaging::subscribe(this, Power::POWER_INFO);
    Messaging::subscribe(this, Roboxes::Button::BUTTON_UP);
    Messaging::subscribe(this, Roboxes::Button::BUTTON_LONG_PRESS);
+   Messaging::subscribe(this, Door::DOOR_OPEN);
+   Messaging::subscribe(this, Door::DOOR_CLOSED);
    
    updateTimer = Timer::newTimer(
       getId() + ".update",
@@ -161,10 +166,20 @@ void ShopSensor::handleMessage(
          onButtonUp(message->getSource());
       }
    }
-   //  BUTTON_LONG_PRESS
+   // BUTTON_LONG_PRESS
    else if (message->getTopic() == Roboxes::Button::BUTTON_LONG_PRESS)
    {
       onButtonLongPress(message->getSource());
+   }
+   // DOOR_OPEN
+   else if (message->getTopic() == Door::DOOR_OPEN)
+   {
+      onCountChanged(1);
+   }
+   // DOOR_CLOSED
+   else if (message->getTopic() == Door::DOOR_CLOSED)
+   {
+      // TODO
    }
    //  POWER_INFO
    else if (message->getTopic() == Power::POWER_INFO)
@@ -424,6 +439,7 @@ void ShopSensor::onSoftButtonUp(
 {
    switch (buttonId)
    {
+#ifdef M5TOUGH
       case DisplayM5Tough::DisplayButton::dbINCREMENT:
       {
          Logger::logDebug(F("ShopSensor::onSoftButtonUp: INCREMENT pressed."), buttonId);
@@ -444,6 +460,7 @@ void ShopSensor::onSoftButtonUp(
          rotateDisplay();
          break;
       }
+#endif
 
       default:
       {
