@@ -84,6 +84,10 @@ void Display::setup()
    center = Point((content.x + (content.w / 2)), (content.y + (content.h / 2)));
    topMiddle = Point(center.x, content.y);
    bottomMiddle = Point(center.x, (content.y + content.h));
+   topLeft = Point(0, 0);
+   topRight = Point(M5.Lcd.width(), 0);
+   bottomLeft = Point(0, M5.Lcd.height());
+   bottomRight = Point(M5.Lcd.width(), M5.Lcd.height());
    
    redraw();
 }
@@ -340,6 +344,12 @@ void Display::redraw()
          break;
       }
       
+      case PAUSE:
+      {
+         drawPause();
+         break;
+      }
+
       default:
       {
          M5.Lcd.fillScreen(backgroundColor);
@@ -354,6 +364,7 @@ bool Display::skipMode(
    const DisplayMode& mode) const
 {
    return ((mode == DisplayMode::SPLASH) ||
+           (mode == DisplayMode::PAUSE) ||
            (mode == DisplayMode::ROTATION));  // Skip ROTATE mode in M5Stick.
 }
 
@@ -639,6 +650,17 @@ void Display::drawRotation()
    M5.Lcd.setTextSize(FONT_MEDIUM);
    M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
    M5.Lcd.drawString("Rotation", topMiddle.x, (topMiddle.y + MARGIN), font);
+}
+
+void Display::drawPause()
+{
+   M5.Lcd.fillScreen(backgroundColor);
+
+   // Label
+   M5.Lcd.setTextColor(accentColor);
+   M5.Lcd.setTextSize(FONT_MEDIUM);
+   M5.Lcd.setTextDatum(TC_DATUM);  // Top/center
+   M5.Lcd.drawString("Break Select", topMiddle.x, (topMiddle.y + MARGIN), font);
 }
 
 void Display::drawBattery(

@@ -1,15 +1,22 @@
 #include "Adapter/HttpClientAdapter.hpp"
 #include "Board/WifiBoard.hpp"
 #include "Component/Button.hpp"
+#include "Component/Door.hpp"
 #include "Connection/ConnectionManager.hpp"
 #include "Logger/Logger.hpp"
 #include "Messaging/Address.hpp"
 #include "Messaging/Messaging.hpp"
+
+#include "BreakDefs.hpp"
+#include "ComponentDefs.hpp"
 #include "ConfigPage.hpp"
 #include "Diagnostics.hpp"
 #include "Display.hpp"
+#ifdef M5TOUGH
 #include "DisplayM5Tough.hpp"
+#endif
 #include "FactoryStatsDefs.hpp"
+#include "MessagingDefs.hpp"
 #include "Power.hpp"
 #include "Robox.hpp"
 #include "ShopSensor.hpp"
@@ -18,15 +25,6 @@
 static const int DISPLAY_TIME = 5000;  // 5 seconds
 
 static const bool NO_REDRAW = false;
-
-static const int NO_BREAK_ID = UNKNOWN_BREAK_ID;
-
-static const String NO_BREAK_CODE = UNKNOWN_BREAK_CODE;
-
-static const String NO_PENDING_BREAK_CODE = "NO_CODE";
-
-static const bool START_BREAK = true;
-static const bool END_BREAK = false;
 
 // ************************************************
 //                     Public
@@ -38,7 +36,8 @@ ShopSensor::ShopSensor(
    const String& connectionId,
    const String& displayId,
    const String& powerId,
-   const String& adapterId) :
+   const String& adapterId,
+   const String& breakManagerId) :
       Component(id),
       updateTimer(0),
       displayTimer(0),
@@ -48,14 +47,13 @@ ShopSensor::ShopSensor(
       displayId(displayId),
       powerId(powerId),
       adapterId(adapterId),
+      breakManagerId(breakManagerId),
+      serverAvailable(false),
       count(0),
       totalCount(0),
       updateCount(0),
       stationId(UNKNOWN_STATION_ID),
-      stationLabel(UNKNOWN_STATION_LABEL),
-      configuredBreakCode(UNKNOWN_BREAK_CODE),
-      pendingBreakCode(NO_PENDING_BREAK_CODE),
-      breakId(NO_BREAK_ID)
+      stationLabel(UNKNOWN_STATION_LABEL)
 {
   this->pingPeriod = (this->pingPeriod > 0) ? this->pingPeriod : 1;
 }
@@ -72,14 +70,13 @@ ShopSensor::ShopSensor(
       displayId(message->getString("display")),
       powerId(message->getString("power")),
       adapterId(message->getString("adapter")),
+      breakManagerId(message->getString("breakManager")),
+      serverAvailable(false),
       count(0),
       totalCount(0),
       updateCount(0),
       stationId(UNKNOWN_STATION_ID),
-      stationLabel(UNKNOWN_STATION_LABEL),
-      configuredBreakCode(UNKNOWN_BREAK_CODE),
-      pendingBreakCode(NO_PENDING_BREAK_CODE),
-      breakId(NO_BREAK_ID)
+      stationLabel(UNKNOWN_STATION_LABEL)
 {
    pingPeriod = (pingPeriod > 0) ? pingPeriod : 1;
 }
@@ -94,10 +91,8 @@ void ShopSensor::setup()
    Component::setup();
    
    uid = getUid();
-   
-   String server = Robox::getProperties().getString("server");
 
-   configuredBreakCode = Robox::getProperties().getString("breakCode");
+   String server = Robox::getProperties().getString("server");
 
    Display* display = getDisplay();
    if (display)
@@ -116,6 +111,8 @@ void ShopSensor::setup()
    Messaging::subscribe(this, Power::POWER_INFO);
    Messaging::subscribe(this, Roboxes::Button::BUTTON_UP);
    Messaging::subscribe(this, Roboxes::Button::BUTTON_LONG_PRESS);
+   Messaging::subscribe(this, Door::DOOR_OPEN);
+   Messaging::subscribe(this, Door::DOOR_CLOSED);
    
    updateTimer = Timer::newTimer(
       getId() + ".update",
@@ -157,22 +154,39 @@ void ShopSensor::handleMessage(
    {
       onConnectionUpdate(message);
    }
-   //  buttonUp
+   //  BUTTON_UP
    else if (message->getTopic() == Roboxes::Button::BUTTON_UP)
    {
-      onButtonUp(message->getSource());
+      if (message->getSource() == SOFT_BUTTON)
+      {
+         onSoftButtonUp(message->getInt("buttonId"));
+      }
+      else
+      {
+         onButtonUp(message->getSource());
+      }
    }
-   //  buttonLongPress
+   // BUTTON_LONG_PRESS
    else if (message->getTopic() == Roboxes::Button::BUTTON_LONG_PRESS)
    {
       onButtonLongPress(message->getSource());
    }
-   //  Power source
+   // DOOR_OPEN
+   else if (message->getTopic() == Door::DOOR_OPEN)
+   {
+      onCountChanged(1);
+   }
+   // DOOR_CLOSED
+   else if (message->getTopic() == Door::DOOR_CLOSED)
+   {
+      // TODO
+   }
+   //  POWER_INFO
    else if (message->getTopic() == Power::POWER_INFO)
    {
       onPowerInfo(message);
    }   
-   //  HTTP response
+   //  HTTP_RESPONSE
    else if (message->getMessageId() == HttpClientAdapter::HTTP_RESPONSE)
    {
       onServerResponse(message);
@@ -191,15 +205,15 @@ void ShopSensor::timeout(
    if (timer == updateTimer)
    {
       bool updateRequired =
-         ((count != 0) ||                                 // Update if there is a count
-          (pendingBreakCode != NO_PENDING_BREAK_CODE) ||  // Update if there is a break
-          (updateCount == 0) ||                           // Initial update
-          ((updateCount % pingPeriod) == 0));             // Always update on ping periods
+         ((count != 0) ||                      // Update if there is a count
+          hasPendingBreak()||                  // Update if there is a break
+          (updateCount == 0) ||                // Initial update
+          ((updateCount % pingPeriod) == 0));  // Always update on ping periods
       
       if (updateRequired && isConnected() && sendUpdate())
       {
          count = 0;
-         pendingBreakCode = NO_PENDING_BREAK_CODE;
+         clearPendingBreak();
       }
       
       updateCount++;
@@ -243,7 +257,7 @@ ConnectionManager* ShopSensor::getConnection()
    return (connection);
 }
 
-Display* ShopSensor::getDisplay()
+Display* ShopSensor::getDisplay() const
 {
    static Display* display = 0;
 
@@ -255,7 +269,7 @@ Display* ShopSensor::getDisplay()
    return (display);
 }
 
-Power* ShopSensor::getPower()
+Power* ShopSensor::getPower() const
 {
    static Power* power = 0;
    
@@ -267,7 +281,7 @@ Power* ShopSensor::getPower()
    return (power);
 }
 
-Adapter* ShopSensor::getAdapter()
+Adapter* ShopSensor::getAdapter() const
 {
    static Adapter* adapter = 0;
    
@@ -277,6 +291,18 @@ Adapter* ShopSensor::getAdapter()
    }
    
    return (adapter);   
+}
+
+BreakManager* ShopSensor::getBreakManager() const
+{
+   static BreakManager* breakManager = 0;
+
+   if (!breakManager)
+   {
+      breakManager = (BreakManager*)Robox::getComponent(breakManagerId);
+   }
+
+   return (breakManager);
 }
 
 void ShopSensor::setDisplayMode(
@@ -364,26 +390,6 @@ void ShopSensor::rotateDisplay()
    }
 }
 
-void ShopSensor::toggleBreak()
-{
-   if (!isOnBreak())
-   {
-      // Toggle on.
-      pendingBreakCode = configuredBreakCode;
-   }
-   else
-   {
-      // Toggle off.
-      pendingBreakCode = NO_BREAK_CODE;
-   }
-
-   Display* display = getDisplay();
-   if (display)
-   {
-      display->updateBreak(isOnBreak());
-   }
-}
-
 void ShopSensor::onConnectionUpdate(
    MessagePtr message)
 {
@@ -415,66 +421,74 @@ void ShopSensor::onConnectionUpdate(
 void ShopSensor::onButtonUp(
    const String& buttonId)
 {
-   Logger::logDebug("ShopSensor::onButtonUp: Button [%s] pressed.", buttonId.c_str());
+   Logger::logDebug(F("ShopSensor::onButtonUp: Button [%s] pressed."), buttonId.c_str());
    
    if ((buttonId == LIMIT_SWITCH) ||
-       (buttonId == BUTTON_A) ||
-       (buttonId == INCREMENT_BUTTON))
+       (buttonId == BUTTON_A))
    {
-      count++;
-      
-      if (isOnBreak())
-      {
-         toggleBreak();
-      }
-
-      Display* display = getDisplay();
-      if (display)
-      {
-         display->updateCount(totalCount, count);
-
-#if defined(M5STICKC) || defined (M5STICKC_PLUS)
-         setDisplayMode(Display::COUNT, DISPLAY_TIME);
-#endif
-      }
-   }
-   else if (buttonId == DECREMENT_BUTTON)
-   {
-      count--;
-
-      if (isOnBreak())
-      {
-         toggleBreak();
-      }
-
-      Display* display = getDisplay();
-      if (display)
-      {
-         display->updateCount(totalCount, count);
-
-#if defined(M5STICKC) || defined (M5STICKC_PLUS)
-         setDisplayMode(Display::COUNT, DISPLAY_TIME);
-#endif
-      }
-   }
-   else if (buttonId == PAUSE_BUTTON)
-   {
-      toggleBreak();
+      onCountChanged(1);
    }
    else if (buttonId == BUTTON_B)
    {
       toggledDisplayMode();
    }
-   else if (buttonId == ROTATE_BUTTON)
+}
+
+void ShopSensor::onSoftButtonUp(
+   const int& buttonId)
+{
+   switch (buttonId)
    {
-      rotateDisplay();
+#ifdef M5TOUGH
+      case DisplayM5Tough::DisplayButton::dbINCREMENT:
+      {
+         Logger::logDebug(F("ShopSensor::onSoftButtonUp: INCREMENT pressed."), buttonId);
+         onCountChanged(1);
+         break;
+      }
+
+      case DisplayM5Tough::DisplayButton::dbDECREMENT:
+      {
+         Logger::logDebug(F("ShopSensor::onSoftButtonUp: DECREMENT pressed."), buttonId);
+         onCountChanged(-1);
+         break;
+      }
+
+      case DisplayM5Tough::DisplayButton::dbROTATE:
+      {
+         Logger::logDebug(F("ShopSensor::onSoftButtonUp: ROTATE pressed."), buttonId);
+         rotateDisplay();
+         break;
+      }
+#endif
+
+      default:
+      {
+         break;
+      }
    }
 }
 
 void ShopSensor::onButtonLongPress(
    const String& buttonId)
 {
-   Logger::logDebug("ShopSensor::onButtonLongPress: Button [%s] long-pressed.", buttonId.c_str());
+   Logger::logDebug(F("ShopSensor::onButtonLongPress: Button [%s] long-pressed."), buttonId.c_str());
+}
+
+void ShopSensor::onCountChanged(
+   const int& deltaCount)
+{
+   count += deltaCount;
+
+   Display* display = getDisplay();
+   if (display)
+   {
+      display->updateCount(totalCount, count);
+
+#if defined(M5STICKC) || defined(M5STICKC_PLUS)
+     setDisplayMode(Display::COUNT, DISPLAY_TIME);
+#endif
+   }
 }
 
 void ShopSensor::onPowerInfo(
@@ -488,7 +502,7 @@ void ShopSensor::onPowerInfo(
       
       if (!isUsbPower && Robox::getProperties().getBool("requireUsbPower"))
       {
-         Logger::logDebug("ShopSensor::onPowerInfo: Powering-off after loss of USB power");
+         Logger::logDebug(F("ShopSensor::onPowerInfo: Powering-off after loss of USB power"));
          
          Power* power = getPower();
          if (power)
@@ -516,7 +530,8 @@ bool ShopSensor::sendUpdate()
       message->set(HttpClientAdapter::ENCODING, HttpClientAdapter::URL_ENCODING);
       //message->set("subdomain", "flexscreentest");  // TODO: For local testing.  Remove.
 
-      String url = getRequestUrl("sensor");
+      String url = getRequestUrl(Robox::getProperties().getString("server"),
+                                 "sensor");
       if (url != "")
       {
          message->set("url", url);
@@ -528,9 +543,9 @@ bool ShopSensor::sendUpdate()
 
       message->set("count", count);
 
-      if (pendingBreakCode != NO_PENDING_BREAK_CODE)
+      if (hasPendingBreak())
       {
-         message->set("breakCode", pendingBreakCode);
+         message->set("breakCode", getPendingBreakCode());
       }
 
       success = Messaging::send(message);
@@ -583,10 +598,12 @@ void ShopSensor::onServerResponse(MessagePtr message)
 
             if (message->isSet("breakId"))
             {
-               breakId = message->getInt("breakId");
+               confirmBreak(message->getInt("breakId"));
             }
 
-            display->updateServer(true);
+            setServerAvailable(true);
+
+            display->updateServer(serverAvailable, NO_REDRAW);
 
             display->updateStation(stationId, stationLabel, NO_REDRAW);
 
@@ -597,9 +614,41 @@ void ShopSensor::onServerResponse(MessagePtr message)
       }
       else
       {
-         display->updateServer(false);
+         setServerAvailable(false);
+
+         display->updateServer(serverAvailable);
       }
    }
+}
+
+void ShopSensor::setServerAvailable(
+   const bool& serverAvailable)
+{
+   bool serverAvailableChanged = (this->serverAvailable != serverAvailable);
+
+   this->serverAvailable = serverAvailable;
+
+   if (serverAvailableChanged)
+   {
+      sendServerStatus();
+   }
+}
+
+bool ShopSensor::sendServerStatus()
+{
+   bool success = false;
+
+   MessagePtr message = Messaging::newMessage();
+   if (message)
+   {
+      message->setTopic(SERVER_STATUS);
+      message->setMessageId(serverAvailable ? SERVER_AVAILABLE : SERVER_UNAVAILABLE);
+      message->setSource(getId());
+
+      success = Messaging::publish(message);
+   }
+
+   return (success);
 }
 
 bool ShopSensor::isConnected()
@@ -639,33 +688,51 @@ String ShopSensor::getUid()
    return (uid);   
 }
 
-String ShopSensor::getRequestUrl(
-   const String& apiMessageId)
-{
-   String url = "";
-   
-   String server = Robox::getProperties().getString("server");
-   
-   if (server != "")
-   {
-      url = server + "/api/" + apiMessageId + "/";
-   }
-
-   return (url);
-}
-
 bool ShopSensor::isOnBreak() const
 {
-   bool isStationOnBreak = false;
+   BreakManager* breakManager = getBreakManager();
 
-   if (pendingBreakCode != NO_PENDING_BREAK_CODE)
-   {
-      isStationOnBreak = (pendingBreakCode != NO_BREAK_CODE);
-   }
-   else
-   {
-      isStationOnBreak = (breakId != NO_BREAK_ID);
-   }
+   return (breakManager && breakManager->isOnBreak());
+}
 
-   return (isStationOnBreak);
+void ShopSensor::confirmBreak(
+   const int& confirmedBreakId) const
+{
+   BreakManager* breakManager = getBreakManager();
+   if (breakManager)
+   {
+      breakManager->confirmBreak(confirmedBreakId);
+   }
+}
+
+bool ShopSensor::hasPendingBreak() const
+{
+   BreakManager* breakManager = getBreakManager();
+
+   return (breakManager && breakManager->hasPendingBreak());
+}
+
+void ShopSensor::clearPendingBreak() const
+{
+   BreakManager* breakManager = getBreakManager();
+   if (breakManager)
+   {
+      breakManager->clearPendingBreak();
+   }
+}
+
+String ShopSensor::getPendingBreakCode() const
+{
+   BreakManager* breakManager = getBreakManager();
+
+   return (breakManager ? breakManager->getPendingBreakCode() : NO_BREAK_CODE);
+}
+
+void ShopSensor::toggleBreak() const
+{
+   BreakManager* breakManager = getBreakManager();
+   if (breakManager)
+   {
+      breakManager->toggleBreak();
+   }
 }

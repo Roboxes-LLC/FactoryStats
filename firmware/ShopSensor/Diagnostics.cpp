@@ -132,18 +132,6 @@ int Diagnostics::getFreeMemory()
    return (memory);
 }
 
-ConnectionManager* Diagnostics::getConnection()
-{
-   static ConnectionManager* connection = 0;
-   
-   if (!connection)
-   {
-      connection = (ConnectionManager*)Robox::getComponent(connectionId);
-   }
-   
-   return (connection);
-}
-
 Display* Diagnostics::getDisplay()
 {
    static Display* display = 0;
