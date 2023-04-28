@@ -6,12 +6,14 @@
 #include "Connection/ConnectionManager.cpp"
 #include "Robox.hpp"
 
+#include "BreakManager.hpp"
 #include "ConfigPage.hpp"
 #include "Diagnostics.hpp"
 #include "DisplayM5Tough.hpp"
 #include "IncrementButton.hpp"
 #include "Power.hpp"
 #include "ShopSensor.hpp"
+#include "Tester.hpp"
 
 void setup()
 {

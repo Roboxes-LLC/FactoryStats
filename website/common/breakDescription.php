@@ -35,6 +35,8 @@ class BreakDescription
    
    public static function getBreakDescriptionFromCode($breakCode)
    {
+      $breakDescription = null;
+      
       $database = FactoryStatsDatabase::getInstance();
       
       if ($database && $database->isConnected())
