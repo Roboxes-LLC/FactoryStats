@@ -92,6 +92,9 @@ function renderStationSummary($stationId, $shiftId)
    $objectName = $stationInfo->objectName;
    $objectNamePlural = $stationInfo->getObjectNamePlural();
    
+   /* Hack requested by customer on 5/2/2023 in order to hide embarrassing stats. */
+   $hideForDemo = (isKioskMode() && CustomerInfo::isDemoMode()) ? "hide-for-demo" : "";
+   
    if ($stationInfo && $workstationStatus)
    {
       echo 
@@ -106,11 +109,15 @@ function renderStationSummary($stationId, $shiftId)
          <div class="large-stat urgent-stat count-div"></div>
       </div>
       
-      <div class="stat-label">Average time between $objectNamePlural</div>
-      <div class="medium-stat average-count-time-div"></div>
+      <div class="flex-vertical $hideForDemo">
+         <div class="stat-label">Average time between $objectNamePlural</div>
+         <div class="medium-stat average-count-time-div"></div>
+      </div>
       
-      <div class="stat-label">Time of last $objectName</div>
-      <div class="medium-stat update-time-div"></div>
+      <div class="flex-vertical $hideForDemo">
+         <div class="stat-label">Time of last $objectName</div>
+         <div class="medium-stat update-time-div"></div>
+      </div>
 HEREDOC;
    }
       
@@ -133,6 +140,13 @@ HEREDOC;
    <link rel="stylesheet" type="text/css" href="css/flexscreen.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/modal.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/workstationSummary.css<?php echo versionQuery();?>"/>
+
+   <!-- Hack requested by customer on 5/2/2023 in order to hide embarrassing stats. -->
+   <style>
+      .hide-for-demo {
+      	display: none;
+      }
+   </style>
    
 </head>
 

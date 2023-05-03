@@ -201,6 +201,14 @@ class CustomerInfo
                  Time::DEFAULT_TIME_ZONE);
    }
    
+   // Hack requested by customer on 5/2/2023 in order to hide embarrassing stats.
+   public static function isDemoMode()
+   {
+      return (($customerInfo = CustomerInfo::load(CustomerInfo::getCustomerId())) ?
+                 ($customerInfo->addressLine2 == "DEMO") :
+                 false);
+   }
+   
    private function initializeFromDatabaseRow($row)
    {
       if ($row)
@@ -232,7 +240,7 @@ class CustomerInfo
       {
          $subdomain = $SUBDOMAIN;
       }
-      else 
+      else if (isset($_SERVER['HTTP_HOST']))
       {
          $tokens = explode('.', $_SERVER['HTTP_HOST']);
          

@@ -163,6 +163,9 @@ function getStationPanel($stationId, $chartSize)
       $objectName = $stationInfo->objectName;
    }
    
+   /* Hack requested by customer on 5/2/2023 in order to hide embarrassing stats. */
+   $hideForDemo = (isKioskMode() && CustomerInfo::isDemoMode()) ? "hide-for-demo" : "";
+   
    $html =
 <<<HEREDOC
    <div id="station-$stationId" class="station-panel flex-vertical" style="align-items: flex-start">
@@ -178,22 +181,22 @@ function getStationPanel($stationId, $chartSize)
                <div id="count-div-$stationId" class="urgent-stat large-stat"></div>
             </div>
                
-            <div class="grid-item flex-vertical">
+            <div class="grid-item flex-vertical $hideForDemo">
                <div class="stat-label">First $objectName</div>
                <div id="first-entry-time-div-$stationId" class="small-stat"></div>
             </div>
       
-            <div class="grid-item flex-vertical">
+            <div class="grid-item flex-vertical $hideForDemo">
                <div class="stat-label">Last $objectName</div>
                <div id="last-entry-time-div-$stationId" class="small-stat"></div>
             </div>
                
-            <div class="grid-item flex-vertical">
+            <div class="grid-item flex-vertical $hideForDemo">
                <div class="stat-label">Average time</div>
                <div id="average-count-time-div-$stationId" class="small-stat"></div>
             </div>
       
-            <div class="grid-item flex-vertical">
+            <div class="grid-item flex-vertical $hideForDemo">
               <div id="elapsed-time-label-$stationId" class="stat-label">Elapsed time</div>
               <div id="break-time-label-$stationId" class="stat-label">Paused</div>
               <div id="elapsed-time-div-$stationId" class="small-stat"></div>
@@ -227,6 +230,13 @@ HEREDOC;
    
    <link rel="stylesheet" type="text/css" href="css/flex.css<?php echo versionQuery();?>"/>
    <link rel="stylesheet" type="text/css" href="css/workstations.css<?php echo versionQuery();?>"/>
+   
+   <!-- Hack requested by customer on 5/2/2023 in order to hide embarrassing stats. -->
+   <style>
+      .hide-for-demo {
+      	display: none;
+      }
+   </style>
    
 </head>
 
