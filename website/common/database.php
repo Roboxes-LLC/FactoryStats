@@ -485,6 +485,12 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       return ($result);
    }
    
+   public function userExists($username)
+   {
+      $results = $this->getUserByName($username);
+      return ($results && ($this->countResults($this->getUserByName($username)) > 0));
+   }
+   
    // **************************************************************************
    
    private static $databaseInstance = null;
