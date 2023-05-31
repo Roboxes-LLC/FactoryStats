@@ -1,9 +1,9 @@
 <?php
 
-require_once 'root.php';
-require_once 'shiftInfo.php';
-require_once 'stationGroup.php';
-require_once 'stationInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/shiftInfo.php';
+require_once ROOT.'/common/stationGroup.php';
+require_once ROOT.'/common/stationInfo.php';
 
 abstract class SlideType
 {
@@ -120,7 +120,6 @@ class SlideInfo
    
    public function getUrl($scaling = DisplaySize::UNKNOWN)
    {
-      global $ROOT;
       global $HTTP;
       
       $url = "";
@@ -141,7 +140,7 @@ class SlideInfo
          
          case SlideType::IMAGE:
          {
-            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/pages/slide.php?slideId=" . $this->slideId;
+            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . "/pages/slide.php?slideId=" . $this->slideId;
             
             // TODO: Better solution for this!
             $url .= "&authToken=jO9xT7iKvBwUsZDD56fV9UzFPin3qyvp";
@@ -151,7 +150,7 @@ class SlideInfo
          
          case SlideType::WORKSTATION_SUMMARY_PAGE:
          {
-            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstationSummary.php?kiosk=true";
+            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . "/workstationSummary.php?kiosk=true";
             
             if ($this->groupId != StationGroup::UNKNOWN_GROUP_ID)
             {
@@ -181,7 +180,7 @@ class SlideInfo
          
          case SlideType::WORKSTATION_PAGE:
          {
-            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . $ROOT . "/workstations.php?kiosk=true";            
+            $url = $HTTP . "://" . $_SERVER['HTTP_HOST'] . "/workstations.php?kiosk=true";            
             
             foreach ($this->stationIds as $stationId)
             {

@@ -1,31 +1,20 @@
 <?php
 
-require_once '../common/authentication.php';
-require_once '../common/buttonInfo.php';
-require_once '../common/breakInfo.php';
-require_once '../common/database.php';
-require_once '../common/displayInfo.php';
-require_once '../common/displayRegistry.php';
-require_once '../common/presentationInfo.php';
-require_once '../common/root.php';
-require_once '../common/sensorInfo.php';
-require_once '../common/stationInfo.php';
-require_once '../common/shiftInfo.php';
-require_once '../common/time.php';
-require_once '../common/workstationStatus.php';
-require_once 'rest.php';
-
-function updateCount($stationId, $shiftId, $screenCount)
-{
-   FactoryStatsDatabase::getInstance()->updateCount($stationId, $shiftId, $screenCount);
-}
-
-function getCount($stationId, $shiftId, $startDateTime, $endDateTime)
-{
-   $count = FactoryStatsDatabase::getInstance()->getCount($stationId, $shiftId, $startDateTime, $endDateTime);
-
-   return ($count);
-}
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/api/rest.php';
+require_once ROOT.'/common/authentication.php';
+require_once ROOT.'/common/buttonInfo.php';
+require_once ROOT.'/common/breakInfo.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/displayInfo.php';
+require_once ROOT.'/common/displayRegistry.php';
+require_once ROOT.'/common/presentationInfo.php';
+require_once ROOT.'/common/sensorInfo.php';
+require_once ROOT.'/common/stationInfo.php';
+require_once ROOT.'/common/shiftInfo.php';
+require_once ROOT.'/common/time.php';
+require_once ROOT.'/common/workstationStatus.php';
+require_once ROOT.'/core/manager/countManager.php';
 
 function getStations()
 {
@@ -754,14 +743,14 @@ $router->add("update", function($params) {
             BreakInfo::endBreak($stationId, $shiftId);
          }
    
-         updateCount($stationId, $shiftId, $count);
+         CountManager::updateCount($stationId, $shiftId, $count);
       }
 
       $now = Time::now("Y-m-d H:i:s");
       $startDateTime = Time::startOfDay($now);
       $endDateTime = Time::endOfDay($now);
 
-      $totalCount = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
+      $totalCount = CountManager::getCount($stationId, $shiftId, $startDateTime, $endDateTime);
 
       $result->stationId = $stationId;
       $result->shiftId = $shiftId;
@@ -866,7 +855,7 @@ $router->add("count", function($params) {
    $endDateTime = isset($params["endDateTime"])? $params->get("endDateTime") : Time::now("Y-m-d H:i:s");
    $endDateTime = Time::endOfHour($endDateTime);
 
-   $count = getCount($stationId, $shiftId, $startDateTime, $endDateTime);
+   $count = CountManager::getCount($stationId, $shiftId, $startDateTime, $endDateTime);
 
    $result["stationId"] = $stationId;
    $result["shiftId"] = $shiftId;

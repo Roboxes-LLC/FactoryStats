@@ -1,8 +1,9 @@
 <?php
 
-require_once '../common/database.php';
-require_once '../common/databaseKey.php';
-require_once '../common/userInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/databaseKey.php';
+require_once ROOT.'/common/userInfo.php';
 
 //phpinfo();
 

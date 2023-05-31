@@ -1,6 +1,7 @@
 <?php
 
-require_once 'time.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/time.php';
    
 class CycleTimeStatus
 {

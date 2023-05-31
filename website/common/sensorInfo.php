@@ -1,5 +1,8 @@
 <?php
-require_once 'database.php';
+
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/database.php';
+//require_once ROOT.'/core/manager/countManger.php';
 
 abstract class SensorType
 {
@@ -153,7 +156,7 @@ class SensorInfo
                      
                      if ($count != 0)
                      {
-                        FactoryStatsDatabase::getInstance()->updateCount($this->stationId, $shiftId, $count);
+                        CountManager::updateCount($this->stationId, $shiftId, $count);
                      }
                      
                      $result->ackedCount = $count;

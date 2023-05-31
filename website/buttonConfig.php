@@ -1,11 +1,12 @@
 <?php
 
-require_once 'common/buttonInfo.php';
-require_once 'common/database.php';
-require_once 'common/header.php';
-require_once 'common/params.php';
-require_once 'common/stationInfo.php';
-require_once 'common/version.php';
+if (!defined('ROOT')) require_once 'root.php';
+require_once ROOT.'/common/buttonInfo.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/header.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/stationInfo.php';
+require_once ROOT.'/common/version.php';
 
 session_start();
 

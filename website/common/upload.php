@@ -1,6 +1,6 @@
 <?php
 
-require_once 'root.php';
+if (!defined('ROOT')) require_once '../root.php';
 
 abstract class UploadStatus
 {

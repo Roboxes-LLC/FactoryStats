@@ -1,17 +1,15 @@
 <?php 
 
-require_once 'authentication.php';
-require_once 'customerInfo.php';
-require_once 'kiosk.php';
-require_once 'root.php';
-require_once 'shiftInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/authentication.php';
+require_once ROOT.'/common/customerInfo.php';
+require_once ROOT.'/common/kiosk.php';
+require_once ROOT.'/common/shiftInfo.php';
 
 class Header
 {
    public static function getHtml($includeShiftIdInput = false, $includeStationFilterInput = false, $includeCustomerFilterInput = false)
    {
-      global $ROOT;
-      
       $shiftIdInput = "";
       if ($includeShiftIdInput)
       {
@@ -105,7 +103,7 @@ HEREDOC;
             $customerFilterInput
             <i class="material-icons" style="margin-right:5px; color: #ffffff; font-size: 35px;">person</i>
             <div class="nav-username">$username &nbsp | &nbsp</div>
-            <a class="nav-link" href="$ROOT/index.php?action=logout">Logout</a>
+            <a class="nav-link" href="/index.php?action=logout">Logout</a>
 HEREDOC;
       }
          

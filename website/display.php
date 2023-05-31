@@ -1,12 +1,10 @@
 <?php
 
-require_once 'common/displayInfo.php';
-require_once 'common/root.php';
-require_once 'common/stationInfo.php';
+if (!defined('ROOT')) require_once 'root.php';
+require_once ROOT.'/common/displayInfo.php';
+require_once ROOT.'/common/stationInfo.php';
 
 session_start();
-
-global $ROOT;
 
 function getStationId()
 {
@@ -46,12 +44,12 @@ function getStationId()
 $stationId = getStationId();
 
 // Default to workstation summary.
-$url = "$ROOT/workstationSummary.php?kiosk=true";
+$url = ROOT."/workstationSummary.php?kiosk=true";
 
 // Defer to any specified station ID.
 if ($stationId != StationInfo::UNKNOWN_STATION_ID)
 {
-   $url = "$ROOT/workstation.php?stationId=$stationId&kiosk=true";
+   $url = ROOT."/workstation.php?stationId=$stationId&kiosk=true";
 }
 
 // Redirect.

@@ -1,8 +1,8 @@
 <?php
 
-require_once 'params.php';
-require_once 'root.php';
-require_once 'usa.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/usa.php';
 
 require_once 'database.php';  // TODO: Require order matters here, for some reason.
 
@@ -125,29 +125,23 @@ class CustomerInfo
    
    public static function getImagesFolder()
    {
-      global $ROOT;
-      
       $subdomain = CustomerInfo::getSubdomain();
       
-      return ("$ROOT/$subdomain/images");
+      return ("/$subdomain/images");
    }
    
    public static function getCssFolder()
    {
-      global $ROOT;
-      
       $subdomain = CustomerInfo::getSubdomain();
       
-      return ("$ROOT/$subdomain/css");
+      return ("/$subdomain/css");
    }
    
    public static function getSlideImagesFolder()
    {
-      global $ROOT;
-      
       $subdomain = CustomerInfo::getSubdomain();
       
-      return ("$ROOT/$subdomain/uploads/images");
+      return ("/$subdomain/uploads/images");
    }
    
    public static function getSlideImagesUploadFolder()

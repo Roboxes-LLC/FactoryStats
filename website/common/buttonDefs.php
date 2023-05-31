@@ -1,4 +1,5 @@
 <?php
+
 abstract class ButtonPress
 {
    const UNKNOWN = 0;

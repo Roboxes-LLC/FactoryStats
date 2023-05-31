@@ -1,12 +1,13 @@
 <?php
 
-require_once 'buttonInfo.php';
-require_once 'breakInfo.php';
-require_once 'buttonInfo.php';
-require_once 'cycleTimeStatus.php';
-require_once 'database.php';
-require_once 'stats.php';
-require_once 'time.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/buttonInfo.php';
+require_once ROOT.'/common/breakInfo.php';
+require_once ROOT.'/common/buttonInfo.php';
+require_once ROOT.'/common/cycleTimeStatus.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/stats.php';
+require_once ROOT.'/common/time.php';
 
 class WorkstationStatus
 {

@@ -1,8 +1,9 @@
 <?php
 
-require_once 'params.php';
-require_once 'database.php';
-require_once 'userInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/userInfo.php';
 
 abstract class AuthenticationResult
 {

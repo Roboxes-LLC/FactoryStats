@@ -1,10 +1,11 @@
 <?php
 
-require_once 'common/authentication.php';
-require_once 'common/demo.php';
-require_once 'common/header.php';
-require_once 'common/params.php';
-require_once 'common/version.php';
+if (!defined('ROOT')) require_once 'root.php';
+require_once ROOT.'/common/authentication.php';
+require_once ROOT.'/common/demo.php';
+require_once ROOT.'/common/header.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/version.php';
 
 function getParams()
 {
