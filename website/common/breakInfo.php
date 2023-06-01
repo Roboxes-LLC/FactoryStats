@@ -1,9 +1,11 @@
 <?php
-require_once 'breakDescription.php';
-require_once 'database.php';
-require_once 'shiftInfo.php';
-require_once 'stationInfo.php';
-require_once 'time.php';
+
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/breakDescription.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/shiftInfo.php';
+require_once ROOT.'/common/stationInfo.php';
+require_once ROOT.'/common/time.php';
 
 class BreakInfo
 {
