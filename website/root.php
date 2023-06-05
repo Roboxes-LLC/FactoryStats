@@ -5,7 +5,7 @@ define("ROOT", __DIR__);
 // Subdomain
 // Uncomment this to enable a local server or to spoof a subdomain for testing.
 // Otherwise, subdomain will be inferred from first token in the URL.
-#$SUBDOMAIN = "flexscreentest";
+//$SUBDOMAIN = "flexscreentest";
 
 // Subdomain of the display registry
 $DISPLAY_REGISTRY = "displayregistry";
@@ -14,10 +14,10 @@ $DISPLAY_REGISTRY = "displayregistry";
 $IMAGES_DIR = "/images";
 
 // Folder for display firmware.
-$DISPLAY_FIRMWARE_DIR = "./firmware/display";
+$DISPLAY_FIRMWARE_DIR = ROOT."/firmware/display";
 
 // HTTP/HTTPS prefix
-$HTTP = "http";  // Select for local testing.
-//$HTTP = "https";   // Select for production.
+//$HTTP = "http";  // Select for local testing.
+$HTTP = "https";   // Select for production.
 
 ?>

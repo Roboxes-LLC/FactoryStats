@@ -49,15 +49,20 @@ class PluginTest
       
       $test = new PluginTest();
       
-      $test->testSave_Add();
-      
-      if (PluginTest::$newPluginId != Plugin::UNKNOWN_PLUGIN_ID)
+      if (!PluginManager::pluginsSupported())
       {
-         PluginManager::initialize();
+         echo "Plugins are not supported for this site.<br>";
+      }
+      else
+      {
+         $test->testSave_Add();
          
-         $test->testHandleEvent();
-         
-         $test->testDelete();
+         if (PluginTest::$newPluginId != Plugin::UNKNOWN_PLUGIN_ID)
+         {
+            $test->testHandleEvent();
+            
+            $test->testDelete();
+         }
       }
    }
    

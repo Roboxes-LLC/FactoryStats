@@ -8,9 +8,9 @@ require_once ROOT.'/plugin/precisionCounter.php';
 
 class PluginManager
 {      
-   public static function initialize()
+   public static function pluginsSupported()
    {
-      PluginManager::getPlugins();
+      return (FactoryStatsDatabase::getInstance()->pluginTableExists());
    }
    
    public static function register($plugin, $event)
@@ -58,6 +58,11 @@ class PluginManager
       return (isset($_SESSION["pluginRegistry"]) && isset($_SESSION["plugins"]));
    }
    
+   private static function initialize()
+   {
+      PluginManager::getPlugins();
+   }
+      
    private static function &getRegistry()
    {
       if (!isset($_SESSION["pluginRegistry"]))
@@ -74,17 +79,20 @@ class PluginManager
       {
          $_SESSION["plugins"] = array();
          
-         $result = FactoryStatsDatabase::getInstance()->getPlugins();
-         
-         foreach ($result as $row)
+         if (PluginManager::pluginsSupported())
          {
-            $plugin = PluginManager::createPlugin($row);
+            $result = FactoryStatsDatabase::getInstance()->getPlugins();
             
-            if ($plugin)
+            foreach ($result as $row)
             {
-               $_SESSION["plugins"][$plugin->pluginId] = $plugin;
+               $plugin = PluginManager::createPlugin($row);
                
-               $plugin->register();
+               if ($plugin)
+               {
+                  $_SESSION["plugins"][$plugin->pluginId] = $plugin;
+                  
+                  $plugin->register();
+               }
             }
          }
       }

@@ -2,7 +2,7 @@
 
 if (!defined('ROOT')) require_once '../root.php';
 require_once ROOT.'/common/database.php';
-require_once ROOT.'/core/manager/countManger.php';
+require_once ROOT.'/core/manager/countManager.php';
 
 abstract class SensorType
 {

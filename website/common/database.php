@@ -1756,6 +1756,24 @@ class FactoryStatsDatabase extends PDODatabase
    // **************************************************************************
    //                                Plugin
    
+   public function pluginTableExists()
+   {
+      $tableExists = false;
+      
+      $statement = $this->pdo->prepare("DESCRIBE plugin;");
+    
+      try
+      {
+         $tableExists = ($statement->execute() !== false);
+      }
+      catch (Exception $e)
+      {
+         // Table doesn't exist.
+      }
+
+      return ($tableExists);
+   }
+   
    public function getPlugin($pluginId)
    {
       $statement = $this->pdo->prepare("SELECT * from plugin WHERE pluginId = ?;");
