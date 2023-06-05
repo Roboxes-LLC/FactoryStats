@@ -1,6 +1,7 @@
 <?php
 
-require_once '../common/params.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/params.php';
 
 class Router
 {

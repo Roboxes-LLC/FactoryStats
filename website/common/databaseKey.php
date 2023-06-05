@@ -1,7 +1,8 @@
 <?php
 
-require_once 'customerInfo.php';
-require_once 'databaseDefs.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/customerInfo.php';
+require_once ROOT.'/common/databaseDefs.php';
 
 // Uncomment one to select database type.
 // Edit here:

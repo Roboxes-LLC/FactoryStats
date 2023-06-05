@@ -1,6 +1,7 @@
 <?php
 
-require_once '../common/databaseKey.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/databaseKey.php';
 
 function mysqlTest($iterations)
 {

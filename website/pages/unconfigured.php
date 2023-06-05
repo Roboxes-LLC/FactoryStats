@@ -1,8 +1,9 @@
 <?php
 
-require_once '../common/customerInfo.php';
-require_once '../common/params.php';
-require_once '../common/version.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/customerInfo.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/version.php';
 
 function getParams()
 {

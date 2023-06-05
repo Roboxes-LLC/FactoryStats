@@ -1,7 +1,9 @@
 <?php
-require_once 'database.php';
-require_once 'stats.php';
-require_once 'time.php';
+
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/stats.php';
+require_once ROOT.'/common/time.php';
 
 class DailySummary
 {

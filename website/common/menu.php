@@ -1,17 +1,14 @@
 <?php 
-require_once 'root.php';
 
 function getMenuItem($id, $permissionId, $url, $title)
 {
-   global $ROOT;
-   
    $html = "";
    
    if (Authentication::checkPermissions($permissionId))
    {
       $html = 
 <<<HEREDOC
-      <div id="$id" class="menu-item"><a href="$ROOT/$url">$title</a></div>
+      <div id="$id" class="menu-item"><a href="$url">$title</a></div>
 HEREDOC;
    }
    

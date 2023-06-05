@@ -1,7 +1,7 @@
 <?php
 
-require_once 'root.php';
-require_once 'slideInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/slideInfo.php';
 
 class PresentationInfo
 {

@@ -1,10 +1,11 @@
 <?php
 
-require_once 'common/database.php';
-require_once 'common/header.php';
-require_once 'common/params.php';
-require_once 'common/stationGroup.php';
-require_once 'common/version.php';
+if (!defined('ROOT')) require_once 'root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/header.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/stationGroup.php';
+require_once ROOT.'/common/version.php';
 
 session_start();
 

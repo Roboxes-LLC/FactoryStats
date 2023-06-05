@@ -1,12 +1,16 @@
 <?php
 
-require_once 'common/database.php';
-require_once 'common/header.php';
-require_once 'common/params.php';
-require_once 'common/userInfo.php';
-require_once 'common/version.php';
+if (!defined('ROOT')) require_once 'root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/header.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/userInfo.php';
+require_once ROOT.'/common/version.php';
 
 session_start();
+
+// Set this variable if an attempt is made to create a duplicate user.
+$duplicateUsername = null;
 
 if (!(Authentication::isAuthenticated() &&
       Authentication::checkPermissions(Permission::USER_CONFIG)))
@@ -97,6 +101,8 @@ function getRoleOptions()
 
 function addUser($firstName, $lastName, $username, $password, $role, $email)
 {
+   global $duplicateUsername;
+   
    $userInfo = new UserInfo();
    
    $roleDetails = Role::getRole($role);
@@ -116,7 +122,16 @@ function addUser($firstName, $lastName, $username, $password, $role, $email)
    
    if ($database && $database->isConnected())
    {
-      $database->newUser($userInfo, CustomerInfo::getCustomerId());
+      // Check that the username is unique.
+      if (!$database->userExists($userInfo->username))
+      {
+         $database->newUser($userInfo, CustomerInfo::getCustomerId());
+      }
+      else
+      {
+         // Set a global variable that will be used below to show a warning dialog.
+         $duplicateUsername = $userInfo->username;
+      }
    }
 }
 
@@ -283,11 +298,24 @@ switch ($params->get("action"))
    </div>
 </div>
 
+<div id="duplidate-username-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>User <?php echo $duplicateUsername ?> already exists</p>
+   </div>
+</div>
+
 <script src="script/flexscreen.js<?php echo versionQuery();?>"></script>
 <script src="script/modal.js<?php echo versionQuery();?>"></script>
 <script src="script/userConfig.js<?php echo versionQuery();?>"></script>
 <script>
    setMenuSelection(MenuItem.CONFIGURATION);
+   
+   // Show the duplicate username modal, if necessary.
+   if (<?php echo ($duplicateUsername ? "true" : "false")?>)
+   {
+      showModal("duplidate-username-modal");
+   }
 </script>
 
 </body>

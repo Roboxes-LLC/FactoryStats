@@ -1,13 +1,14 @@
 <?php
 
-require_once 'common/database.php';
-require_once 'common/displayFirmwareInfo.php';
-require_once 'common/displayInfo.php';
-require_once 'common/displayRegistry.php';
-require_once 'common/header.php';
-require_once 'common/params.php';
-require_once 'common/stationInfo.php';
-require_once 'common/version.php';
+if (!defined('ROOT')) require_once 'root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/displayFirmwareInfo.php';
+require_once ROOT.'/common/displayInfo.php';
+require_once ROOT.'/common/displayRegistry.php';
+require_once ROOT.'/common/header.php';
+require_once ROOT.'/common/params.php';
+require_once ROOT.'/common/stationInfo.php';
+require_once ROOT.'/common/version.php';
 
 session_start();
 

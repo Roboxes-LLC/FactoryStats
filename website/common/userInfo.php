@@ -1,8 +1,9 @@
 <?php
 
-require_once 'database.php';
-require_once 'permissions.php';
-require_once 'roles.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/permissions.php';
+require_once ROOT.'/common/roles.php';
 
 class UserInfo
 {

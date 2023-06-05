@@ -1,6 +1,7 @@
 <?php
 
-require_once '../common/version.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/version.php';
 
 ?>
 

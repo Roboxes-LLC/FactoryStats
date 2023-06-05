@@ -1,8 +1,10 @@
 <?php
-require_once 'database.php';
-require_once 'displayDefs.php';
-require_once 'presentationInfo.php';
-require_once 'time.php';
+
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/database.php';
+require_once ROOT.'/common/displayDefs.php';
+require_once ROOT.'/common/presentationInfo.php';
+require_once ROOT.'/common/time.php';
 
 class DisplayInfo
 {

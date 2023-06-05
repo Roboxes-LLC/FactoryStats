@@ -1,17 +1,18 @@
 <?php
 
-require_once 'breakInfo.php';
-require_once 'buttonInfo.php';
-require_once 'databaseDefs.php';
-require_once 'databaseKey.php';
-require_once 'displayInfo.php';
-require_once 'displayRegistry.php';
-require_once 'roles.php';
-require_once 'sensorInfo.php';
-require_once 'shiftInfo.php';
-require_once 'slideInfo.php';
-require_once 'time.php';
-require_once 'userInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/breakInfo.php';
+require_once ROOT.'/common/buttonInfo.php';
+require_once ROOT.'/common/databaseDefs.php';
+require_once ROOT.'/common/databaseKey.php';
+require_once ROOT.'/common/displayInfo.php';
+require_once ROOT.'/common/displayRegistry.php';
+require_once ROOT.'/common/roles.php';
+require_once ROOT.'/common/sensorInfo.php';
+require_once ROOT.'/common/shiftInfo.php';
+require_once ROOT.'/common/slideInfo.php';
+require_once ROOT.'/common/time.php';
+require_once ROOT.'/common/userInfo.php';
 
 interface Database
 {
@@ -483,6 +484,12 @@ class FactoryStatsGlobalDatabase extends PDODatabase
       $result = $statement->execute([$userId, $customerId]);
       
       return ($result);
+   }
+   
+   public function userExists($username)
+   {
+      $results = $this->getUserByName($username);
+      return ($results && ($this->countResults($this->getUserByName($username)) > 0));
    }
    
    // **************************************************************************
@@ -1742,6 +1749,179 @@ class FactoryStatsDatabase extends PDODatabase
       $statement = $this->pdo->prepare("DELETE FROM group_station WHERE groupId = ? AND stationId = ?;");
       
       $result = $statement->execute([$groupId, $stationId]);
+      
+      return ($result);
+   }
+   
+   // **************************************************************************
+   //                                Plugin
+   
+   public function pluginTableExists()
+   {
+      $tableExists = false;
+      
+      $statement = $this->pdo->prepare("DESCRIBE plugin;");
+    
+      try
+      {
+         $tableExists = ($statement->execute() !== false);
+      }
+      catch (Exception $e)
+      {
+         // Table doesn't exist.
+      }
+
+      return ($tableExists);
+   }
+   
+   public function getPlugin($pluginId)
+   {
+      $statement = $this->pdo->prepare("SELECT * from plugin WHERE pluginId = ?;");
+      
+      $result = $statement->execute([$pluginId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function getPlugins()
+   {
+      $statement = $this->pdo->prepare("SELECT * from plugin ORDER BY pluginId ASC;");
+      
+      $result = $statement->execute() ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function addPlugin($plugin)
+   {
+      $statement = $this->pdo->prepare(
+         "INSERT INTO plugin (class, config, status) " .
+         "VALUES (?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $plugin->class,
+            json_encode($plugin->config),
+            json_encode($plugin->status)
+         ]);
+      
+      return ($result);
+   }
+   
+   public function updatePlugin($plugin)
+   {
+      $statement = $this->pdo->prepare(
+         "UPDATE plugin " .
+         "SET class = ?, config = ?, status = ? " .
+         "WHERE pluginId = ?;");
+      
+      $result = $statement->execute(
+         [
+            $plugin->class,
+            json_encode($plugin->config),
+            json_encode($plugin->status),
+            $plugin->pluginId
+         ]);
+   
+      return ($result);
+   }
+   
+   public function deletePlugin($pluginId)
+   {
+      $statement = $this->pdo->prepare("DELETE FROM plugin WHERE pluginId = ?;");
+      
+      $result = $statement->execute([$pluginId]);
+      
+      return ($result);
+   }   
+   
+   // **************************************************************************
+   //                        Exact Count (experimental)
+   
+   public function getExactCount($stationId, $shiftId, $startDateTime, $endDateTime)
+   {
+      $count = 0;
+      
+      $params = array();
+      
+      $stationClause = "";
+      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+      {
+         $stationClause = "stationId = ? AND";
+         $params[] = $stationId;
+      }
+      
+      $shiftClause = "";
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $shiftClause = "shiftId = ? AND";
+         $params[] = $shiftId;
+      }
+      
+      $params[] = Time::toMySqlDate($startDateTime);
+      $params[] = Time::toMySqlDate($endDateTime);
+      
+      $query = "SELECT SUM(count) AS countSum FROM exactcount WHERE $stationClause $shiftClause dateTime BETWEEN ? AND ?;";
+      
+      $statement = $this->pdo->prepare($query);
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
+      
+      if ($result && ($row = $result[0]))
+      {
+         $count = intval($row['countSum']);
+      }
+      
+      return ($count);
+   }
+   
+   public function getExactCounts($stationId, $shiftId, $startDateTime, $endDateTime)
+   {
+      $params = array();
+      
+      $stationClause = "";
+      if ($stationId != StationInfo::UNKNOWN_STATION_ID)
+      {
+         $stationClause = "stationId = ? AND";
+         $params[] = $stationId;
+      }
+      
+      $shiftClause = "";
+      if ($shiftId != ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $shiftClause = "shiftId = ? AND";
+         $params[] = $shiftId;
+      }
+      
+      $params[] = Time::toMySqlDate($startDateTime);
+      $params[] = Time::toMySqlDate($endDateTime);
+      
+      $statement = $this->pdo->prepare(
+         "SELECT * FROM exactcount " .
+         "WHERE $stationClause $shiftClause dateTime BETWEEN ? AND ? " .
+         "ORDER BY stationId ASC, dateTime ASC;");
+      
+      $result = $statement->execute($params) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
+   
+   public function updateExactCount($stationId, $shiftId, $count)
+   {
+      $dateTime = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+      
+      $statement = $this->pdo->prepare(
+         "INSERT INTO exactcount " .
+         "(dateTime, stationId, shiftId, count) " .
+         "VALUES (?, ?, ?, ?);");
+      
+      $result = $statement->execute(
+         [
+            $dateTime,
+            $stationId,
+            $shiftId,
+            $count
+         ]);
       
       return ($result);
    }

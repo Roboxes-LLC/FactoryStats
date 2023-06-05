@@ -1,8 +1,9 @@
 <?php
 
-require_once '../common/authentication.php';
-require_once '../common/customerInfo.php';
-require_once '../common/slideInfo.php';
+if (!defined('ROOT')) require_once '../root.php';
+require_once ROOT.'/common/authentication.php';
+require_once ROOT.'/common/customerInfo.php';
+require_once ROOT.'/common/slideInfo.php';
 
 session_start();
 
