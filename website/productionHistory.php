@@ -173,25 +173,32 @@ function getDailyCountData()
          $dateTime = Time::getDateTime($dailySummary->lastEntry);
          $lastEntryString = $dateTime->format("h:i A");
       }
+      
+      $totalTimeString = "---";
+      if ($dailySummary->totalCountTime > 0)
+      {
+         $hours = ($dailySummary->totalCountTime / 3600);
+         $totalTimeString = number_format($hours, 2, '.', '');
+      }
        
-      $timeString = "---";
+      $averageTimeString = "---";
       if ($dailySummary->averageCountTime > 0)
       {
-         $timeString = "";
+         $averageTimeString = "";
            
          if ($hours > 0)
          {
-             $timeString .= $hours . (($hours > 1) ? " hours " : " hour ");
+            $averageTimeString .= $hours . (($hours > 1) ? " hours " : " hour ");
          }
            
          if (($hours > 0) || ($minutes > 0))
          {
-             $timeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
+            $averageTimeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
          }
            
          if ($hours == 0)
          {
-             $timeString .= $seconds . " seconds";
+            $averageTimeString .= $seconds . " seconds";
          }
       }
       
@@ -202,7 +209,8 @@ function getDailyCountData()
       $row["count"] = $countString;
       $row["firstEntry"] = $firstEntryString;
       $row["lastEntry"] = $lastEntryString;
-      $row["time"] = $timeString;
+      $row["totalTime"] = $totalTimeString;
+      $row["averageTime"] = $averageTimeString;
       
       $data[] = $row;
    }
@@ -374,6 +382,7 @@ function renderDailyCountsTable()
          <th>Count</th>
          <th>First Update</th>
          <th>Last Update</th>
+         <th>Total Time (hours)</th>
          <th>Average Time Between Updates</th>
       </tr>
 HEREDOC;
@@ -396,11 +405,7 @@ HEREDOC;
             
       $dateTime = Time::getDateTime($dailySummary->date);
       $dateString = $dateTime->format("m-d-Y");
-      
-      $hours = floor(($dailySummary->averageCountTime / 3600));
-      $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
-      $seconds = ($dailySummary->averageCountTime % 60);
-      
+            
       $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
       
       $firstEntryString = "---";
@@ -417,24 +422,39 @@ HEREDOC;
          $lastEntryString = $dateTime->format("h:i A");
       }
       
-      $timeString = "---";
+      // Total time
+      
+      $totalTimeString = "---";
+      if ($dailySummary->totalCountTime > 0)
+      {
+         $hours = ($dailySummary->totalCountTime / 3600);
+         $totalTimeString = number_format($hours, 2, '.', '');
+      }
+      
+      // Average time
+                  
+      $averageTimeString = "---";
       if ($dailySummary->averageCountTime > 0)
       {
-         $timeString = "";
+         $hours = floor(($dailySummary->averageCountTime / 3600));
+         $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
+         $seconds = ($dailySummary->averageCountTime % 60);
+         
+         $averageTimeString = "";
          
          if ($hours > 0)
          {
-            $timeString .= $hours . (($hours > 1) ? " hours " : " hour ");
+            $averageTimeString .= $hours . (($hours > 1) ? " hours " : " hour ");
          }
          
          if (($hours > 0) || ($minutes > 0))
          {
-            $timeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
+            $averageTimeString .= $minutes . (($minutes > 1) ? " minutes " : " minute ");
          }
          
          if ($hours == 0)
          {
-            $timeString .= $seconds . " seconds";
+            $averageTimeString .= $seconds . " seconds";
          }
       }
       
@@ -447,7 +467,8 @@ HEREDOC;
             <td>$countString</td>
             <td>$firstEntryString</td>
             <td>$lastEntryString</td>
-            <td>$timeString</td>
+            <td>$totalTimeString</td>
+            <td>$averageTimeString</td>
          </tr>
 HEREDOC;
       
@@ -747,7 +768,7 @@ if ($params->keyExists("action") &&
    {
       case Table::DAILY_COUNTS:
       {
-         $header = array("Workstation", "Shift", "Date", "Count", "First Update", "Last Update", "Average Time Between Updates");
+         $header = array("Workstation", "Shift", "Date", "Count", "First Update", "Last Update", "Total Time (hours)", "Average Time Between Updates");
          $data = getDailyCountData();
          $filename = "dailyCounts.csv";
          break;

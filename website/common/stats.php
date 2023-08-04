@@ -44,6 +44,27 @@ class Stats
       return ($averageCountTime);
    }
    
+   public static function getTotalCountTime($stationId, $shiftId, $startDateTime, $endDateTime)
+   {
+      $totalCountTime = 0;
+      
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $firstEntry = $database->getFirstEntry($stationId, $shiftId, $startDateTime, $endDateTime);
+         $lastEntry = $database->getLastEntry($stationId, $shiftId, $startDateTime, $endDateTime);
+         
+         if ($firstEntry && $lastEntry && ($firstEntry != $lastEntry))
+         {
+            // Determine the interval between the last and first entries.  (seconds)
+            $totalCountTime = Time::differenceSeconds($firstEntry, $lastEntry);
+         }
+      }
+      
+      return ($totalCountTime);
+   }
+   
    public static function getBreakTime($stationId, $shiftId, $startDateTime, $endDateTime)
    {
       $breakTime = 0;
