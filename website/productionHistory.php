@@ -153,13 +153,9 @@ function getDailyCountData()
        
       $dateTime = Time::getDateTime($dailySummary->date);
       $dateString = $dateTime->format("m-d-Y");
-       
-      $hours = floor(($dailySummary->averageCountTime / 3600));
-      $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
-      $seconds = ($dailySummary->averageCountTime % 60);
-       
+              
       $countString = ($dailySummary->count > 0) ? $dailySummary->count : "---";
-       
+             
       $firstEntryString = "---";
       if ($dailySummary->firstEntry)
       {
@@ -174,16 +170,24 @@ function getDailyCountData()
          $lastEntryString = $dateTime->format("h:i A");
       }
       
+      // Total time
+            
       $totalTimeString = "---";
       if ($dailySummary->totalCountTime > 0)
       {
          $hours = ($dailySummary->totalCountTime / 3600);
          $totalTimeString = number_format($hours, 2, '.', '');
       }
+      
+      // Average time      
        
       $averageTimeString = "---";
       if ($dailySummary->averageCountTime > 0)
       {
+         $hours = floor(($dailySummary->averageCountTime / 3600));
+         $minutes = floor((($dailySummary->averageCountTime % 3600) / 60));
+         $seconds = ($dailySummary->averageCountTime % 60);
+         
          $averageTimeString = "";
            
          if ($hours > 0)
