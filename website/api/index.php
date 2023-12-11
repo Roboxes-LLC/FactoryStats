@@ -695,9 +695,10 @@ $router->add("displayStatus", function($params) {
 
 $router->add("update", function($params) {
    $result = new stdClass();
+   $result->success = false;
 
    $stationId = StationInfo::UNKNOWN_STATION_ID;
-   $shiftId = ShiftInfo::DEFAULT_SHIFT_ID;
+   $shiftId = ShiftInfo::getDefaultShift();
 
    if (isset($params["stationId"]))
    {
@@ -752,6 +753,7 @@ $router->add("update", function($params) {
 
       $totalCount = CountManager::getCount($stationId, $shiftId, $startDateTime, $endDateTime);
 
+      $result->success = true;
       $result->stationId = $stationId;
       $result->shiftId = $shiftId;
       $result->count = $totalCount;
@@ -921,6 +923,7 @@ $router->add("stations", function($params) {
 
 $router->add("workstationSummary", function($params) {
    $result = new stdClass();
+   $result->success = true;
    $result->workstationSummary = array();
 
    $stations = getStations();

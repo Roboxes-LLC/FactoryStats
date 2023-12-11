@@ -48,6 +48,23 @@ class ShiftInfo
       return ($shiftInfo);
    }
    
+   public static function getDefaultShift()
+   {
+      static $shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
+      
+      if ($shiftId == ShiftInfo::UNKNOWN_SHIFT_ID)
+      {
+         $result = FactoryStatsDatabase::getInstance()->getShifts();
+         
+         if ($result && ($row = $result[0]))
+         {
+            $shiftId = intval($row["shiftId"]);
+         }
+      }
+      
+      return ($shiftId);
+   }
+   
    public static function getShift($time)
    {
       $shiftId = ShiftInfo::UNKNOWN_SHIFT_ID;
@@ -144,7 +161,7 @@ class ShiftInfo
    
    static function getShiftId()
    {
-      $shiftId = ShiftInfo::DEFAULT_SHIFT_ID;
+      $shiftId = ShiftInfo::getDefaultShift();
       
       $params = Params::parse();
       

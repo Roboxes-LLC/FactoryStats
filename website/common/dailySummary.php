@@ -115,7 +115,7 @@ class DailySummary
 if (isset($_GET["stationId"]))
 {
    $stationId = $_GET["stationId"];
-   $shiftId = isset($_GET["shiftId"]) ? $_GET["shiftId"] : ShiftInfo::DEFAULT_SHIFT_ID;
+   $shiftId = isset($_GET["shiftId"]) ? $_GET["shiftId"] : ShiftInfo::getDefaultShift();
    $dailySummary = DailySummary::getDailySummary($stationId, $shiftId, Time::now("Y-m-d H:i:s"));
 
    if ($dailySummary)
@@ -136,7 +136,7 @@ if (isset($_GET["stationId"]))
 else if (isset($_GET["startDate"]) && isset($_GET["startDate"]))
 {
    $stationId = isset($_GET["stationId"]) ? $_GET["stationId"] : "ALL";
-   $shiftId = isset($_GET["shiftId"]) ? $_GET["shiftId"] : ShiftInfo::DEFAULT_SHIFT_ID;
+   $shiftId = isset($_GET["shiftId"]) ? $_GET["shiftId"] : ShiftInfo::getDefaultShift();
    $startDate = $_GET["startDate"];
    $endDate = $_GET["endDate"];
 
