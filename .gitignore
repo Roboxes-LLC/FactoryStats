@@ -41,4 +41,5 @@ thirdParty/
 firmware/ShopSensor/build/
 CMakeLists.txt
 sdkconfig
+sdkconfig.old
 dependencies.lock

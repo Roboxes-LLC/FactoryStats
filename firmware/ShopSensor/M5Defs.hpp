@@ -1,9 +1,9 @@
 #pragma once
 
 // Uncomment to build for M5 devices
-#define M5STICKC
+//#define M5STICKC
 //#define M5STICKC_PLUS
-//#define M5TOUGH
+#define M5TOUGH
 
 #if defined(M5STICKC)
 #include <M5StickC.h>
