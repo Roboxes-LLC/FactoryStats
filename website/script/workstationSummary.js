@@ -1,30 +1,20 @@
 function update()
 {
-   var requestURL = "api/workstationSummary/?shiftId=" + getShiftId();
-      
-   var xhttp = new XMLHttpRequest();
-   xhttp.onreadystatechange = function()
-   {
-      if (this.readyState == 4 && this.status == 200)
+   var requestUrl = "api/workstationSummary/?shiftId=" + getShiftId();
+   
+   ajaxRequest(requestUrl, function(response) {
+      if (response.success == true)
       {
-         try
+         for (var i = 0; i < response.workstationSummary.length; i++)
          {
-            var json = JSON.parse(this.responseText);
-
-            for (var i = 0; i < json.workstationSummary.length; i++)
-            {
-               updateWorkstation(json.workstationSummary[i]);
-            }
+            updateWorkstation(response.workstationSummary[i]);
          }
-         catch (exception)
-         {
-            console.log("JSON syntax error");
-            console.log(this.responseText);
-         }         
       }
-   };
-   xhttp.open("GET", requestURL, true);
-   xhttp.send();
+      else
+      {
+         console.log("Call to fetch workstation summaries.");
+      }
+   });
 }
 
 function getWorkstationDiv(stationId)

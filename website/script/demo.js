@@ -19,34 +19,24 @@ class Demo
    
    fetchStationIds()
    {
-      var requestURL = "api/workstationSummary/?shiftId=" + getShiftId();
-         
-      var xhttp = new XMLHttpRequest();
-      xhttp.demo = this;
-      xhttp.onreadystatechange = function()
-      {
-         if (this.readyState == 4 && this.status == 200)
+      var requestUrl = "api/workstationSummary/?shiftId=" + getShiftId();
+      
+      ajaxRequest(requestUrl, function(response) {
+         if (response.success == true)
          {
-            try
+            console.log(response);
+            this.stationIds = [];
+
+            for (var i = 0; i < response.workstationSummary.length; i++)
             {
-               var json = JSON.parse(this.responseText);
-               
-               this.demo.stationIds = [];
-   
-               for (var i = 0; i < json.workstationSummary.length; i++)
-               {
-                  this.demo.stationIds[i] = json.workstationSummary[i].stationId;
-               }
+               this.stationIds[i] = response.workstationSummary[i].stationId;
             }
-            catch (exception)
-            {
-               console.log("JSON syntax error");
-               console.log(this.responseText);
-            }         
          }
-      };
-      xhttp.open("GET", requestURL, true);
-      xhttp.send();
+         else
+         {
+            console.log("Call to fetch station ids failed.");
+         }
+      }.bind(this));
    }
    
    initiateNextInterval()
@@ -79,19 +69,17 @@ class Demo
    
    static incrementCount(shiftId, stationId)
    {
-      var requestURL = "api/update/?stationId=" + stationId + "&shiftId=" + shiftId + "&count=1";
+      var requestUrl = "api/update/?stationId=" + stationId + "&shiftId=" + shiftId + "&count=1";
       
-      var xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function()
-      {
-         if (this.readyState == 4 && this.status == 200)
+      ajaxRequest(requestUrl, function(response) {
+         if (response.success == true)
          {
-            var json = JSON.parse(this.responseText);
-   
             update();
          }
-      };
-      xhttp.open("GET", requestURL, true);
-      xhttp.send(); 
+         else
+         {
+            console.log("Call to increment count failed.");
+         }
+      }.bind(this));
    }   
 }
