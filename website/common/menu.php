@@ -40,8 +40,8 @@ function toggleSubmenu(submenu)
    ?>
    <div>
       <div id="menu-item-configuration" class="menu-item" ontouch="toggleSubmenu('config-submenu')">Config</div>
-      <div id="config-submenu" class="flex-vertical submenu-div">
-         <?php
+      <!-- Note: CSS removal of empty submenu uses :empty and requires no whitespace in the .submenu div -->
+      <div id="config-submenu" class="flex-vertical submenu-div"><?php
             echo getMenuItem("menu-item-user-config", Permission::USER_CONFIG, "userConfig.php", "Users");
             echo getMenuItem("menu-item-shift-config", Permission::CUSTOMER_CONFIG, "shiftConfig.php", "Shifts");
             echo getMenuItem("menu-item-station-config", Permission::STATION_CONFIG, "stationConfig.php", "Workstations");
@@ -51,8 +51,7 @@ function toggleSubmenu(submenu)
             echo getMenuItem("menu-item-display-config", Permission::DISPLAY_CONFIG, "displayConfig.php", "Displays");
             echo getMenuItem("menu-item-presentation-config", Permission::PRESENTATION_CONFIG, "presentationConfig.php", "Presentations");
             echo getMenuItem("menu-item-break-config", Permission::BREAK_CONFIG, "breakDescriptionConfig.php", "Breaks");
-         ?>
-      </div>
+         ?></div>
    </div>
    <div class="menu-item-spacer"></div>
 </div>

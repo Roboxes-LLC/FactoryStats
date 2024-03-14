@@ -51,7 +51,8 @@ HEREDOC;
          // A special "display" user authToken is hardcoded in SlideInfo::getUrl() and used when loading
          // Factory Stats pages into the slideshow.  Until this is reworked, hide this special user
          // from viewing/editing.         
-         if ($userInfo->userId != UserInfo::DISPLAY_USER_ID)
+         if (($userInfo->userId != UserInfo::DISPLAY_USER_ID) &&
+             (($userInfo->roles != Role::SUPER_USER) || (Authentication::getAuthenticatedUser()->roles == Role::SUPER_USER)))  // Hide super users from all others.
          {
             $name = $userInfo->getFullName();
             
@@ -64,6 +65,23 @@ HEREDOC;
             
             $siteCount = count($userInfo->getCustomers());
             
+            // Show a Remove/Delete button, based on the user's membership at one or more sites.
+            $removeDeleteButton = "";
+            if ($siteCount > 1)
+            {
+               $removeDeleteButton =
+<<<HEREDOC
+               <button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-remove-modal');">Remove</button>
+HEREDOC;
+            }
+            else
+            {
+               $removeDeleteButton =
+<<<HEREDOC
+               <button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button>
+HEREDOC;
+            }
+            
             echo 
 <<<HEREDOC
             <tr>
@@ -72,8 +90,8 @@ HEREDOC;
                <td>$roleName</td>
                <td>$userInfo->email</td>
                <td>$siteCount</td>
-               <td><button class="config-button" onclick="setUserInfo($userInfo->userId, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></div></td>
-               <td><button class="config-button" onclick="setUserId($userInfo->userId); showModal('confirm-delete-modal');">Delete</button></div></td>
+               <td><button class="config-button" onclick="setUserInfo($userInfo->userId, '$userInfo->firstName', '$userInfo->lastName', '$userInfo->username', '$userInfo->roles', '$userInfo->email', '$userInfo->authToken'); showModal('config-modal');">Configure</button></td>
+               <td>$removeDeleteButton</td>
             </tr>
 HEREDOC;
          }
@@ -81,22 +99,6 @@ HEREDOC;
    }
    
    echo "</table>";
-}
-
-function getRoleOptions()
-{
-   $options = "";
-
-   $roles = Role::getRoles();
-   
-   $options .= "<option style=\"display:none\">";
-   
-   foreach ($roles as $role)
-   {
-      $options .= "<option value=\"$role->roleId\">$role->roleName</option>";
-   }
-   
-   return ($options);
 }
 
 function addUser($firstName, $lastName, $username, $password, $role, $email)
@@ -135,6 +137,16 @@ function addUser($firstName, $lastName, $username, $password, $role, $email)
    }
 }
 
+function removeUser($userId, $customerId)
+{
+   $database = FactoryStatsGlobalDatabase::getInstance();
+   
+   if ($database && $database->isConnected())
+   {
+      $database->removeUserFromCustomer($userId, $customerId);
+   }
+}
+
 function deleteUser($userId)
 {
    $database = FactoryStatsGlobalDatabase::getInstance();
@@ -155,6 +167,7 @@ function updateUser($userId, $firstName, $lastName, $username, $password, $role,
       $userInfo->lastName = $lastName;
       $userInfo->username = $username;
       $userInfo->roles = $role;
+      $userInfo->permissions = Role::getRole($userInfo->roles)->defaultPermissions;
       $userInfo->email = $email;
 
       // Updated password, if changed.
@@ -175,48 +188,62 @@ function updateUser($userId, $firstName, $lastName, $username, $password, $role,
 // *****************************************************************************
 //                              Action handling
 
-$params = Params::parse();
-
-switch ($params->get("action"))
+// Post/Redirect/Get idiom.
+if ($_POST)
 {
-   case "delete":
+   $params = Params::parse();
+   
+   switch ($params->get("action"))
    {
-      deleteUser($params->get("userId"));
-      break;      
+      case "remove":
+      {
+         removeUser($params->get("userId"), Authentication::getAuthenticatedCustomer()->customerId);
+         break;
+      }
+         
+      case "delete":
+      {
+         deleteUser($params->get("userId"));
+         break;      
+      }
+      
+      case "update":
+      {
+         if ($params->getInt("userId") == UserInfo::UNKNOWN_USER_ID)
+         {
+            addUser(
+               $params->get("firstName"),
+               $params->get("lastName"),
+               $params->get("updatedUsername"),
+               $params->get("updatedPassword"),
+               $params->getInt("role"),
+               $params->get("email"),
+               $params->get("authToken"));
+         }
+         else
+         {
+            updateUser(
+               $params->get("userId"),
+               $params->get("firstName"),
+               $params->get("lastName"),
+               $params->get("updatedUsername"),
+               $params->get("updatedPassword"),
+               $params->getInt("role"),
+               $params->get("email"),
+               $params->get("authToken"));
+         }
+         break;
+      }
+      
+      default:
+      {
+         break;
+      }
    }
    
-   case "update":
-   {
-      if ($params->getInt("userId") == UserInfo::UNKNOWN_USER_ID)
-      {
-         addUser(
-            $params->get("firstName"),
-            $params->get("lastName"),
-            $params->get("updatedUsername"),
-            $params->get("updatedPassword"),
-            $params->getInt("role"),
-            $params->get("email"),
-            $params->get("authToken"));
-      }
-      else
-      {
-         updateUser(
-            $params->get("userId"),
-            $params->get("firstName"),
-            $params->get("lastName"),
-            $params->get("updatedUsername"),
-            $params->get("updatedPassword"),
-            $params->getInt("role"),
-            $params->get("email"),
-            $params->get("authToken"));
-      }
-      break;
-   }
-   
-   default:
-   {
-      break;
-   }
+   // Post/Redirect/Get idiom.
+   header("Location: {$_SERVER['REQUEST_URI']}", true, 303);
+   exit();
 }
 
 ?>
@@ -280,7 +307,7 @@ switch ($params->get("action"))
       <input id="password-input" type="password" form="config-form" name="updatedPassword" value="<?php echo UserInfo::DUMMY_PASSWORD ?>">      
       <label>Role</label>
       <select id="role-input" form="config-form" name="role">
-         <?php echo getRoleOptions();?>
+         <?php echo Role::getOptions() ?>
       </select>
       <label>Email</label>
       <input id="email-input" type="text" form="config-form" name="email" value=""> 
@@ -298,7 +325,15 @@ switch ($params->get("action"))
    </div>
 </div>
 
-<div id="duplidate-username-modal" class="modal">
+<div id="confirm-remove-modal" class="modal">
+   <div class="flex-vertical modal-content" style="width:300px;">
+      <div id="close" class="close">&times;</div>
+      <p>Really remove user from this site?</p>
+      <button class="config-button" type="submit" form="config-form" onclick="setAction('remove')">Confirm</button>
+   </div>
+</div>
+
+<div id="duplicate-username-modal" class="modal">
    <div class="flex-vertical modal-content" style="width:300px;">
       <div id="close" class="close">&times;</div>
       <p>User <?php echo $duplicateUsername ?> already exists</p>
@@ -314,7 +349,7 @@ switch ($params->get("action"))
    // Show the duplicate username modal, if necessary.
    if (<?php echo ($duplicateUsername ? "true" : "false")?>)
    {
-      showModal("duplidate-username-modal");
+      showModal("duplicate-username-modal");
    }
 </script>
 
