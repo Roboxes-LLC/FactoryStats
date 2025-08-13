@@ -26,12 +26,12 @@ class Time
       return  (new DateTime($dateTimeString, new DateTimeZone(Time::$timeZone)));
    }
    
-   static public function toMySqlDate($dateString)
+   static public function toMySqlDate($dateString, $format = Time::STANDARD_FORMAT)
    {
       $dateTime = new DateTime($dateString, new DateTimeZone(Time::$timeZone));
       $dateTime->setTimezone(new DateTimeZone('UTC'));
       
-      return ($dateTime->format(Time::STANDARD_FORMAT));
+      return ($dateTime->format($format));
    }
    
    static public function fromMySqlDate($dateString, $format)

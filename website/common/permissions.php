@@ -16,7 +16,8 @@ class Permission
    const UPDATE_COUNT        = 10;
    const PRESENTATION_CONFIG = 11;
    const SENSOR_CONFIG       = 11;
-   const LAST                = 13;
+   const CYCLE_TIME          = 17;
+   const LAST                = 18;
    
    const NO_PERMISSIONS = 0x0000;
    const ALL_PERMISSIONS = 0xFFFF;
@@ -32,18 +33,19 @@ class Permission
       if (Permission::$permissions == null)
       {
          Permission::$permissions =
-            array(new Permission(Permission::WORKSTATION_SUMMARY, "Workstation Summary"),
-                  new Permission(Permission::WORKSTATION,         "Workstation"),
-                  new Permission(Permission::PRODUCTION_HISTORY,  "Production History"),
-                  new Permission(Permission::CUSTOMER_CONFIG,     "Customer Config"),
-                  new Permission(Permission::USER_CONFIG,         "User Config"),
-                  new Permission(Permission::STATION_CONFIG,      "Station Config"),
-                  new Permission(Permission::BUTTON_CONFIG,       "Hardware Button Config"),
-                  new Permission(Permission::DISPLAY_CONFIG,      "Display Config"),
-                  new Permission(Permission::BREAK_CONFIG,        "Break Config"),
-                  new Permission(Permission::UPDATE_COUNT,        "Can update product counts"),
-                  new Permission(Permission::PRESENTATION_CONFIG, "Can create presentations"),
-                  new Permission(Permission::SENSOR_CONFIG,       "Sensor Config"),
+            array(Permission::WORKSTATION_SUMMARY => new Permission(Permission::WORKSTATION_SUMMARY, "Workstation Summary"),
+                  Permission::WORKSTATION =>         new Permission(Permission::WORKSTATION,         "Workstation"),
+                  Permission::PRODUCTION_HISTORY =>  new Permission(Permission::PRODUCTION_HISTORY,  "Production History"),
+                  Permission::CUSTOMER_CONFIG =>     new Permission(Permission::CUSTOMER_CONFIG,     "Customer Config"),
+                  Permission::USER_CONFIG =>         new Permission(Permission::USER_CONFIG,         "User Config"),
+                  Permission::STATION_CONFIG =>      new Permission(Permission::STATION_CONFIG,      "Station Config"),
+                  Permission::BUTTON_CONFIG =>       new Permission(Permission::BUTTON_CONFIG,       "Hardware Button Config"),
+                  Permission::DISPLAY_CONFIG =>      new Permission(Permission::DISPLAY_CONFIG,      "Display Config"),
+                  Permission::BREAK_CONFIG =>        new Permission(Permission::BREAK_CONFIG,        "Break Config"),
+                  Permission::UPDATE_COUNT =>        new Permission(Permission::UPDATE_COUNT,        "Can update product counts"),
+                  Permission::PRESENTATION_CONFIG => new Permission(Permission::PRESENTATION_CONFIG, "Can create presentations"),
+                  Permission::SENSOR_CONFIG =>       new Permission(Permission::SENSOR_CONFIG,       "Sensor Config"),
+                  Permission::CYCLE_TIME =>          new Permission(Permission::CYCLE_TIME,          "Cycle Time")
             );
       }
       
@@ -54,9 +56,9 @@ class Permission
    {
       $permission = new Permission(Permission::UNKNOWN, "");
       
-      if (($permissionId>= Permission::FIRST) && ($permissionId <= Permission::LAST))
+      if (($permissionId >= Permission::FIRST) && ($permissionId < Permission::LAST))
       {
-         $permission = Permission::getPermissions()[$permissionId - Permission::FIRST];
+         $permission = Permission::getPermissions()[$permissionId];
       }
       
       return ($permission);

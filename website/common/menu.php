@@ -46,12 +46,15 @@ function toggleSubmenu(submenu)
             echo getMenuItem("menu-item-shift-config", Permission::CUSTOMER_CONFIG, "shiftConfig.php", "Shifts");
             echo getMenuItem("menu-item-station-config", Permission::STATION_CONFIG, "stationConfig.php", "Workstations");
             echo getMenuItem("menu-item-station-group-config", Permission::STATION_CONFIG, "stationGroupConfig.php", "Station Groups");
-            echo getMenuItem("menu-item-button-config", Permission::BUTTON_CONFIG, "buttonConfig.php", "Hardware Buttons");
+            /*echo getMenuItem("menu-item-button-config", Permission::BUTTON_CONFIG, "buttonConfig.php", "Hardware Buttons");*/
             echo getMenuItem("menu-item-sensor-config", Permission::SENSOR_CONFIG, "sensorConfig.php", "Sensors");
             echo getMenuItem("menu-item-display-config", Permission::DISPLAY_CONFIG, "displayConfig.php", "Displays");
             echo getMenuItem("menu-item-presentation-config", Permission::PRESENTATION_CONFIG, "presentationConfig.php", "Presentations");
             echo getMenuItem("menu-item-break-config", Permission::BREAK_CONFIG, "breakDescriptionConfig.php", "Breaks");
          ?></div>
    </div>
+   <?php 
+      echo getMenuItem("menu-item-cycle-time", Permission::CYCLE_TIME, "cycleTime.php", "Cycle Time");
+   ?>
    <div class="menu-item-spacer"></div>
 </div>
