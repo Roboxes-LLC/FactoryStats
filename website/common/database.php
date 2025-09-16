@@ -1897,7 +1897,7 @@ class FactoryStatsDatabase extends PDODatabase
       $params[] = Time::toMySqlDate($endDateTime);
       
       $statement = $this->pdo->prepare(
-         "SELECT * FROM exactcount " .
+         "SELECT *, DATE_FORMAT(dateTime, '%Y-%m-%d %H:%i:%s.%f') as dateTime FROM exactcount " .
          "WHERE $stationClause $shiftClause dateTime BETWEEN ? AND ? " .
          "ORDER BY stationId ASC, dateTime ASC;");
       
@@ -1908,7 +1908,7 @@ class FactoryStatsDatabase extends PDODatabase
    
    public function updateExactCount($stationId, $shiftId, $count)
    {
-      $dateTime = Time::toMySqlDate(Time::now("Y-m-d H:i:s"));
+      $dateTime = Time::toMySqlDate(Time::now("Y-m-d H:i:s.u"), "Y-m-d H:i:s.u");
       
       $statement = $this->pdo->prepare(
          "INSERT INTO exactcount " .

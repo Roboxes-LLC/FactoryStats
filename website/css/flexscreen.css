@@ -103,6 +103,10 @@ body {
    text-decoration: none;
 }
 
+div:has(> .submenu-div:empty) {
+   display: none;
+}
+
 a {
   text-decoration: none;
 }

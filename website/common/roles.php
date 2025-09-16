@@ -10,7 +10,8 @@ class Role
    const SUPER_USER  = Role::FIRST;
    const ADMIN       = 2;
    const OPERATOR    = 3;
-   const LAST        = 4;
+   const MANAGER     = 4;
+   const LAST        = 5;
    
    public $roleId;
    
@@ -25,7 +26,8 @@ class Role
          Role::$roles = 
             array(new Role(Role::SUPER_USER,  "Super User",  Permission::ALL_PERMISSIONS),
                   new Role(Role::ADMIN,       "Admin",       Permission::ALL_PERMISSIONS),
-                  new Role(Role::OPERATOR,    "Operator",    Permission::getBits(Permission::WORKSTATION_SUMMARY, Permission::WORKSTATION, Permission::UPDATE_COUNT)),
+                  new Role(Role::MANAGER,     "Manager",     Permission::getBits(Permission::WORKSTATION_SUMMARY, Permission::WORKSTATION, Permission::PRODUCTION_HISTORY, Permission::UPDATE_COUNT)),
+                  new Role(Role::OPERATOR,    "Operator",    Permission::getBits(Permission::WORKSTATION_SUMMARY, Permission::WORKSTATION, Permission::UPDATE_COUNT))
             );
       }
       
@@ -36,9 +38,13 @@ class Role
    {
       $role = new Role(Role::UNKNOWN, "", Permission::NO_PERMISSIONS);
       
-      if (($roleId >= Role::FIRST) && ($roleId <= Role::LAST))
+      foreach (Role::getRoles() as $tempRole)
       {
-         $role = Role::getRoles()[$roleId - Role::FIRST];
+         if ($tempRole->roleId == $roleId)
+         {
+            $role = $tempRole;
+            break;
+         }
       }
       
       return ($role);
@@ -49,6 +55,25 @@ class Role
       $permission = Permission::getPermission($permissionId);
       
       return ($permission->isSetIn($this->defaultPermissions));
+   }
+   
+   public static function getOptions($selectedRole = Role::UNKNOWN, $includeSuperUser = false)
+   {
+      $html = "<option style=\"display:none\">";
+      
+      foreach (Role::getRoles() as $role)
+      {
+         if ($includeSuperUser || ($selectedRole == Role::SUPER_USER) || ($role->roleId != Role::SUPER_USER))
+         {
+            $label = $role->roleName;
+            $value = $role->roleId;
+            $selected = ($selectedRole == $role->roleId) ? "selected" : "";
+         
+            $html .= "<option value=\"$value\" $selected>$label</option>";
+         }
+      }
+      
+      return ($html);
    }
    
    private static $roles = null;
