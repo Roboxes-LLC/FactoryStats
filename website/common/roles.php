@@ -63,7 +63,7 @@ class Role
       
       foreach (Role::getRoles() as $role)
       {
-         if ($includeSuperUser || ($role->roleId != Role::SUPER_USER))
+         if ($includeSuperUser || ($selectedRole == Role::SUPER_USER) || ($role->roleId != Role::SUPER_USER))
          {
             $label = $role->roleName;
             $value = $role->roleId;

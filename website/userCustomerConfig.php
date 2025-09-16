@@ -55,37 +55,38 @@ HEREDOC;
       {
          $userInfo = UserInfo::load(intval($row["userId"]));
          
-         $name = $userInfo->getFullName();
-         
-         $roleName = "Unassigned";
-         $role = Role::getRole($userInfo->roles);
-         if ($role)
+         // TODO: Rework.
+         // A special "display" user authToken is hardcoded in SlideInfo::getUrl() and used when loading
+         // Factory Stats pages into the slideshow.  Until this is reworked, hide this special user
+         // from viewing/editing.
+         if (($userInfo->userId != UserInfo::DISPLAY_USER_ID) &&
+             (($userInfo->roles != Role::SUPER_USER) || (Authentication::getAuthenticatedUser()->roles == Role::SUPER_USER)))  // Hide super users from all others.
          {
-            $roleName = $role->roleName;
-         }
-         
-         echo 
-<<<HEREDOC
-         <tr>
-            <td>$name</td>
-            <td>$userInfo->username</td>
-HEREDOC;
-
-         $userCustomerIds = $userInfo->getCustomers();
-         
-         foreach ($customerIds as $customerId)
-         {
-            $customerInfo = CustomerInfo::load($customerId);
+            $name = $userInfo->getFullName();
             
-            $checked = in_array($customerId, $userCustomerIds) ? "checked" : "";
-            
-            echo
+            echo 
 <<<HEREDOC
-            <td><input type="checkbox" data-userId="$userInfo->userId" value="$customerId" onclick="onCustomerClicked(this)" $checked></td>
+            <tr>
+               <td>$name</td>
+               <td>$userInfo->username</td>
+HEREDOC;
+   
+            $userCustomerIds = $userInfo->getCustomers();
+            
+            foreach ($customerIds as $customerId)
+            {
+               $customerInfo = CustomerInfo::load($customerId);
+               
+               $checked = in_array($customerId, $userCustomerIds) ? "checked" : "";
+               
+               echo
+<<<HEREDOC
+               <td><input type="checkbox" data-userId="$userInfo->userId" value="$customerId" onclick="onCustomerClicked(this)" $checked></td>
 HEREDOC;
          }
-         
-         echo "</tr>";
+            
+            echo "</tr>";
+         }
       }
    }
    

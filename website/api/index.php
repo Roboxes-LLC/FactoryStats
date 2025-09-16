@@ -977,8 +977,6 @@ $router->add("session", function($params) {
 
    if ($action && $key && $value)
    {
-      session_start();
-      
       if ($action == "set")
       {
          $_SESSION[$key] = $value;
