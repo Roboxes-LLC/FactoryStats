@@ -10,12 +10,14 @@ class StationGroup
    public $groupId;
    public $name;
    public $stationIds;
+   public $virtualStationId;
    
    public function __construct()
    {
       $this->groupId = StationGroup::UNKNOWN_GROUP_ID;
       $this->name = null;
       $this->stationIds = array();
+      $this->virtualStationId = StationInfo::UNKNOWN_STATION_ID;
    }
    
    public static function load($groupId)
@@ -39,6 +41,13 @@ class StationGroup
       }
       
       return ($stationGroup);
+   }
+   
+   public function initialize($row)
+   {
+      $this->groupId = intval($row['groupId']);
+      $this->name = $row['name'];
+      $this->virtualStationId = intval($row['virtualStationId']);
    }
    
    public static function getOptions($selectedGroupId)
@@ -68,10 +77,9 @@ class StationGroup
       return ($html);
    }
    
-   private function initialize($row)
+   public function hasVirtualStation()
    {
-      $this->groupId = intval($row['groupId']);
-      $this->name = $row['name'];
+      return ($this->virtualStationId != StationInfo::UNKNOWN_STATION_ID);
    }
    
    private function loadWorkstations()

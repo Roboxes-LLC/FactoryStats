@@ -43,9 +43,7 @@ class StationInfo
 {
    const UNKNOWN_STATION_ID = 0;
    
-   const MIN_STATION_ID = 1;   
-   
-   const MAX_STATION_ID = 64;   
+   const MIN_STATION_ID = 1;
    
    public $stationId;
    public $name;
@@ -53,6 +51,7 @@ class StationInfo
    public $objectName;
    public $cycleTime;
    public $hideOnSummary;
+   public $isVirtualStation;
    
    public $updateTime;
    
@@ -64,6 +63,7 @@ class StationInfo
       $this->objectName = "";
       $this->cycleTime = 0;
       $this->hideOnSummary = false;
+      $this->isVirtualStation = false;
       $this->updateTime = null;
    }
 
@@ -87,6 +87,7 @@ class StationInfo
             $stationInfo->objectName = $row['objectName'];
             $stationInfo->cycleTime = intval($row['cycleTime']);
             $stationInfo->hideOnSummary = filter_var($row["hideOnSummary"], FILTER_VALIDATE_BOOLEAN);
+            $stationInfo->isVirtualStation = filter_var($row["isVirtualStation"], FILTER_VALIDATE_BOOLEAN);
             if ($row['updateTime'])
             {
                $stationInfo->updateTime = Time::fromMySqlDate($row['updateTime'], "Y-m-d H:i:s");
@@ -95,6 +96,43 @@ class StationInfo
       }
       
       return ($stationInfo);
+   }
+   
+   public static function save($stationInfo)
+   {
+      $success = false;
+      
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         if ($stationInfo->stationId == StationInfo::UNKNOWN_STATION_ID)
+         {
+            $success = $database->addStation($stationInfo);
+            
+            $stationInfo->stationId = intval($database->lastInsertId());
+         }
+         else
+         {
+            $success = $database->updateStation($stationInfo);
+         }
+      }
+      
+      return ($success);
+   }
+   
+   public static function delete($stationId)
+   {
+      $success = false;
+      
+      $database = FactoryStatsDatabase::getInstance();
+      
+      if ($database && $database->isConnected())
+      {
+         $success = $database->deleteStation($stationId);
+      }
+      
+      return ($success);
    }
    
    public function getLabel()

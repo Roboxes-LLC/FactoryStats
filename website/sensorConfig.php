@@ -101,7 +101,7 @@ function getStationOptions()
    
    if ($database && $database->isConnected())
    {
-      $result = $database->getStations();
+      $result = $database->getStations(false);  // Exclude virtual stations
       
       foreach ($result as $row)
       {

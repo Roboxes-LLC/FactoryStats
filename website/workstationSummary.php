@@ -93,6 +93,12 @@ function renderStationSummary($stationId, $shiftId)
    $objectName = $stationInfo->objectName;
    $objectNamePlural = $stationInfo->getObjectNamePlural();
    
+   $virtualStationIcon = "";
+   if ($stationInfo->isVirtualStation)
+   {
+      $virtualStationIcon = "<div class=\"material-icons station-label virtual-station-icon\" style=\"margin-left: 10px\">grid_view</div>";
+   }
+   
    /* Hack requested by customer on 5/2/2023 in order to hide embarrassing stats. */
    $hideForDemo = (isKioskMode() && CustomerInfo::isDemoMode()) ? "hide-for-demo" : "";
    
@@ -102,7 +108,7 @@ function renderStationSummary($stationId, $shiftId)
 <<<HEREDOC
       <div class="flex-horizontal" style="justify-content: flex-start;">
          <div class="station-label">{$stationInfo->getLabel()}</div>
-         <!--div class="flex-horizontal hardware-button-led"></div-->
+         $virtualStationIcon
       </div>
 
       <div class="flex-vertical">

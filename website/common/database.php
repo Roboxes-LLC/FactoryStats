@@ -1542,9 +1542,11 @@ class FactoryStatsDatabase extends PDODatabase
       return ($result);
    }
    
-   public function getStations()
+   public function getStations($includeVirtualStations = true)
    {
-      $statement = $this->pdo->prepare("SELECT * from station ORDER BY name ASC;");
+      $virtualStationClause = $includeVirtualStations ? "TRUE" : "isVirtualStation = 0";
+      
+      $statement = $this->pdo->prepare("SELECT * from station WHERE $virtualStationClause ORDER BY name ASC;");
       
       $result = $statement->execute() ? $statement->fetchAll() : null;
       
@@ -1582,8 +1584,8 @@ class FactoryStatsDatabase extends PDODatabase
    public function addStation($stationInfo)
    {
       $statement = $this->pdo->prepare(
-         "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary) " .
-         "VALUES (?, ?, ?, ?, ?);");
+         "INSERT INTO station (name, label, objectName, cycleTime, hideOnSummary, isVirtualStation) " .
+         "VALUES (?, ?, ?, ?, ?, ?);");
       
       $result = $statement->execute(
          [
@@ -1592,6 +1594,7 @@ class FactoryStatsDatabase extends PDODatabase
             $stationInfo->objectName,
             $stationInfo->cycleTime,
             $stationInfo->hideOnSummary ? 1 : 0,
+            $stationInfo->isVirtualStation ? 1 : 0
          ]);
       
       return ($result);
@@ -1601,7 +1604,7 @@ class FactoryStatsDatabase extends PDODatabase
    {
       $statement = $this->pdo->prepare(
          "UPDATE station " .
-         "SET name = ?, label = ?, objectName = ?, cycleTime = ?, hideOnSummary = ? " .
+         "SET name = ?, label = ?, objectName = ?, cycleTime = ?, hideOnSummary = ?, isVirtualStation = ? " .
          "WHERE stationId = ?;");
       
       $result = $statement->execute(
@@ -1611,6 +1614,7 @@ class FactoryStatsDatabase extends PDODatabase
             $stationInfo->objectName,
             $stationInfo->cycleTime,
             $stationInfo->hideOnSummary ? 1 : 0,
+            $stationInfo->isVirtualStation ? 1 : 0,
             $stationInfo->stationId
          ]);
       
@@ -1685,18 +1689,27 @@ class FactoryStatsDatabase extends PDODatabase
    
    public function newStationGroup($stationGroup)
    {
-      $statement = $this->pdo->prepare("INSERT INTO stationgroup (name) VALUES (?);");
+      $statement = $this->pdo->prepare("INSERT INTO stationgroup (name, virtualStationId) VALUES (?, ?);");
       
-      $result = $statement->execute([$stationGroup->name]);
+      $result = 
+         $statement->execute([
+            $stationGroup->name,
+            $stationGroup->virtualStationId
+         ]);
       
       return ($result);
    }
    
    public function updateStationGroup($stationGroup)
    {
-      $statement = $this->pdo->prepare("UPDATE stationgroup SET name = ? WHERE groupId = ?;");
+      $statement = $this->pdo->prepare("UPDATE stationgroup SET name = ?, virtualStationId = ? WHERE groupId = ?;");
       
-      $result = $statement->execute([$stationGroup->name, $stationGroup->groupId]);
+      $result =
+      $statement->execute([
+               $stationGroup->name,
+               $stationGroup->virtualStationId,
+               $stationGroup->groupId
+      ]);
       
       return ($result);
    }
@@ -1712,7 +1725,21 @@ class FactoryStatsDatabase extends PDODatabase
       $result = $statement->execute([$groupId]);
       
       return ($result);
-   }   
+   }
+   
+   public function getVirtualStationIds($stationId)
+   {
+      $statement = 
+         $this->pdo->prepare(
+            "SELECT stationgroup.virtualStationId AS virtualStationId FROM stationgroup " .
+            "INNER JOIN group_station ON stationgroup.groupId = group_station.groupId " .
+            "INNER JOIN station ON station.stationId = group_station.stationId " .
+            "WHERE (station.stationId = ?) AND (stationgroup.virtualStationId > 0);");
+      
+      $result = $statement->execute([$stationId]) ? $statement->fetchAll() : null;
+      
+      return ($result);
+   }
    
    // **************************************************************************
    //                                Group_Station

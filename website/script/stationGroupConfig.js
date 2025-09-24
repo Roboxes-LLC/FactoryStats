@@ -4,13 +4,16 @@ function setGroupId(groupId)
    input.setAttribute('value', groupId);
 }
 
-function setStationGroup(groupId, name, stationIds)
+function setStationGroup(groupId, name, virtualStation, stationIds)
 {
    var input = document.getElementById('group-id-input');
    input.setAttribute('value', groupId);
 
    input = document.getElementById('name-input');
    input.setAttribute('value', name);
+   
+   input = document.getElementById('virtual-station-input');
+   input.checked = virtualStation;
 
    // Uncheck all station inputs.
    let elements = document.getElementsByClassName("stationCheckbox");

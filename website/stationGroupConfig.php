@@ -6,6 +6,7 @@ require_once ROOT.'/common/header.php';
 require_once ROOT.'/common/params.php';
 require_once ROOT.'/common/stationGroup.php';
 require_once ROOT.'/common/version.php';
+require_once ROOT.'/core/manager/stationManager.php';
 
 session_start();
 
@@ -25,6 +26,7 @@ function renderTable()
    <table>
       <tr>
          <th>Group Name</th>
+         <th>Virtual Station</th>
          <th>Workstation Count</th>
          <th>Workstations</th>
          <th></th>
@@ -41,6 +43,13 @@ HEREDOC;
       foreach ($result as $row)
       {
          $stationGroup = StationGroup::load(intval($row["groupId"]));
+         
+         $virtualStationString = $stationGroup->hasVirtualStation() ? "true" : "false";
+         
+         $virtualStationIcon = 
+            $stationGroup->hasVirtualStation() ?
+            "<div class=\"material-icons\">check</div>" :
+            "";
          
          $count = count($stationGroup->stationIds);
          
@@ -69,9 +78,10 @@ HEREDOC;
 <<<HEREDOC
          <tr>
             <td>$stationGroup->name</td>
+            <td>$virtualStationIcon</td>
             <td>$count</td>
             <td>$workstations</td>
-            <td><button class="config-button" onclick="setStationGroup($stationGroup->groupId, '$stationGroup->name', $stationIdArray); showModal('config-modal');">Configure</button></div></td>
+            <td><button class="config-button" onclick="setStationGroup($stationGroup->groupId, '$stationGroup->name', $virtualStationString, $stationIdArray); showModal('config-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setGroupId($stationGroup->groupId); showModal('confirm-delete-modal');">Delete</button></div></td>
          </tr>
 HEREDOC;
@@ -89,7 +99,7 @@ function getWorkstationInputs()
    
    if ($database && $database->isConnected())
    {
-      $result = $database->getStations();
+      $result = $database->getStations(false);  // Exclude virtual stations.
       
       foreach ($result as $row)
       {
@@ -131,12 +141,17 @@ function getStationIdArray($groupId)
    return ($html);
 }
 
-function addStationGroup($name, $stationIds)
+function addStationGroup($name, $virtualStation, $stationIds)
 {
    $stationGroup = new StationGroup();
    
    $stationGroup->name = $name;
    $stationGroup->stationIds = $stationIds;
+   
+   if ($virtualStation)
+   {
+      $stationGroup->virtualStationId = StationManager::createVirtualStation($stationGroup);
+   }
    
    $database = FactoryStatsDatabase::getInstance();
    
@@ -164,13 +179,23 @@ function deleteStationGroup($groupId)
    }
 }
 
-function updateStationGroup($groupId, $name, $stationIds)
+function updateStationGroup($groupId, $name, $virtualStation, $stationIds)
 {
    $stationGroup = StationGroup::load($groupId);
    
    if ($stationGroup)
    {
       $stationGroup->name = $name;
+      
+      if ($stationGroup->hasVirtualStation() && !$virtualStation)
+      {
+         StationManager::deleteVirtualStation($stationGroup->virtualStationId);
+         $stationGroup->virtualStationId = StationInfo::UNKNOWN_STATION_ID;
+      }
+      else if (!$stationGroup->hasVirtualStation() && $virtualStation)
+      {
+         $stationGroup->virtualStationId = StationManager::createVirtualStation($stationGroup);
+      }
       
       $database = FactoryStatsDatabase::getInstance();
       
@@ -252,13 +277,14 @@ switch ($params->get("action"))
       
       if ($params->getInt("groupId") == StationGroup::UNKNOWN_GROUP_ID)
       {
-         addStationGroup($params->get("name"), $stationIds);
+         addStationGroup($params->get("name"), $params->keyExists("virtualStation"), $stationIds);
       }
       else
       {
          updateStationGroup(
             $params->getInt("groupId"),
             $params->get("name"),
+            $params->keyExists("virtualStation"),
             $stationIds);
       }
       break;
@@ -305,7 +331,7 @@ switch ($params->get("action"))
    <div class="main vertical">
       <div class="flex-vertical" style="align-items: flex-end;">
          <div class="flex-horizontal">
-            <button class="config-button" onclick="setStationGroup(0, '', []); showModal('config-modal');">New Group</button>
+            <button class="config-button" onclick="setStationGroup(0, '', false, []); showModal('config-modal');">New Group</button>
          </div>
          <br>
          <?php renderTable();?>
@@ -321,8 +347,15 @@ switch ($params->get("action"))
       <div id="close" class="close">&times;</div>
       <label>Group Name</label>
       <input id="name-input" type="text" form="config-form" name="name" value="">
+      <br>
+      <div class="flex-horizontal">
+         <label>Virtual Station</label>
+         <input id="virtual-station-input" type="checkbox" form="config-form" name="virtualStation" value="">
+      </div>
+      <br>
       <label>Workstations</label>
       <?php echo getWorkstationInputs() ?>
+      <br>
       <div class="flex-horizontal">
          <button class="config-button" type="submit" form="config-form" onclick="setAction('update')">Save</button>
       </div>

@@ -29,6 +29,7 @@ function renderTable()
          <th>Object Name</th>
          <th>Cycle Time (s)</th>
          <th>Hidden</th>
+         <th>Virtual</th>
          <th>Last Update</th>
          <th></th>
          <th></th>
@@ -49,6 +50,8 @@ HEREDOC;
          
          $hideOnSummary = $stationInfo->hideOnSummary ? "true" : "false";
          $hideOnSummarySymbol = $stationInfo->hideOnSummary ? "&#x2714;" : "";  // Heavy check
+         
+         $isVirtualStationSymbol = $stationInfo->isVirtualStation ? "&#x2714;" : "";  // Heavy check
 
          echo 
 <<<HEREDOC
@@ -58,6 +61,7 @@ HEREDOC;
             <td>"$stationInfo->objectName"</td>
             <td>$stationInfo->cycleTime</td>
             <td>$hideOnSummarySymbol</td>
+            <td>$isVirtualStationSymbol</td>
             <td id="station-$stationId-update-time"></td>
             <td><button class="config-button" onclick="setStationId($stationInfo->stationId); setStationInfo('$stationInfo->name', '$stationInfo->label', '$stationInfo->objectName', $stationInfo->cycleTime, $hideOnSummary); showModal('config-station-modal');">Configure</button></div></td>
             <td><button class="config-button" onclick="setStationId($stationInfo->stationId); showModal('confirm-delete-modal');">Delete</button></div></td>

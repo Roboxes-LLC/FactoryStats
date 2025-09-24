@@ -2,6 +2,7 @@
 
 if (!defined('ROOT')) require_once '../../root.php';
 require_once ROOT.'/common/database.php';
+require_once ROOT.'/core/manager/stationManager.php';
 require_once ROOT.'/plugin/pluginManager.php';
 
 class CountManager
@@ -20,6 +21,8 @@ class CountManager
       PluginManager::handleEvent(
          PluginEvent::STATION_COUNT_CHANGED, 
          new StationCountChangedPayload($stationId, $shiftId, $deltaCount));
+      
+      CountManager::updateVirtualCounts($stationId, $shiftId, $deltaCount);
    }
    
    public static function getCycleTimeChartData($stationId, $shiftId, $startDateTime, $endDateTime, $maxCycleTime)
@@ -65,6 +68,16 @@ class CountManager
       $seconds = (($diff->d * 12 * 60 * 60) + ($diff->h * 60 * 60) + ($diff->i * 60) + $diff->s + $diff->f);
       
       return ($seconds);
+   }
+   
+   private static function updateVirtualCounts($stationId, $shiftId, $deltaCount)
+   {
+      $virtualStationIds = StationManager::getVirtualStationIds($stationId);
+      
+      foreach ($virtualStationIds as $virtualStationId)
+      {
+         CountManager::updateCount($virtualStationId, $shiftId, $deltaCount);
+      }
    }
 }
 
